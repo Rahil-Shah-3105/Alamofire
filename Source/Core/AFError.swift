@@ -237,9 +237,12 @@ extension Error {
 
     /// Returns the instance cast as an `AFError`. If casting fails, a `fatalError` with the specified `message` is thrown.
     public func asAFError(orFailWith message: @autoclosure () -> String, file: StaticString = #fileID, line: UInt = #line) -> AFError {
+		print(">>> Entering asAFError(message=\(message),file=\(file),line=\(line))")
         guard let afError = self as? AFError else {
             fatalError(message(), file: file, line: line)
         }
+		print("<<< Exiting asAFError(message=\(message),file=\(file),line=\(line))")
+		print("<<< Exiting asAFError(defaultAFError=\(defaultAFError))")
         return afError
     }
 

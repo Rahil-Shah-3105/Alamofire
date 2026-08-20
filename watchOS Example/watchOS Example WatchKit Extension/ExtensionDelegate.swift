@@ -26,6 +26,7 @@ import WatchKit
 
 class ExtensionDelegate: NSObject, WKExtensionDelegate {
     func handle(_ backgroundTasks: Set<WKRefreshBackgroundTask>) {
+		print(">>> Entering handle(backgroundTasks=\(backgroundTasks))")
         // Sent when the system needs to launch the application in the background to process tasks. Tasks arrive in a set, so loop through and process each one.
         for task in backgroundTasks {
             // Use a switch statement to check the task type
@@ -34,24 +35,32 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate {
                 // Be sure to complete the background task once you’re done.
                 backgroundTask.setTaskCompletedWithSnapshot(false)
             case let snapshotTask as WKSnapshotRefreshBackgroundTask:
+				print("handle(backgroundTasks=\(backgroundTasks)): backgroundTask → \(backgroundTask)")
                 // Snapshot tasks have a unique completion call, make sure to set your expiration date
                 snapshotTask.setTaskCompleted(restoredDefaultState: true, estimatedSnapshotExpiration: Date.distantFuture, userInfo: nil)
             case let connectivityTask as WKWatchConnectivityRefreshBackgroundTask:
+				print("handle(backgroundTasks=\(backgroundTasks)): snapshotTask → \(snapshotTask)")
                 // Be sure to complete the connectivity task once you’re done.
                 connectivityTask.setTaskCompletedWithSnapshot(false)
             case let urlSessionTask as WKURLSessionRefreshBackgroundTask:
+				print("handle(backgroundTasks=\(backgroundTasks)): connectivityTask → \(connectivityTask)")
                 // Be sure to complete the URL session task once you’re done.
                 urlSessionTask.setTaskCompletedWithSnapshot(false)
             case let relevantShortcutTask as WKRelevantShortcutRefreshBackgroundTask:
+				print("handle(backgroundTasks=\(backgroundTasks)): urlSessionTask → \(urlSessionTask)")
                 // Be sure to complete the relevant-shortcut task once you're done.
                 relevantShortcutTask.setTaskCompletedWithSnapshot(false)
             case let intentDidRunTask as WKIntentDidRunRefreshBackgroundTask:
+				print("handle(backgroundTasks=\(backgroundTasks)): relevantShortcutTask → \(relevantShortcutTask)")
                 // Be sure to complete the intent-did-run task once you're done.
                 intentDidRunTask.setTaskCompletedWithSnapshot(false)
             default:
+				print("handle(backgroundTasks=\(backgroundTasks)): intentDidRunTask → \(intentDidRunTask)")
                 // make sure to complete unhandled task types
                 task.setTaskCompletedWithSnapshot(false)
             }
+				print("handle(backgroundTasks=\(backgroundTasks)): task → \(task)")
         }
+		print("<<< Exiting handle(backgroundTasks=\(backgroundTasks))")
     }
 }

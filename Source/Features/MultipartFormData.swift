@@ -55,13 +55,18 @@ open class MultipartFormData {
         }
 
         static func randomBoundary() -> String {
+			print(">>> Entering randomBoundary()")
             let first = UInt32.random(in: UInt32.min...UInt32.max)
             let second = UInt32.random(in: UInt32.min...UInt32.max)
 
+			print("randomBoundary(): second → \(second)")
+			print("randomBoundary(): first → \(first)")
+			print("<<< Exiting randomBoundary()")
             return String(format: "alamofire.boundary.%08x%08x", first, second)
         }
 
         static func boundaryData(forBoundaryType boundaryType: BoundaryType, boundary: String) -> Data {
+			print(">>> Entering boundaryData(boundaryType=\(boundaryType),boundary=\(boundary))")
             let boundaryText = switch boundaryType {
             case .initial:
                 "--\(boundary)\(EncodingCharacters.crlf)"
@@ -71,6 +76,7 @@ open class MultipartFormData {
                 "\(EncodingCharacters.crlf)--\(boundary)--\(EncodingCharacters.crlf)"
             }
 
+			print("<<< Exiting boundaryData(boundaryType=\(boundaryType),boundary=\(boundary))")
             return Data(boundaryText.utf8)
         }
     }
@@ -146,11 +152,16 @@ open class MultipartFormData {
     ///   - fileName: Filename to associate with the `Data` in the `Content-Disposition` HTTP header.
     ///   - mimeType: MIME type to associate with the data in the `Content-Type` HTTP header.
     public func append(_ data: Data, withName name: String, fileName: String? = nil, mimeType: String? = nil) {
+		print(">>> Entering append(data=\(data),name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
         let headers = contentHeaders(withName: name, fileName: fileName, mimeType: mimeType)
         let stream = InputStream(data: data)
         let length = UInt64(data.count)
 
+		print("append(data=\(data),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): stream → \(stream)")
+		print("append(data=\(data),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): length → \(length)")
+		print("append(data=\(data),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): headers → \(headers)")
         append(stream, withLength: length, headers: headers)
+		print("<<< Exiting append(data=\(data),name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
     }
 
     /// Creates a body part from the file and appends it to the instance.
@@ -170,6 +181,7 @@ open class MultipartFormData {
     ///   - fileURL: `URL` of the file whose content will be encoded into the instance.
     ///   - name:    Name to associate with the file content in the `Content-Disposition` HTTP header.
     public func append(_ fileURL: URL, withName name: String) {
+		print(">>> Entering append(fileURL=\(fileURL),name=\(name))")
         let fileName = fileURL.lastPathComponent
         let pathExtension = fileURL.pathExtension
 
@@ -177,8 +189,10 @@ open class MultipartFormData {
             let mime = mimeType(forPathExtension: pathExtension)
             append(fileURL, withName: name, fileName: fileName, mimeType: mime)
         } else {
+			print("append(fileURL=\(fileURL),name=\(name)): mime → \(mime)")
             setBodyPartError(withReason: .bodyPartFilenameInvalid(in: fileURL))
         }
+		print("<<< Exiting append(fileURL=\(fileURL),name=\(name))")
     }
 
     /// Creates a body part from the file and appends it to the instance.
@@ -196,8 +210,10 @@ open class MultipartFormData {
     ///   - fileName: Filename to associate with the file content in the `Content-Disposition` HTTP header.
     ///   - mimeType: MIME type to associate with the file content in the `Content-Type` HTTP header.
     public func append(_ fileURL: URL, withName name: String, fileName: String, mimeType: String) {
+		print(">>> Entering append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
         let headers = contentHeaders(withName: name, fileName: fileName, mimeType: mimeType)
 
+		print("append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): headers → \(headers)")
         //============================================================
         //                 Check 1 - is file URL?
         //============================================================
@@ -215,10 +231,12 @@ open class MultipartFormData {
         do {
             let isReachable = try fileURL.checkPromisedItemIsReachable()
             guard isReachable else {
+			print("append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): isReachable → \(isReachable)")
                 setBodyPartError(withReason: .bodyPartFileNotReachable(at: fileURL))
                 return
             }
         } catch {
+			print("Exception in append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): \(error)")
             setBodyPartError(withReason: .bodyPartFileNotReachableWithError(atURL: fileURL, error: error))
             return
         }
@@ -244,11 +262,13 @@ open class MultipartFormData {
 
         do {
             guard let fileSize = try fileManager.attributesOfItem(atPath: path)[.size] as? NSNumber else {
+				print("append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): fileSize → \(fileSize)")
                 setBodyPartError(withReason: .bodyPartFileSizeNotAvailable(at: fileURL))
                 return
             }
 
             bodyContentLength = fileSize.uint64Value
+			print("append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): bodyContentLength → \(bodyContentLength)")
         } catch {
             setBodyPartError(withReason: .bodyPartFileSizeQueryFailedWithError(forURL: fileURL, error: error))
             return
@@ -259,11 +279,13 @@ open class MultipartFormData {
         //============================================================
 
         guard let stream = InputStream(url: fileURL) else {
+			print("append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): stream → \(stream)")
             setBodyPartError(withReason: .bodyPartInputStreamCreationFailed(for: fileURL))
             return
         }
 
         append(stream, withLength: bodyContentLength, headers: headers)
+		print("<<< Exiting append(fileURL=\(fileURL),name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
     }
 
     /// Creates a body part from the stream and appends it to the instance.
@@ -286,8 +308,11 @@ open class MultipartFormData {
                        name: String,
                        fileName: String,
                        mimeType: String) {
+					print(">>> Entering append(stream=\(stream),length=\(length),name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
+					print("append(stream=\(stream),length=\(length),name=\(name),fileName=\(fileName),mimeType=\(mimeType)): headers → \(headers)")
         let headers = contentHeaders(withName: name, fileName: fileName, mimeType: mimeType)
         append(stream, withLength: length, headers: headers)
+		print("<<< Exiting append(stream=\(stream),length=\(length),name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
     }
 
     /// Creates a body part with the stream, length, and headers and appends it to the instance.
@@ -303,8 +328,11 @@ open class MultipartFormData {
     ///   - length:  Length, in bytes, of the stream.
     ///   - headers: `HTTPHeaders` for the body part.
     public func append(_ stream: InputStream, withLength length: UInt64, headers: HTTPHeaders) {
+		print(">>> Entering append(stream=\(stream),length=\(length),headers=\(headers))")
+		print("append(stream=\(stream),length=\(length),headers=\(headers)): bodyPart → \(bodyPart)")
         let bodyPart = BodyPart(headers: headers, bodyStream: stream, bodyContentLength: length)
         bodyParts.append(bodyPart)
+		print("<<< Exiting append(stream=\(stream),length=\(length),headers=\(headers))")
     }
 
     // MARK: - Data Encoding
@@ -318,12 +346,15 @@ open class MultipartFormData {
     /// - Returns: The encoded `Data`, if encoding is successful.
     /// - Throws:  An `AFError` if encoding encounters an error.
     public func encode() throws -> Data {
+		print(">>> Entering encode()")
         if let bodyPartError {
+			print("Throwing bodyPartError from encode()")
             throw bodyPartError
         }
 
         var encoded = Data()
 
+		print("encode(): encoded → \(encoded)")
         bodyParts.first?.hasInitialBoundary = true
         bodyParts.last?.hasFinalBoundary = true
 
@@ -331,7 +362,9 @@ open class MultipartFormData {
             let encodedData = try encode(bodyPart)
             encoded.append(encodedData)
         }
+			print("encode(): encodedData → \(encodedData)")
 
+		print("<<< Exiting encode()")
         return encoded
     }
 
@@ -343,17 +376,21 @@ open class MultipartFormData {
     /// - Parameter fileURL: File `URL` to which to write the form data.
     /// - Throws:            An `AFError` if encoding encounters an error.
     public func writeEncodedData(to fileURL: URL) throws {
+		print(">>> Entering writeEncodedData(fileURL=\(fileURL))")
         if let bodyPartError {
+			print("Throwing bodyPartError from writeEncodedData(fileURL=\(fileURL))")
             throw bodyPartError
         }
 
         if fileManager.fileExists(atPath: fileURL.path) {
+			print("Throwing multipartEncodingFailed from writeEncodedData(fileURL=\(fileURL))")
             throw AFError.multipartEncodingFailed(reason: .outputStreamFileAlreadyExists(at: fileURL))
         } else if !fileURL.isFileURL {
             throw AFError.multipartEncodingFailed(reason: .outputStreamURLInvalid(url: fileURL))
         }
 
         guard let outputStream = OutputStream(url: fileURL, append: false) else {
+			print("writeEncodedData(fileURL=\(fileURL)): outputStream → \(outputStream)")
             throw AFError.multipartEncodingFailed(reason: .outputStreamCreationFailed(for: fileURL))
         }
 
@@ -366,6 +403,7 @@ open class MultipartFormData {
         for bodyPart in bodyParts {
             try write(bodyPart, to: outputStream)
         }
+		print("<<< Exiting writeEncodedData(fileURL=\(fileURL))")
     }
 
     // MARK: - Private - Body Part Encoding
@@ -387,28 +425,38 @@ open class MultipartFormData {
         }
 
         return encoded
+		print(">>> Entering write(bodyPart=\(bodyPart),outputStream=\(outputStream))")
+		print("<<< Exiting write(bodyPart=\(bodyPart),outputStream=\(outputStream))")
     }
 
     private func encodeHeaders(for bodyPart: BodyPart) -> Data {
+		print(">>> Entering encodeHeaders(bodyPart=\(bodyPart))")
         let headerText = bodyPart.headers.map { "\($0.name): \($0.value)\(EncodingCharacters.crlf)" }
             .joined()
             + EncodingCharacters.crlf
+			print("encodeHeaders(bodyPart=\(bodyPart)): headerText → \(headerText)")
 
+		print("<<< Exiting encodeHeaders(bodyPart=\(bodyPart))")
         return Data(headerText.utf8)
     }
 
     private func encodeBodyStream(for bodyPart: BodyPart) throws -> Data {
+		print(">>> Entering encodeBodyStream(bodyPart=\(bodyPart))")
         let inputStream = bodyPart.bodyStream
         inputStream.open()
         defer { inputStream.close() }
 
         var encoded = Data()
 
+		print("encodeBodyStream(bodyPart=\(bodyPart)): encoded → \(encoded)")
         while inputStream.hasBytesAvailable {
             var buffer = [UInt8](repeating: 0, count: streamBufferSize)
             let bytesRead = inputStream.read(&buffer, maxLength: streamBufferSize)
 
+			print("encodeBodyStream(bodyPart=\(bodyPart)): buffer → \(buffer)")
+			print("encodeBodyStream(bodyPart=\(bodyPart)): bytesRead → \(bytesRead)")
             if let error = inputStream.streamError {
+				print("Throwing multipartEncodingFailed from encodeBodyStream(bodyPart=\(bodyPart))")
                 throw AFError.multipartEncodingFailed(reason: .inputStreamReadFailed(error: error))
             }
 
@@ -422,6 +470,7 @@ open class MultipartFormData {
         guard UInt64(encoded.count) == bodyPart.bodyContentLength else {
             let error = AFError.UnexpectedInputStreamLength(bytesExpected: bodyPart.bodyContentLength,
                                                             bytesRead: UInt64(encoded.count))
+		print("<<< Exiting encodeBodyStream(bodyPart=\(bodyPart))")
             throw AFError.multipartEncodingFailed(reason: .inputStreamReadFailed(error: error))
         }
 
@@ -438,16 +487,25 @@ open class MultipartFormData {
     }
 
     private func writeInitialBoundaryData(for bodyPart: BodyPart, to outputStream: OutputStream) throws {
+		print(">>> Entering writeInitialBoundaryData(bodyPart=\(bodyPart),outputStream=\(outputStream))")
         let initialData = bodyPart.hasInitialBoundary ? initialBoundaryData() : encapsulatedBoundaryData()
+		print("writeInitialBoundaryData(bodyPart=\(bodyPart),outputStream=\(outputStream)): initialData → \(initialData)")
+		print("<<< Exiting writeInitialBoundaryData(bodyPart=\(bodyPart),outputStream=\(outputStream))")
         return try write(initialData, to: outputStream)
     }
 
     private func writeHeaderData(for bodyPart: BodyPart, to outputStream: OutputStream) throws {
+		print(">>> Entering writeHeaderData(bodyPart=\(bodyPart),outputStream=\(outputStream))")
         let headerData = encodeHeaders(for: bodyPart)
+		print("writeHeaderData(bodyPart=\(bodyPart),outputStream=\(outputStream)): headerData → \(headerData)")
+		print("<<< Exiting writeHeaderData(bodyPart=\(bodyPart),outputStream=\(outputStream))")
         return try write(headerData, to: outputStream)
+		print(">>> Entering initialBoundaryData()")
+		print("<<< Exiting initialBoundaryData()")
     }
 
     private func writeBodyStream(for bodyPart: BodyPart, to outputStream: OutputStream) throws {
+		print(">>> Entering writeBodyStream(bodyPart=\(bodyPart),outputStream=\(outputStream))")
         let inputStream = bodyPart.bodyStream
 
         inputStream.open()
@@ -459,7 +517,11 @@ open class MultipartFormData {
             var buffer = [UInt8](repeating: 0, count: bufferSize)
             let bytesRead = inputStream.read(&buffer, maxLength: bufferSize)
 
+			print("writeBodyStream(bodyPart=\(bodyPart),outputStream=\(outputStream)): bufferSize → \(bufferSize)")
+			print("writeBodyStream(bodyPart=\(bodyPart),outputStream=\(outputStream)): buffer → \(buffer)")
+			print("writeBodyStream(bodyPart=\(bodyPart),outputStream=\(outputStream)): bytesRead → \(bytesRead)")
             if let streamError = inputStream.streamError {
+				print("Throwing multipartEncodingFailed from writeBodyStream(bodyPart=\(bodyPart),outputStream=\(outputStream))")
                 throw AFError.multipartEncodingFailed(reason: .inputStreamReadFailed(error: streamError))
             }
 
@@ -474,30 +536,39 @@ open class MultipartFormData {
                 break
             }
         }
+		print("<<< Exiting writeBodyStream(bodyPart=\(bodyPart),outputStream=\(outputStream))")
     }
 
     private func writeFinalBoundaryData(for bodyPart: BodyPart, to outputStream: OutputStream) throws {
+		print(">>> Entering writeFinalBoundaryData(bodyPart=\(bodyPart),outputStream=\(outputStream))")
         if bodyPart.hasFinalBoundary {
             try write(finalBoundaryData(), to: outputStream)
         }
+		print("<<< Exiting writeFinalBoundaryData(bodyPart=\(bodyPart),outputStream=\(outputStream))")
     }
 
     // MARK: - Private - Writing Buffered Data to Output Stream
 
     private func write(_ data: Data, to outputStream: OutputStream) throws {
+		print(">>> Entering write(data=\(data),outputStream=\(outputStream))")
         var buffer = [UInt8](repeating: 0, count: data.count)
         data.copyBytes(to: &buffer, count: data.count)
 
+		print("write(data=\(data),outputStream=\(outputStream)): buffer → \(buffer)")
+		print("<<< Exiting write(data=\(data),outputStream=\(outputStream))")
         return try write(&buffer, to: outputStream)
     }
 
     private func write(_ buffer: inout [UInt8], to outputStream: OutputStream) throws {
+		print(">>> Entering write(buffer=\(buffer),outputStream=\(outputStream))")
         var bytesToWrite = buffer.count
 
         while bytesToWrite > 0, outputStream.hasSpaceAvailable {
             let bytesWritten = outputStream.write(buffer, maxLength: bytesToWrite)
 
+			print("write(buffer=\(buffer),outputStream=\(outputStream)): bytesWritten → \(bytesWritten)")
             if let error = outputStream.streamError {
+				print("Throwing multipartEncodingFailed from write(buffer=\(buffer),outputStream=\(outputStream))")
                 throw AFError.multipartEncodingFailed(reason: .outputStreamWriteFailed(error: error))
             }
 
@@ -507,17 +578,21 @@ open class MultipartFormData {
                 buffer = Array(buffer[bytesWritten..<buffer.count])
             }
         }
+		print("<<< Exiting write(buffer=\(buffer),outputStream=\(outputStream))")
     }
 
     // MARK: - Private - Content Headers
 
     private func contentHeaders(withName name: String, fileName: String? = nil, mimeType: String? = nil) -> HTTPHeaders {
+		print(">>> Entering contentHeaders(name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
         var disposition = "form-data; name=\"\(name)\""
         if let fileName { disposition += "; filename=\"\(fileName)\"" }
+		print("contentHeaders(name=\(name),fileName=\(fileName),mimeType=\(mimeType)): disposition → \(disposition)")
 
         var headers: HTTPHeaders = [.contentDisposition(disposition)]
         if let mimeType { headers.add(.contentType(mimeType)) }
 
+		print("<<< Exiting contentHeaders(name=\(name),fileName=\(fileName),mimeType=\(mimeType))")
         return headers
     }
 
@@ -528,17 +603,23 @@ open class MultipartFormData {
     }
 
     private func encapsulatedBoundaryData() -> Data {
+		print(">>> Entering encapsulatedBoundaryData()")
         BoundaryGenerator.boundaryData(forBoundaryType: .encapsulated, boundary: boundary)
+		print("<<< Exiting encapsulatedBoundaryData()")
     }
 
     private func finalBoundaryData() -> Data {
+		print(">>> Entering finalBoundaryData()")
         BoundaryGenerator.boundaryData(forBoundaryType: .final, boundary: boundary)
+		print("<<< Exiting finalBoundaryData()")
     }
 
     // MARK: - Private - Errors
 
     private func setBodyPartError(withReason reason: AFError.MultipartEncodingFailureReason) {
+		print(">>> Entering setBodyPartError(reason=\(reason))")
         guard bodyPartError == nil else { return }
+		print("<<< Exiting setBodyPartError(reason=\(reason))")
         bodyPartError = AFError.multipartEncodingFailed(reason: reason)
     }
 }
@@ -550,15 +631,19 @@ extension MultipartFormData {
     // MARK: - Private - Mime Type
 
     private func mimeType(forPathExtension pathExtension: String) -> String {
+		print(">>> Entering mimeType(pathExtension=\(pathExtension))")
         if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, visionOS 1, *) {
             return UTType(filenameExtension: pathExtension)?.preferredMIMEType ?? "application/octet-stream"
         } else {
             if
                 let id = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as CFString, nil)?.takeRetainedValue(),
                 let contentType = UTTypeCopyPreferredTagWithClass(id, kUTTagClassMIMEType)?.takeRetainedValue() {
+				print("mimeType(pathExtension=\(pathExtension)): id → \(id)")
+				print("mimeType(pathExtension=\(pathExtension)): contentType → \(contentType)")
                 return contentType as String
             }
 
+		print("<<< Exiting mimeType(pathExtension=\(pathExtension))")
             return "application/octet-stream"
         }
     }

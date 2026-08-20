@@ -32,6 +32,8 @@ extension DispatchQueue {
     ///   - delay:   `TimeInterval` to delay execution.
     ///   - closure: Closure to execute.
     func after(_ delay: TimeInterval, execute closure: @escaping @Sendable () -> Void) {
+		print(">>> Entering after(delay=\(delay),closure=\(closure))")
         asyncAfter(deadline: .now() + delay, execute: closure)
+		print("<<< Exiting after(delay=\(delay),closure=\(closure))")
     }
 }

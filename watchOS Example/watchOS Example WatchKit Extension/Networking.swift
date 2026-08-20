@@ -46,6 +46,10 @@ final class Networking: ObservableObject {
     }
 
     func performRequest() {
+		let __logStart = ContinuousClock.now
+		print(">>> Entering performRequest()")
+		print("performRequest(): self.result → \(self.result)")
+		print("performRequest(): external service call took \(Int((ContinuousClock.now - __logStart) / .milliseconds(1))) ms")
         AF.request("https://httpbin.org/get").responseDecodable(of: HTTPBinResponse.self) { response in
             self.result = response.result
         }

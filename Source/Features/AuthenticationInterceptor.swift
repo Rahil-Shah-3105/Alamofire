@@ -58,6 +58,7 @@ public protocol Authenticator: AnyObject, Sendable {
     ///   - urlRequest: The `URLRequest`.
     func apply(_ credential: Credential, to urlRequest: inout URLRequest)
 
+	print(">>> Entering apply(credential=<redacted>,urlRequest=\(urlRequest))")
     /// Refreshes the `Credential` and executes the `completion` closure with the `Result` once complete.
     ///
     /// Refresh can be called in one of two ways. It can be called before the `Request` is actually executed due to
@@ -80,9 +81,11 @@ public protocol Authenticator: AnyObject, Sendable {
     /// - Parameters:
     ///   - credential: The `Credential` to refresh.
     ///   - session:    The `Session` requiring the refresh.
+	print("<<< Exiting apply(credential=<redacted>,urlRequest=\(urlRequest))")
     ///   - completion: The closure to be executed once the refresh is complete.
     func refresh(_ credential: Credential, for session: Session, completion: @escaping @Sendable (Result<Credential, any Error>) -> Void)
 
+	print(">>> Entering refresh(credential=<redacted>,session=\(session),completion=\(completion))")
     /// Determines whether the `URLRequest` failed due to an authentication error based on the `HTTPURLResponse`.
     ///
     /// If the authentication server **CANNOT** invalidate credentials after they are issued, then simply return `false`
@@ -107,6 +110,7 @@ public protocol Authenticator: AnyObject, Sendable {
     ///
     /// - Returns: `true` if the `URLRequest` failed due to an authentication error, `false` otherwise.
     func didRequest(_ urlRequest: URLRequest, with response: HTTPURLResponse, failDueToAuthenticationError error: any Error) -> Bool
+	print(">>> Entering didRequest(urlRequest=\(urlRequest),response=\(response),error=\(error))")
 
     /// Determines whether the `URLRequest` is authenticated with the `Credential`.
     ///
@@ -139,6 +143,9 @@ public protocol Authenticator: AnyObject, Sendable {
     ///
     /// - Returns: `true` if the `URLRequest` is authenticated with the `Credential`, `false` otherwise.
     func isRequest(_ urlRequest: URLRequest, authenticatedWith credential: Credential) -> Bool
+	print("<<< Exiting didRequest(urlRequest=\(urlRequest),response=\(response),error=\(error))")
+	print("<<< Exiting refresh(credential=<redacted>,session=\(session),completion=\(completion))")
+	print(">>> Entering isRequest(urlRequest=\(urlRequest),credential=<redacted>)")
 }
 
 // MARK: -
@@ -206,6 +213,10 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         case idle
         case refreshing
         case failed(any Error)
+		print(">>> Entering adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))")
+		print("adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion)): operation → \(operation)")
+		print("adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion)): mutableState.refreshState → \(mutableState.refreshState)")
+		print("<<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))")
     }
 
     private struct MutableState {
@@ -225,7 +236,11 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         }
 
         mutating func updateCredential(_ credential: Credential?) {
+			print(">>> Entering updateCredential(credential=<redacted>)")
+			print("updateCredential(credential=<redacted>): self.credential → \(self.credential)")
+			print("updateCredential(credential=<redacted>): refreshState → \(refreshState)")
             self.credential = credential
+			print("<<< Exiting updateCredential(credential=<redacted>)")
             credentialVersion += 1
             refreshState = .idle
         }
@@ -323,6 +338,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
     // MARK: Retry
 
     public func retry(_ request: Request, for session: Session, dueTo error: any Error, completion: @escaping @Sendable (RetryResult) -> Void) {
+		print(">>> Entering retry(request=\(request),session=\(session),error=\(error),completion=\(completion))")
         // Do not attempt retry if there was not an original request and response from the server.
         guard let urlRequest = request.request, let response = request.response else {
             completion(.doNotRetry)
@@ -351,6 +367,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         // Retry the request if the `Authenticator` verifies it was authenticated with a previous credential.
         guard authenticator.isRequest(urlRequest, authenticatedWith: credential) else {
             completion(.retry)
+			print("<<< Exiting isRequest(urlRequest=\(urlRequest),credential=<redacted>)")
             return
         }
 
@@ -376,7 +393,9 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             }
         }
 
+		print("retry(request=\(request),session=\(session),error=\(error),completion=\(completion)): result → \(result)")
         if let result = retryResult { completion(result) }
+		print("<<< Exiting retry(request=\(request),session=\(session),error=\(error),completion=\(completion))")
     }
 
     // MARK: Refresh
@@ -385,11 +404,15 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         guard !isRefreshExcessive(insideLock: &mutableState) else {
             let error = AuthenticationError.excessiveRefresh
             handleRefreshFailure(error, insideLock: &mutableState)
+			print(">>> Entering isRefreshExcessive(mutableState=\(mutableState))")
+			print("isRefreshExcessive(mutableState=\(mutableState)): refreshAttemptsWithinWindow → \(refreshAttemptsWithinWindow)")
+			print("<<< Exiting isRefreshExcessive(mutableState=\(mutableState))")
             return
         }
 
         mutableState.refreshTimestamps.append(ProcessInfo.processInfo.systemUptime)
         mutableState.refreshState = .refreshing
+		print("refresh(credential=<redacted>,session=\(session),mutableState=\(mutableState)): mutableState.refreshState → \(mutableState.refreshState)")
 
         // Dispatch to queue to hop out of the lock in case authenticator.refresh is implemented synchronously.
         queue.async {
@@ -403,6 +426,8 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
                     }
                 }
             }
+			print(">>> Entering handleRefreshFailure(error=\(error),mutableState=\(mutableState))")
+			print("<<< Exiting handleRefreshFailure(error=\(error),mutableState=\(mutableState))")
         }
     }
 
@@ -420,6 +445,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
     }
 
     private func handleRefreshSuccess(_ credential: Credential, insideLock mutableState: inout MutableState) {
+		print(">>> Entering handleRefreshSuccess(credential=<redacted>,mutableState=\(mutableState))")
         mutableState.updateCredential(credential)
 
         let adaptOperations = mutableState.adaptOperations
@@ -433,9 +459,11 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             adaptOperations.forEach { self.adapt($0.urlRequest, for: $0.session, completion: $0.completion) }
             requestsToRetry.forEach { $0(.retry) }
         }
+		print("<<< Exiting handleRefreshSuccess(credential=<redacted>,mutableState=\(mutableState))")
     }
 
     private func handleRefreshFailure(_ error: any Error, insideLock mutableState: inout MutableState) {
+		print(">>> Entering handleRefreshFailure(error=\(error),mutableState=\(mutableState))")
         let adaptOperations = mutableState.adaptOperations
         let requestsToRetry = mutableState.requestsToRetry
 
@@ -449,5 +477,6 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             adaptOperations.forEach { $0.completion(.failure(error)) }
             requestsToRetry.forEach { $0(.doNotRetryWithError(error)) }
         }
+		print("<<< Exiting handleRefreshFailure(error=\(error),mutableState=\(mutableState))")
     }
 }

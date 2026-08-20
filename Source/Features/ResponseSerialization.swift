@@ -62,11 +62,13 @@ public protocol DownloadResponseSerializerProtocol<SerializedObject>: Sendable {
 
 /// A serializer that can handle both data and download responses.
 public protocol ResponseSerializer<SerializedObject>: DataResponseSerializerProtocol & DownloadResponseSerializerProtocol {
+	print(">>> Entering serializeDownload(request=\(request),response=\(response),fileURL=\(fileURL),error=\(error))")
     /// `DataPreprocessor` used to prepare incoming `Data` for serialization.
     var dataPreprocessor: any DataPreprocessor { get }
     /// `HTTPMethod`s for which empty response bodies are considered appropriate.
     var emptyRequestMethods: Set<HTTPMethod> { get }
     /// HTTP response codes for which empty response bodies are considered appropriate.
+	print("<<< Exiting serializeDownload(request=\(request),response=\(response),fileURL=\(fileURL),error=\(error))")
     var emptyResponseCodes: Set<Int> { get }
 }
 
@@ -78,6 +80,7 @@ public protocol DataPreprocessor: Sendable {
 }
 
 /// `DataPreprocessor` that returns passed `Data` without any transform.
+print(">>> Entering preprocess(data=\(data))")
 public struct PassthroughPreprocessor: DataPreprocessor {
     /// Creates an instance.
     public init() {}
@@ -123,9 +126,11 @@ extension ResponseSerializer {
     ///
     /// - Returns:           `Bool` representing the outcome of the evaluation, or `nil` if `request` was `nil`.
     public func requestAllowsEmptyResponseData(_ request: URLRequest?) -> Bool? {
+		print(">>> Entering requestAllowsEmptyResponseData(request=\(request))")
         request.flatMap(\.httpMethod)
             .flatMap(HTTPMethod.init)
             .map { emptyRequestMethods.contains($0) }
+			print("<<< Exiting requestAllowsEmptyResponseData(request=\(request))")
     }
 
     /// Determines whether the `response` allows empty response bodies, if `response` exists.
@@ -134,8 +139,10 @@ extension ResponseSerializer {
     ///
     /// - Returns:            `Bool` representing the outcome of the evaluation, or `nil` if `response` was `nil`.
     public func responseAllowsEmptyResponseData(_ response: HTTPURLResponse?) -> Bool? {
+		print(">>> Entering responseAllowsEmptyResponseData(response=\(response))")
         response.map(\.statusCode)
             .map { emptyResponseCodes.contains($0) }
+			print("<<< Exiting responseAllowsEmptyResponseData(response=\(response))")
     }
 
     /// Determines whether `request` and `response` allow empty response bodies.
@@ -146,7 +153,9 @@ extension ResponseSerializer {
     ///
     /// - Returns:    `true` if `request` or `response` allow empty bodies, `false` otherwise.
     public func emptyResponseAllowed(forRequest request: URLRequest?, response: HTTPURLResponse?) -> Bool {
+		print(">>> Entering emptyResponseAllowed(request=\(request),response=\(response))")
         (requestAllowsEmptyResponseData(request) == true) || (responseAllowsEmptyResponseData(response) == true)
+		print("<<< Exiting emptyResponseAllowed(request=\(request),response=\(response))")
     }
 }
 
@@ -258,9 +267,11 @@ extension ResponseSerializer where Self == DataResponseSerializer {
     public static func data(dataPreprocessor: any DataPreprocessor = DataResponseSerializer.defaultDataPreprocessor,
                             emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                             emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods) -> DataResponseSerializer {
+							print(">>> Entering data(dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
         DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                emptyResponseCodes: emptyResponseCodes,
                                emptyRequestMethods: emptyRequestMethods)
+							print("<<< Exiting data(dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
     }
 }
 
@@ -295,10 +306,12 @@ public final class StringResponseSerializer: ResponseSerializer {
     }
 
     public func serialize(request: URLRequest?, response: HTTPURLResponse?, data: Data?, error: (any Error)?) throws -> String {
+		print(">>> Entering serialize(request=\(request),response=\(response),data=\(data),error=\(error))")
         guard error == nil else { throw error! }
 
         guard var data, !data.isEmpty else {
             guard emptyResponseAllowed(forRequest: request, response: response) else {
+				print("Throwing responseSerializationFailed from serialize(request=\(request),response=\(response),data=\(data),error=\(error))")
                 throw AFError.responseSerializationFailed(reason: .inputDataNilOrZeroLength)
             }
 
@@ -316,9 +329,13 @@ public final class StringResponseSerializer: ResponseSerializer {
         let actualEncoding = convertedEncoding ?? .isoLatin1
 
         guard let string = String(data: data, encoding: actualEncoding) else {
+			print("serialize(request=\(request),response=\(response),data=\(data),error=\(error)): string → \(string)")
             throw AFError.responseSerializationFailed(reason: .stringSerializationFailed(encoding: actualEncoding))
+			print(">>> Entering string(dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
+			print("<<< Exiting string(dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
         }
 
+		print("<<< Exiting serialize(request=\(request),response=\(response),data=\(data),error=\(error))")
         return string
     }
 }
@@ -341,10 +358,12 @@ extension ResponseSerializer where Self == StringResponseSerializer {
                               encoding: String.Encoding? = nil,
                               emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                               emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods) -> StringResponseSerializer {
+							print(">>> Entering string(dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
         StringResponseSerializer(dataPreprocessor: dataPreprocessor,
                                  encoding: encoding,
                                  emptyResponseCodes: emptyResponseCodes,
                                  emptyRequestMethods: emptyRequestMethods)
+								print("<<< Exiting string(dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
     }
 }
 
@@ -414,7 +433,10 @@ public protocol EmptyResponse: Sendable {
 
 /// Type representing an empty value. Use `Empty.value` to get the static instance.
 public struct Empty: Hashable, Codable, Sendable {
+	print(">>> Entering emptyValue()")
+	print("emptyValue(): value → \(value)")
     /// Static `Empty` instance used for all `Empty` responses.
+	print("<<< Exiting emptyValue()")
     public static let value = Empty()
 }
 
@@ -524,9 +546,12 @@ extension ResponseSerializer {
                                                decoder: any DataDecoder = JSONDecoder(),
                                                emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
                                                emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods) -> DecodableResponseSerializer<T> where Self == DecodableResponseSerializer<T> {
+											print(">>> Entering decodable(type=\(type),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
         DecodableResponseSerializer<T>(dataPreprocessor: dataPreprocessor,
                                        decoder: decoder,
                                        emptyResponseCodes: emptyResponseCodes,
                                        emptyRequestMethods: emptyRequestMethods)
+									print("<<< Exiting decodable(type=\(type),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))")
     }
+print("<<< Exiting preprocess(data=\(data))")
 }

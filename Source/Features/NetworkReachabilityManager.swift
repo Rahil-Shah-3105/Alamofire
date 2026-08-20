@@ -171,15 +171,19 @@ open class NetworkReachabilityManager: @unchecked Sendable {
     @discardableResult
     open func startListening(onQueue queue: DispatchQueue = .main,
                              onUpdatePerforming listener: @escaping Listener) -> Bool {
+							print(">>> Entering startListening(queue=\(queue),listener=\(listener))")
         stopListening()
 
         mutableState.write { state in
             state.listenerQueue = queue
+			print("startListening(queue=\(queue),listener=\(listener)): state.listenerQueue → \(state.listenerQueue)")
+			print("startListening(queue=\(queue),listener=\(listener)): state.listener → \(state.listener)")
             state.listener = listener
         }
 
         let weakManager = WeakManager(manager: self)
 
+		print("startListening(queue=\(queue),listener=\(listener)): weakManager → \(weakManager)")
         var context = SCNetworkReachabilityContext(
             version: 0,
             info: Unmanaged.passUnretained(weakManager).toOpaque(),
@@ -202,6 +206,7 @@ open class NetworkReachabilityManager: @unchecked Sendable {
             }
         )
         let callback: SCNetworkReachabilityCallBack = { _, flags, info in
+		print("startListening(queue=\(queue),listener=\(listener)): unmanaged → \(unmanaged)")
             guard let info else { return }
 
             let weakManager = Unmanaged<WeakManager>.fromOpaque(info).takeUnretainedValue()
@@ -211,25 +216,34 @@ open class NetworkReachabilityManager: @unchecked Sendable {
         let queueAdded = SCNetworkReachabilitySetDispatchQueue(reachability, reachabilityQueue)
         let callbackAdded = SCNetworkReachabilitySetCallback(reachability, callback, &context)
 
+		print("startListening(queue=\(queue),listener=\(listener)): description → \(description)")
         // Manually call listener to give initial state, since the framework may not.
+		print("startListening(queue=\(queue),listener=\(listener)): queueAdded → \(queueAdded)")
+		print("startListening(queue=\(queue),listener=\(listener)): callbackAdded → \(callbackAdded)")
         if let currentFlags = flags {
             reachabilityQueue.async {
                 self.notifyListener(currentFlags)
             }
         }
 
+		print("<<< Exiting startListening(queue=\(queue),listener=\(listener))")
         return callbackAdded && queueAdded
     }
 
     /// Stops listening for changes in network reachability status.
     open func stopListening() {
+		print(">>> Entering stopListening()")
         SCNetworkReachabilitySetCallback(reachability, nil, nil)
         SCNetworkReachabilitySetDispatchQueue(reachability, nil)
         mutableState.write { state in
             state.listener = nil
+			print("stopListening(): state.listener → \(state.listener)")
+			print("stopListening(): state.listenerQueue → \(state.listenerQueue)")
+			print("stopListening(): state.previousStatus → \(state.previousStatus)")
             state.listenerQueue = nil
             state.previousStatus = nil
         }
+		print("<<< Exiting stopListening()")
     }
 
     // MARK: - Internal - Listener Notification
@@ -240,16 +254,20 @@ open class NetworkReachabilityManager: @unchecked Sendable {
     ///
     /// - Parameter flags: `SCNetworkReachabilityFlags` to use to calculate the status.
     func notifyListener(_ flags: SCNetworkReachabilityFlags) {
+		print(">>> Entering notifyListener(flags=\(flags))")
         let newStatus = NetworkReachabilityStatus(flags)
 
+		print("notifyListener(flags=\(flags)): newStatus → \(newStatus)")
         mutableState.write { [newStatus] state in
             guard state.previousStatus != newStatus else { return }
 
             state.previousStatus = newStatus
+			print("notifyListener(flags=\(flags)): state.previousStatus → \(state.previousStatus)")
 
             let listener = state.listener
             state.listenerQueue?.async { listener?(newStatus) }
         }
+		print("<<< Exiting notifyListener(flags=\(flags))")
     }
 
     private final class WeakManager {

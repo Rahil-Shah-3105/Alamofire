@@ -35,6 +35,15 @@ final class MultipartUpload: @unchecked Sendable { // Must be @unchecked due to 
             _result.write(result)
 
             return result
+			print(">>> Entering build()")
+			print("build(): data → \(data)")
+			print("build(): uploadable → \(uploadable)")
+			print("build(): directoryURL → \(directoryURL)")
+			print("build(): fileName → \(fileName)")
+			print("build(): fileURL → \(fileURL)")
+			print("Exception in build(): \(error)")
+			print("Throwing error from build()")
+			print("<<< Exiting build()")
         }
     }
 
@@ -54,6 +63,7 @@ final class MultipartUpload: @unchecked Sendable { // Must be @unchecked due to 
     }
 
     func build() throws -> UploadRequest.Uploadable {
+		print(">>> Entering build()")
         let uploadable: UploadRequest.Uploadable
         if multipartFormData.read(\.contentLength) < encodingMemoryThreshold {
             let data = try multipartFormData.read { try $0.encode() }
@@ -70,7 +80,9 @@ final class MultipartUpload: @unchecked Sendable { // Must be @unchecked due to 
             do {
                 try multipartFormData.read { try $0.writeEncodedData(to: fileURL) }
             } catch {
+				print("Exception in build(): \(error)")
                 // Cleanup after attempted write if it fails.
+				print("Throwing error from build()")
                 try? fileManager.removeItem(at: fileURL)
                 throw error
             }
@@ -78,22 +90,28 @@ final class MultipartUpload: @unchecked Sendable { // Must be @unchecked due to 
             uploadable = .file(fileURL, shouldRemove: true)
         }
 
+		print("<<< Exiting build()")
         return uploadable
     }
 }
 
 extension MultipartUpload: UploadConvertible {
     func asURLRequest() throws -> URLRequest {
+		print(">>> Entering asURLRequest()")
         var urlRequest = try request.asURLRequest()
 
+		print("asURLRequest(): urlRequest → \(urlRequest)")
         multipartFormData.read { multipartFormData in
             urlRequest.headers.add(.contentType(multipartFormData.contentType))
         }
 
+		print("<<< Exiting asURLRequest()")
         return urlRequest
     }
 
     func createUploadable() throws -> UploadRequest.Uploadable {
+		print(">>> Entering createUploadable()")
         try result.get()
+		print("<<< Exiting createUploadable()")
     }
 }

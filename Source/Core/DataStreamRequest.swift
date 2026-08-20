@@ -40,6 +40,8 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         /// Cancel the ongoing stream by canceling the underlying `DataStreamRequest`.
         public func cancel() {
             token.cancel()
+			print(">>> Entering cancel()")
+			print("<<< Exiting cancel()")
         }
     }
 
@@ -144,19 +146,24 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		print(">>> Entering task(request=\(request),session=\(session))")
         let copiedRequest = request
+		print("<<< Exiting task(request=\(request),session=\(session))")
         return session.dataTask(with: copiedRequest)
     }
 
     override func finish(error: AFError? = nil) {
+		print(">>> Entering finish(error=\(error))")
         streamMutableState.write { state in
             state.outputStream?.close()
         }
 
         super.finish(error: error)
+		print("<<< Exiting finish(error=\(error))")
     }
 
     func didReceive(data: Data) {
+		print(">>> Entering didReceive(data=\(data))")
         streamMutableState.write { state in
             #if !canImport(FoundationNetworking) // If we not using swift-corelibs-foundation.
             if let stream = state.outputStream {
@@ -166,14 +173,17 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                     var bytes = Array(data)
                     stream.write(&bytes, maxLength: bytes.count)
                 }
+					print("didReceive(data=\(data)): bytes → \(bytes)")
             }
             #endif
             state.numberOfExecutingStreams += state.streams.count
             underlyingQueue.async { [streams = state.streams] in streams.forEach { $0(data) } }
         }
+		print("<<< Exiting didReceive(data=\(data))")
     }
 
     func didReceiveResponse(_ response: HTTPURLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+		print(">>> Entering didReceiveResponse(response=\(response),completionHandler=\(completionHandler))")
         streamMutableState.read { dataMutableState in
             guard let httpResponseHandler = dataMutableState.httpResponseHandler else {
                 underlyingQueue.async { completionHandler(.allow) }
@@ -192,6 +202,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		print("<<< Exiting didReceiveResponse(response=\(response),completionHandler=\(completionHandler))")
     }
 
     /// Validates the `URLRequest` and `HTTPURLResponse` received for the instance using the provided `Validation` closure.
@@ -201,11 +212,13 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     /// - Returns:              The `DataStreamRequest`.
     @discardableResult
     public func validate(_ validation: @escaping Validation) -> Self {
+		print(">>> Entering validate(validation=\(validation))")
         let validator: @Sendable () -> Void = { [unowned self] in
             guard error == nil, let response else { return }
 
             let result = validation(request, response)
 
+			print("validate(validation=\(validation)): result → \(result)")
             if case let .failure(error) = result {
                 self.error = error.asAFError(or: .responseValidationFailed(reason: .customValidationFailed(error: error)))
             }
@@ -218,6 +231,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
 
         validators.write { $0.append(validator) }
 
+		print("<<< Exiting validate(validation=\(validation))")
         return self
     }
 
@@ -232,6 +246,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     ///
     /// - Returns:              The `InputStream` bound to the internal `OutboundStream`.
     public func asInputStream(bufferSize: Int = 1024) -> InputStream? {
+		print(">>> Entering asInputStream(bufferSize=\(bufferSize))")
         defer { resume() }
 
         var inputStream: InputStream?
@@ -242,6 +257,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
             state.outputStream?.open()
         }
 
+		print("<<< Exiting asInputStream(bufferSize=\(bufferSize))")
         return inputStream
     }
     #endif
@@ -263,10 +279,12 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         perform handler: @escaping @Sendable (_ response: HTTPURLResponse,
                                               _ completionHandler: @escaping @Sendable (ResponseDisposition) -> Void) -> Void
     ) -> Self {
+		print(">>> Entering onHTTPResponse(queue=\(queue),handler=\(handler))")
         streamMutableState.write { mutableState in
             mutableState.httpResponseHandler = (queue, handler)
         }
 
+		print("<<< Exiting onHTTPResponse(queue=\(queue),handler=\(handler))")
         return self
     }
 
@@ -290,16 +308,20 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     }
 
     func capturingError(from closure: () throws -> Void) {
+		print(">>> Entering capturingError(closure=\(closure))")
         do {
             try closure()
         } catch {
+			print("Exception in capturingError(closure=\(closure)): \(error)")
             self.error = error.asAFError(or: .responseSerializationFailed(reason: .customSerializationFailed(error: error)))
             cancel()
         }
+		print("<<< Exiting capturingError(closure=\(closure))")
     }
 
     func appendStreamCompletion<Success, Failure>(on queue: DispatchQueue,
                                                   stream: @escaping Handler<Success, Failure>) where Success: Sendable, Failure: Sendable {
+												print(">>> Entering appendStreamCompletion(queue=\(queue),stream=\(stream))")
         appendResponseSerializer {
             self.underlyingQueue.async {
                 self.responseSerializerDidComplete {
@@ -317,10 +339,12 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		print("<<< Exiting appendStreamCompletion(queue=\(queue),stream=\(stream))")
     }
 
     func enqueueCompletion<Success, Failure>(on queue: DispatchQueue,
                                              stream: @escaping Handler<Success, Failure>) where Success: Sendable, Failure: Sendable {
+											print(">>> Entering enqueueCompletion(queue=\(queue),stream=\(stream))")
         queue.async {
             do {
                 let completion = Completion(request: self.request,
@@ -329,9 +353,11 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                                             error: self.error)
                 try stream(.init(event: .complete(completion), token: .init(self)))
             } catch {
+				print("Exception in enqueueCompletion(queue=\(queue),stream=\(stream)): \(error)")
                 // Ignore error, as errors on Completion can't be handled anyway.
             }
         }
+		print("<<< Exiting enqueueCompletion(queue=\(queue),stream=\(stream))")
     }
 
     // MARK: Response Serialization
@@ -346,10 +372,12 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func responseStream(on queue: DispatchQueue = .main, stream: @escaping Handler<Data, Never>) -> Self {
+		print(">>> Entering responseStream(queue=\(queue),stream=\(stream))")
         let parser = { @Sendable [weak self] (data: Data) in
             guard let self else { return }
 
             queue.async {
+				print("responseStream(queue=\(queue),stream=\(stream)): parser → \(parser)")
                 self.capturingError {
                     try stream(.init(event: .stream(.success(data)), token: .init(self)))
                 }
@@ -361,6 +389,8 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         streamMutableState.write { $0.streams.append(parser) }
         appendStreamCompletion(on: queue, stream: stream)
 
+		print("<<< Exiting responseStream(queue=\(queue),stream=\(stream))")
+		print("<<< Exiting responseStream(serializer=\(serializer),queue=\(queue),stream=\(stream))")
         return self
     }
 
@@ -420,13 +450,16 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     @discardableResult
     public func responseStreamString(on queue: DispatchQueue = .main,
                                      stream: @escaping Handler<String, Never>) -> Self {
+									print(">>> Entering responseStreamString(queue=\(queue),stream=\(stream))")
         let parser = { @Sendable [weak self] (data: Data) in
             guard let self else { return }
 
             serializationQueue.async {
+				print("responseStreamString(queue=\(queue),stream=\(stream)): parser → \(parser)")
                 // Start work on serialization queue.
                 let string = String(decoding: data, as: UTF8.self)
                 // End work on serialization queue.
+				print("responseStreamString(queue=\(queue),stream=\(stream)): string → \(string)")
                 self.underlyingQueue.async {
                     self.eventMonitor?.request(self, didParseStream: .success(string))
 
@@ -444,10 +477,12 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         streamMutableState.write { $0.streams.append(parser) }
         appendStreamCompletion(on: queue, stream: stream)
 
+		print("<<< Exiting responseStreamString(queue=\(queue),stream=\(stream))")
         return self
     }
 
     private func updateAndCompleteIfPossible() {
+		print(">>> Entering updateAndCompleteIfPossible()")
         streamMutableState.write { state in
             state.numberOfExecutingStreams -= 1
 
@@ -457,6 +492,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
             self.underlyingQueue.async { completionEvents.forEach { $0() } }
             state.enqueuedCompletionEvents.removeAll()
         }
+		print("<<< Exiting updateAndCompleteIfPossible()")
     }
 
     /// Adds a `StreamHandler` which parses incoming `Data` using the provided `DataDecoder`.
@@ -476,9 +512,11 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                                                       using decoder: any DataDecoder = JSONDecoder(),
                                                       preprocessor: any DataPreprocessor = PassthroughPreprocessor(),
                                                       stream: @escaping Handler<T, AFError>) -> Self where T: Sendable {
+													print(">>> Entering responseStreamDecodable(type=\(type),queue=\(queue),decoder=\(decoder),preprocessor=\(preprocessor),stream=\(stream))")
         responseStream(using: DecodableStreamSerializer<T>(decoder: decoder, dataPreprocessor: preprocessor),
                        on: queue,
                        stream: stream)
+					print("<<< Exiting responseStreamDecodable(type=\(type),queue=\(queue),decoder=\(decoder),preprocessor=\(preprocessor),stream=\(stream))")
     }
 }
 
@@ -529,6 +567,7 @@ public protocol DataStreamSerializer: Sendable {
 
 /// `DataStreamSerializer` which uses the provided `DataPreprocessor` and `DataDecoder` to serialize the incoming `Data`.
 public struct DecodableStreamSerializer<T: Decodable>: DataStreamSerializer where T: Sendable {
+	print(">>> Entering serialize(data=\(data))")
     /// `DataDecoder` used to decode incoming `Data`.
     public let decoder: any DataDecoder
     /// `DataPreprocessor` incoming `Data` is passed through before being passed to the `DataDecoder`.
@@ -541,12 +580,15 @@ public struct DecodableStreamSerializer<T: Decodable>: DataStreamSerializer wher
     ///                       `decoder`. `PassthroughPreprocessor()` by default.
     public init(decoder: any DataDecoder = JSONDecoder(), dataPreprocessor: any DataPreprocessor = PassthroughPreprocessor()) {
         self.decoder = decoder
+		print("serialize(data=\(data)): self.decoder → \(self.decoder)")
+		print("serialize(data=\(data)): self.dataPreprocessor → \(self.dataPreprocessor)")
         self.dataPreprocessor = dataPreprocessor
     }
 
     public func serialize(_ data: Data) throws -> T {
         let processedData = try dataPreprocessor.preprocess(data)
         do {
+			print("<<< Exiting serialize(data=\(data))")
             return try decoder.decode(T.self, from: processedData)
         } catch {
             throw AFError.responseSerializationFailed(reason: .decodingFailed(error: error))
@@ -583,7 +625,9 @@ extension DataStreamSerializer {
     public static func decodable<T: Decodable>(of type: T.Type,
                                                decoder: any DataDecoder = JSONDecoder(),
                                                dataPreprocessor: any DataPreprocessor = PassthroughPreprocessor()) -> Self where Self == DecodableStreamSerializer<T> {
+											print(">>> Entering decodable(type=\(type),decoder=\(decoder),dataPreprocessor=\(dataPreprocessor))")
         DecodableStreamSerializer<T>(decoder: decoder, dataPreprocessor: dataPreprocessor)
+		print("<<< Exiting decodable(type=\(type),decoder=\(decoder),dataPreprocessor=\(dataPreprocessor))")
     }
 }
 
