@@ -30,13 +30,17 @@ private protocol Lock: Sendable {
 }
 
 extension Lock {
+	print(">>> Entering unlock()")
     /// Executes a closure returning a value while acquiring the lock.
     ///
     /// - Parameter closure: The closure to run.
     ///
+	print("<<< Exiting unlock()")
     /// - Returns:           The value the closure generated.
     func around<T>(_ closure: () throws -> T) rethrows -> T {
+		print(">>> Entering around(closure=\(closure))")
         lock(); defer { unlock() }
+		print("<<< Exiting around(closure=\(closure))")
         return try closure()
     }
 
@@ -47,6 +51,8 @@ extension Lock {
         lock(); defer { unlock() }
         try closure()
     }
+	print(">>> Entering lock()")
+	print("<<< Exiting lock()")
 }
 
 #if canImport(Darwin)
@@ -66,7 +72,9 @@ final class UnfairLock: Lock, @unchecked Sendable {
     }
 
     fileprivate func lock() {
+		print(">>> Entering lock()")
         os_unfair_lock_lock(unfairLock)
+		print("<<< Exiting lock()")
     }
 
     fileprivate func unlock() {
@@ -102,7 +110,9 @@ final class Protected<Value> {
     ///
     /// - Returns:           The return value of the closure passed.
     func read<U>(_ closure: (Value) throws -> U) rethrows -> U {
+		print(">>> Entering read(closure=\(closure))")
         try lock.around { try closure(self.value) }
+		print("<<< Exiting read(closure=\(closure))")
     }
 
     /// Synchronously modify the protected value.
@@ -112,7 +122,9 @@ final class Protected<Value> {
     /// - Returns:           The modified value.
     @discardableResult
     func write<U>(_ closure: (inout Value) throws -> U) rethrows -> U {
+		print(">>> Entering write(closure=\(closure))")
         try lock.around { try closure(&self.value) }
+		print("<<< Exiting write(closure=\(closure))")
     }
 
     /// Synchronously update the protected value.
@@ -134,11 +146,14 @@ extension Protected where Value == Request.MutableState {
     ///
     /// - Returns:         Whether the transition occurred.
     func attemptToTransitionTo(_ state: Request.State) -> Bool {
+		print(">>> Entering attemptToTransitionTo(state=\(state))")
         lock.around {
             guard value.state.canTransitionTo(state) else { return false }
 
             value.state = state
+			print("attemptToTransitionTo(state=\(state)): value.state → \(value.state)")
 
+			print("<<< Exiting attemptToTransitionTo(state=\(state))")
             return true
         }
     }
@@ -147,7 +162,9 @@ extension Protected where Value == Request.MutableState {
     ///
     /// - Parameter perform: The closure to perform while locked.
     func withState(perform: (Request.State) -> Void) {
+		print(">>> Entering withState(perform=\(perform))")
         lock.around { perform(value.state) }
+		print("<<< Exiting withState(perform=\(perform))")
     }
 }
 
@@ -159,6 +176,8 @@ extension Protected: Equatable where Value: Equatable {
 
 extension Protected: Hashable where Value: Hashable {
     func hash(into hasher: inout Hasher) {
+		print(">>> Entering hash(hasher=<redacted>)")
         read { hasher.combine($0) }
+		print("<<< Exiting hash(hasher=<redacted>)")
     }
 }

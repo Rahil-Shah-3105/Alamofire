@@ -43,12 +43,15 @@ public protocol ParameterEncoder: Sendable {
 /// If no `Content-Type` header is already set on the provided `URLRequest`s, it's set to `application/json`.
 open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
     /// Returns an encoder with default parameters.
+	print(">>> Entering encode(parameters=\(parameters),request=\(request))")
     public static var `default`: JSONParameterEncoder { JSONParameterEncoder() }
 
     /// Returns an encoder with `JSONEncoder.outputFormatting` set to `.prettyPrinted`.
     public static var prettyPrinted: JSONParameterEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
+		print("encode(parameters=\(parameters),request=\(request)): encoder → \(encoder)")
+		print("encode(parameters=\(parameters),request=\(request)): encoder.outputFormatting → \(encoder.outputFormatting)")
 
         return JSONParameterEncoder(encoder: encoder)
     }
@@ -70,6 +73,7 @@ open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
     /// - Parameter encoder: The `JSONEncoder`. `JSONEncoder()` by default.
     public init(encoder: JSONEncoder = JSONEncoder()) {
         self.encoder = encoder
+		print("encode(parameters=\(parameters),request=\(request)): self.encoder → \(self.encoder)")
     }
 
     open func encode<Parameters: Encodable>(_ parameters: Parameters?,
@@ -81,13 +85,16 @@ open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
         do {
             let data = try encoder.encode(parameters)
             request.httpBody = data
+			print("encode(parameters=\(parameters),request=\(request)): request.httpBody → \(request.httpBody)")
             if request.headers["Content-Type"] == nil {
                 request.headers.update(.contentType("application/json"))
             }
         } catch {
+			print("Exception in encode(parameters=\(parameters),request=\(request)): \(error)")
             throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
         }
 
+		print("<<< Exiting encode(parameters=\(parameters),request=\(request))")
         return request
     }
 }
@@ -101,7 +108,9 @@ extension ParameterEncoder where Self == JSONParameterEncoder {
     /// - Parameter encoder: `JSONEncoder` used to encode parameters. `JSONEncoder()` by default.
     /// - Returns:           The `JSONParameterEncoder`.
     public static func json(encoder: JSONEncoder = JSONEncoder()) -> JSONParameterEncoder {
+		print(">>> Entering json(encoder=\(encoder))")
         JSONParameterEncoder(encoder: encoder)
+		print("<<< Exiting json(encoder=\(encoder))")
     }
 }
 
@@ -129,11 +138,13 @@ open class URLEncodedFormParameterEncoder: @unchecked Sendable, ParameterEncoder
         ///
         /// - Returns:          Whether the URL-encoded string should be applied to a `URL`.
         func encodesParametersInURL(for method: HTTPMethod) -> Bool {
+			print(">>> Entering encodesParametersInURL(method=\(method))")
             switch self {
             case .methodDependent: [.get, .head, .delete].contains(method)
             case .queryString: true
             case .httpBody: false
             }
+			print("<<< Exiting encodesParametersInURL(method=\(method))")
         }
     }
 
@@ -208,6 +219,8 @@ extension ParameterEncoder where Self == URLEncodedFormParameterEncoder {
     /// - Returns:       The `URLEncodedFormParameterEncoder`.
     public static func urlEncodedForm(encoder: URLEncodedFormEncoder = URLEncodedFormEncoder(),
                                       destination: URLEncodedFormParameterEncoder.Destination = .methodDependent) -> URLEncodedFormParameterEncoder {
+									print(">>> Entering urlEncodedForm(encoder=\(encoder),destination=\(destination))")
         URLEncodedFormParameterEncoder(encoder: encoder, destination: destination)
+		print("<<< Exiting urlEncodedForm(encoder=\(encoder),destination=\(destination))")
     }
 }

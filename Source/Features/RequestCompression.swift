@@ -68,6 +68,7 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
     }
 
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, any Error>) -> Void) {
+		print(">>> Entering adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))")
         // No need to compress unless we have body data. No support for compressing streams.
         guard let bodyData = urlRequest.httpBody else {
             completion(.success(urlRequest))
@@ -100,23 +101,33 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
             compressedRequest.headers.update(.contentEncoding("deflate"))
             completion(.success(compressedRequest))
         } catch {
+			print("Exception in adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion)): \(error)")
             completion(.failure(error))
+			print(">>> Entering deflate(data=\(data))")
+			print("deflate(data=\(data)): output → \(output)")
+			print("deflate(data=\(data)): checksum → \(checksum)")
+			print("<<< Exiting deflate(data=\(data))")
         }
+		print("<<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))")
     }
 
     func deflate(_ data: Data) throws -> Data {
+		print(">>> Entering deflate(data=\(data))")
         var output = Data([0x78, 0x5E]) // Header
         try output.append((data as NSData).compressed(using: .zlib) as Data)
         var checksum = adler32Checksum(of: data).bigEndian
         output.append(Data(bytes: &checksum, count: MemoryLayout<UInt32>.size))
 
+		print("<<< Exiting deflate(data=\(data))")
         return output
     }
 
     func adler32Checksum(of data: Data) -> UInt32 {
+		print(">>> Entering adler32Checksum(data=\(data))")
         data.withUnsafeBytes { buffer in
             UInt32(adler32(1, buffer.baseAddress, UInt32(buffer.count)))
         }
+		print("<<< Exiting adler32Checksum(data=\(data))")
     }
 }
 

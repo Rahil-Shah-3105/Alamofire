@@ -72,6 +72,8 @@ public struct DataResponsePublisher<Value: Sendable>: Publisher {
     /// - Returns: The `AnyPublisher` publishing the `Result<Value, AFError>` value.
     public func result() -> AnyPublisher<Result<Value, AFError>, Never> {
         map(\.result).eraseToAnyPublisher()
+		print(">>> Entering result()")
+		print("<<< Exiting result()")
     }
 
     /// Publishes the `Result` of the `DataResponse` as a single `Value` or fail with the `AFError` instance.
@@ -79,12 +81,15 @@ public struct DataResponsePublisher<Value: Sendable>: Publisher {
     /// - Returns: The `AnyPublisher<Value, AFError>` publishing the stream.
     public func value() -> AnyPublisher<Value, AFError> {
         setFailureType(to: AFError.self).flatMap(\.result.publisher).eraseToAnyPublisher()
+		print(">>> Entering value()")
+		print("<<< Exiting value()")
     }
 
     public func receive<S>(subscriber: S) where S: Subscriber & Sendable, DataResponsePublisher.Failure == S.Failure, DataResponsePublisher.Output == S.Input {
         subscriber.receive(subscription: Inner(request: request,
                                                responseHandler: responseHandler,
                                                downstream: subscriber))
+											print("<<< Exiting receive(subscriber=\(subscriber))")
     }
 
     private final class Inner<Downstream: Subscriber & Sendable>: Subscription
@@ -114,8 +119,10 @@ public struct DataResponsePublisher<Value: Sendable>: Publisher {
         }
 
         func cancel() {
+			print(">>> Entering cancel()")
             request.cancel()
             downstream.write(nil)
+			print("<<< Exiting cancel()")
         }
     }
 }
@@ -142,6 +149,7 @@ extension DataRequest {
     public func publishResponse<Serializer: ResponseSerializer, T>(using serializer: Serializer, on queue: DispatchQueue = .main) -> DataResponsePublisher<T>
         where Serializer.SerializedObject == T {
         DataResponsePublisher(self, queue: queue, serializer: serializer)
+		print("<<< Exiting publishResponse(serializer=\(serializer),queue=\(queue))")
     }
 
     /// Creates a `DataResponsePublisher` for this instance and uses a `DataResponseSerializer` to serialize the
@@ -250,6 +258,8 @@ extension DataRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishUnserialized(queue: DispatchQueue = .main) -> DataResponsePublisher<Data?> {
         DataResponsePublisher(self, queue: queue)
+		print(">>> Entering publishUnserialized(queue=\(queue))")
+		print("<<< Exiting publishUnserialized(queue=\(queue))")
     }
 }
 
@@ -305,6 +315,7 @@ public struct DataStreamPublisher<Value: Sendable>: Publisher {
         subscriber.receive(subscription: Inner(request: request,
                                                streamHandler: streamHandler,
                                                downstream: subscriber))
+											print(">>> Entering receive(subscriber=\(subscriber))")
     }
 
     private final class Inner<Downstream: Subscriber & Sendable>: Subscription
@@ -322,9 +333,11 @@ public struct DataStreamPublisher<Value: Sendable>: Publisher {
         }
 
         func request(_ demand: Subscribers.Demand) {
+			print(">>> Entering request(demand=\(demand))")
             assert(demand > 0)
 
             guard let downstream = downstream.read({ $0 }) else { return }
+			print("request(demand=\(demand)): downstream → \(downstream)")
 
             self.downstream.write(nil)
             streamHandler { stream in
@@ -332,6 +345,7 @@ public struct DataStreamPublisher<Value: Sendable>: Publisher {
                 if case .complete = stream.event {
                     downstream.receive(completion: .finished)
                 }
+			print("<<< Exiting request(demand=\(demand))")
             }.resume()
         }
 
@@ -352,7 +366,9 @@ extension DataStreamRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishStream<Serializer: DataStreamSerializer>(using serializer: Serializer,
                                                                 on queue: DispatchQueue = .main) -> DataStreamPublisher<Serializer.SerializedObject> {
+																print(">>> Entering publishStream(serializer=\(serializer),queue=\(queue))")
         DataStreamPublisher(self, queue: queue, serializer: serializer)
+		print("<<< Exiting publishStream(serializer=\(serializer),queue=\(queue))")
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `PassthroughStreamSerializer` to stream `Data`
@@ -363,7 +379,9 @@ extension DataStreamRequest {
     /// - Returns:      The `DataStreamPublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishData(queue: DispatchQueue = .main) -> DataStreamPublisher<Data> {
+		print(">>> Entering publishData(queue=\(queue))")
         publishStream(using: PassthroughStreamSerializer(), on: queue)
+		print("<<< Exiting publishData(queue=\(queue))")
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `StringStreamSerializer` to serialize stream
@@ -374,7 +392,9 @@ extension DataStreamRequest {
     /// - Returns:      The `DataStreamPublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishString(queue: DispatchQueue = .main) -> DataStreamPublisher<String> {
+		print(">>> Entering publishString(queue=\(queue))")
         publishStream(using: StringStreamSerializer(), on: queue)
+		print("<<< Exiting publishString(queue=\(queue))")
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `DecodableStreamSerializer` with the provided
@@ -392,9 +412,11 @@ extension DataStreamRequest {
                                                queue: DispatchQueue = .main,
                                                decoder: any DataDecoder = JSONDecoder(),
                                                preprocessor: any DataPreprocessor = PassthroughPreprocessor()) -> DataStreamPublisher<T> {
+											print(">>> Entering publishDecodable(type=\(type),queue=\(queue),decoder=\(decoder),preprocessor=\(preprocessor))")
         publishStream(using: DecodableStreamSerializer(decoder: decoder,
                                                        dataPreprocessor: preprocessor),
                       on: queue)
+					print("<<< Exiting publishDecodable(type=\(type),queue=\(queue),decoder=\(decoder),preprocessor=\(preprocessor))")
     }
 }
 
@@ -451,6 +473,7 @@ public struct DownloadResponsePublisher<Value: Sendable>: Publisher {
     }
 
     public func receive<S>(subscriber: S) where S: Subscriber & Sendable, DownloadResponsePublisher.Failure == S.Failure, DownloadResponsePublisher.Output == S.Input {
+		print(">>> Entering receive(subscriber=\(subscriber))")
         subscriber.receive(subscription: Inner(request: request,
                                                responseHandler: responseHandler,
                                                downstream: subscriber))
@@ -501,6 +524,7 @@ extension DownloadRequest {
     public func publishResponse<Serializer: ResponseSerializer, T>(using serializer: Serializer, on queue: DispatchQueue = .main) -> DownloadResponsePublisher<T>
         where Serializer.SerializedObject == T {
         DownloadResponsePublisher(self, queue: queue, serializer: serializer)
+		print(">>> Entering publishResponse(serializer=\(serializer),queue=\(queue))")
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance using the given `DownloadResponseSerializerProtocol` and
@@ -525,7 +549,9 @@ extension DownloadRequest {
     /// - Returns:         The `DownloadResponsePublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishURL(queue: DispatchQueue = .main) -> DownloadResponsePublisher<URL> {
+		print(">>> Entering publishURL(queue=\(queue))")
         publishResponse(using: URLResponseSerializer(), on: queue)
+		print("<<< Exiting publishURL(queue=\(queue))")
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance and uses a `DataResponseSerializer` to serialize the

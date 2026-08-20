@@ -122,6 +122,7 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                       for session: Session,
                       dueTo error: any Error,
                       completion: @escaping @Sendable (RetryResult) -> Void) {
+					print(">>> Entering retry(request=\(request),session=\(session),error=\(error),completion=\(completion))")
         state.write { state in
             guard state.isOfflineError(error) else { completion(.doNotRetry); return }
 
@@ -143,9 +144,11 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                 performResult(retryResult)
             }
         }
+		print("<<< Exiting retry(request=\(request),session=\(session),error=\(error),completion=\(completion))")
     }
 
     private func performResult(_ result: RetryResult) {
+		print(">>> Entering performResult(result=\(result))")
         state.write { state in
             let completions = state.pendingCompletions
             state.cleanupMonitor()
@@ -155,28 +158,37 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                 }
             }
         }
+		print("<<< Exiting performResult(result=\(result))")
     }
 }
 
 @available(macOS 10.14, iOS 12, tvOS 12, watchOS 5, visionOS 1, *)
 extension OfflineRetrier.State {
     fileprivate mutating func startListening(onResult: @escaping @Sendable (_ result: PathMonitor.Result) -> Void) {
+		print(">>> Entering startListening(onResult=\(onResult))")
         let timeout = DispatchWorkItem {
             onResult(.timeout)
         }
         timeoutWorkItem = timeout
+		print("startListening(onResult=\(onResult)): timeoutWorkItem → \(timeoutWorkItem)")
         OfflineRetrier.monitorQueue.asyncAfter(deadline: .now() + maximumWait, execute: timeout)
 
         currentMonitor = monitorCreator()
         currentMonitor?.startListening(on: OfflineRetrier.monitorQueue, onResult: onResult)
+		print("startListening(onResult=\(onResult)): currentMonitor → \(currentMonitor)")
+		print("<<< Exiting startListening(onResult=\(onResult))")
     }
 
     fileprivate mutating func cleanupMonitor() {
+		print(">>> Entering cleanupMonitor()")
         pendingCompletions.removeAll()
         timeoutWorkItem?.cancel()
         timeoutWorkItem = nil
+		print("cleanupMonitor(): timeoutWorkItem → \(timeoutWorkItem)")
+		print("cleanupMonitor(): currentMonitor → \(currentMonitor)")
         currentMonitor?.stopListening()
         currentMonitor = nil
+		print("<<< Exiting cleanupMonitor()")
     }
 }
 
@@ -196,8 +208,10 @@ extension RequestInterceptor where Self == OfflineRetrier {
         maximumWait: DispatchTimeInterval = OfflineRetrier.defaultWait,
         isOfflineError: @escaping @Sendable (_ error: any Error) -> Bool = OfflineRetrier.defaultIsOfflineError
     ) -> OfflineRetrier {
+		print(">>> Entering offlineRetrier(monitor=\(monitor),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))")
         OfflineRetrier(monitor: monitor(), maximumWait: maximumWait, isOfflineError: isOfflineError)
     }
+		print("<<< Exiting offlineRetrier(monitor=\(monitor),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))")
 
     /// Creates an instance using an `NWPathMonitor` configured with the provided `InterfaceType`, maximum wait for
     /// connectivity, and offline error predicate.
@@ -213,7 +227,9 @@ extension RequestInterceptor where Self == OfflineRetrier {
         maximumWait: DispatchTimeInterval = OfflineRetrier.defaultWait,
         isOfflineError: @escaping @Sendable (_ error: any Error) -> Bool = OfflineRetrier.defaultIsOfflineError
     ) -> OfflineRetrier {
+		print(">>> Entering offlineRetrier(requiredInterfaceType=\(requiredInterfaceType),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))")
         OfflineRetrier(requiredInterfaceType: requiredInterfaceType, maximumWait: maximumWait, isOfflineError: isOfflineError)
+		print("<<< Exiting offlineRetrier(requiredInterfaceType=\(requiredInterfaceType),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))")
     }
 
     /// Creates an instance using an `NWPathMonitor` configured with the provided `InterfaceType`s, maximum wait for
@@ -255,11 +271,15 @@ struct PathMonitor {
     var stop: () -> Void
 
     func startListening(on queue: DispatchQueue, onResult: @escaping @Sendable (_ result: Result) -> Void) {
+		print(">>> Entering startListening(queue=\(queue),onResult=\(onResult))")
         start(queue, onResult)
+		print("<<< Exiting startListening(queue=\(queue),onResult=\(onResult))")
     }
 
     func stopListening() {
+		print(">>> Entering stopListening()")
         stop()
+		print("<<< Exiting stopListening()")
     }
 }
 

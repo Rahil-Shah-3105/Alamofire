@@ -49,14 +49,18 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///   - name:  The `HTTPHeader` name.
     ///   - value: The `HTTPHeader` value.
     public mutating func add(name: String, value: String) {
+		print(">>> Entering add(name=\(name),value=\(value))")
         update(HTTPHeader(name: name, value: value))
+		print("<<< Exiting add(name=\(name),value=\(value))")
     }
 
     /// Case-insensitively updates or appends the provided `HTTPHeader` into the instance.
     ///
     /// - Parameter header: The `HTTPHeader` to update or append.
     public mutating func add(_ header: HTTPHeader) {
+		print(">>> Entering add(header=\(header))")
         update(header)
+		print("<<< Exiting add(header=\(header))")
     }
 
     /// Case-insensitively updates or appends an `HTTPHeader` into the instance using the provided `name` and `value`.
@@ -65,15 +69,21 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///   - name:  The `HTTPHeader` name.
     ///   - value: The `HTTPHeader` value.
     public mutating func update(name: String, value: String) {
+		print(">>> Entering update(name=\(name),value=\(value))")
         update(HTTPHeader(name: name, value: value))
+		print("<<< Exiting update(name=\(name),value=\(value))")
     }
 
     /// Case-insensitively updates or appends the provided `HTTPHeader` into the instance.
     ///
     /// - Parameter header: The `HTTPHeader` to update or append.
     public mutating func update(_ header: HTTPHeader) {
+		print(">>> Entering update(header=\(header))")
         guard let index = headers.index(of: header.name) else {
+			print("<<< Exiting update(name=\(name),value=\(value))")
             headers.append(header)
+			print("<<< Exiting index(i=\(i))")
+			print("<<< Exiting index(name=\(name))")
             return
         }
 
@@ -84,23 +94,29 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///
     /// - Parameter name: The name of the `HTTPHeader` to remove.
     public mutating func remove(name: String) {
+		print(">>> Entering remove(name=\(name))")
         guard let index = headers.index(of: name) else { return }
 
         headers.remove(at: index)
+		print("<<< Exiting remove(name=\(name))")
     }
 
     /// Sort the current instance by header name, case insensitively.
     public mutating func sort() {
+		print(">>> Entering sort()")
         headers.sort { $0.name.lowercased() < $1.name.lowercased() }
+		print("<<< Exiting sort()")
     }
 
     /// Returns an instance sorted by header name.
     ///
     /// - Returns: A copy of the current instance sorted by name.
     public func sorted() -> HTTPHeaders {
+		print(">>> Entering sorted()")
         var headers = self
         headers.sort()
 
+		print("<<< Exiting sorted()")
         return headers
     }
 
@@ -110,9 +126,12 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///
     /// - Returns:        The value of header, if it exists.
     public func value(for name: String) -> String? {
+		print(">>> Entering value(name=\(name))")
         guard let index = headers.index(of: name) else { return nil }
 
+		print("<<< Exiting value(name=\(name))")
         return headers[index].value
+		print(">>> Entering index(i=\(i))")
     }
 
     /// Case-insensitively access the header with the given name.
@@ -153,7 +172,9 @@ extension HTTPHeaders: ExpressibleByArrayLiteral {
 
 extension HTTPHeaders: Sequence {
     public func makeIterator() -> IndexingIterator<[HTTPHeader]> {
+		print(">>> Entering makeIterator()")
         headers.makeIterator()
+		print("<<< Exiting makeIterator()")
     }
 }
 
@@ -172,6 +193,8 @@ extension HTTPHeaders: Collection {
 
     public func index(after i: Int) -> Int {
         headers.index(after: i)
+		print(">>> Entering index(name=\(name))")
+		print("index(name=\(name)): lowercasedName → \(lowercasedName)")
     }
 }
 
@@ -215,7 +238,9 @@ extension HTTPHeader {
     /// - Parameter value: The `Accept` value.
     /// - Returns:         The header.
     public static func accept(_ value: String) -> HTTPHeader {
+		print(">>> Entering accept(value=\(value))")
         HTTPHeader(name: "Accept", value: value)
+		print("<<< Exiting accept(value=\(value))")
     }
 
     /// Returns an `Accept-Charset` header.
@@ -223,7 +248,9 @@ extension HTTPHeader {
     /// - Parameter value: The `Accept-Charset` value.
     /// - Returns:         The header.
     public static func acceptCharset(_ value: String) -> HTTPHeader {
+		print(">>> Entering acceptCharset(value=\(value))")
         HTTPHeader(name: "Accept-Charset", value: value)
+		print("<<< Exiting acceptCharset(value=\(value))")
     }
 
     /// Returns an `Accept-Language` header.
@@ -235,7 +262,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func acceptLanguage(_ value: String) -> HTTPHeader {
+		print(">>> Entering acceptLanguage(value=\(value))")
         HTTPHeader(name: "Accept-Language", value: value)
+		print("<<< Exiting acceptLanguage(value=\(value))")
     }
 
     /// Returns an `Accept-Encoding` header.
@@ -247,7 +276,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header
     public static func acceptEncoding(_ value: String) -> HTTPHeader {
+		print(">>> Entering acceptEncoding(value=\(value))")
         HTTPHeader(name: "Accept-Encoding", value: value)
+		print("<<< Exiting acceptEncoding(value=\(value))")
     }
 
     /// Returns a `Basic` `Authorization` header using the `username` and `password` provided.
@@ -258,8 +289,13 @@ extension HTTPHeader {
     ///
     /// - Returns:    The header.
     public static func authorization(username: String, password: String) -> HTTPHeader {
+		print(">>> Entering authorization(username=\(username),password=<redacted>)")
         let credential = Data("\(username):\(password)".utf8).base64EncodedString()
 
+		print("authorization(username=\(username),password=<redacted>): credential → <redacted>")
+		print("<<< Exiting authorization(username=\(username),password=<redacted>)")
+		print("<<< Exiting authorization(bearerToken=<redacted>)")
+		print("<<< Exiting authorization(value=\(value))")
         return authorization("Basic \(credential)")
     }
 
@@ -270,6 +306,7 @@ extension HTTPHeader {
     /// - Returns:               The header.
     public static func authorization(bearerToken: String) -> HTTPHeader {
         authorization("Bearer \(bearerToken)")
+		print(">>> Entering authorization(value=\(value))")
     }
 
     /// Returns an `Authorization` header.
@@ -291,7 +328,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func contentDisposition(_ value: String) -> HTTPHeader {
+		print(">>> Entering contentDisposition(value=\(value))")
         HTTPHeader(name: "Content-Disposition", value: value)
+		print("<<< Exiting contentDisposition(value=\(value))")
     }
 
     /// Returns a `Content-Encoding` header.
@@ -300,7 +339,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func contentEncoding(_ value: String) -> HTTPHeader {
+		print(">>> Entering contentEncoding(value=\(value))")
         HTTPHeader(name: "Content-Encoding", value: value)
+		print("<<< Exiting contentEncoding(value=\(value))")
     }
 
     /// Returns a `Content-Type` header.
@@ -312,7 +353,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func contentType(_ value: String) -> HTTPHeader {
+		print(">>> Entering contentType(value=\(value))")
         HTTPHeader(name: "Content-Type", value: value)
+		print("<<< Exiting contentType(value=\(value))")
     }
 
     /// Returns a `User-Agent` header.
@@ -321,7 +364,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func userAgent(_ value: String) -> HTTPHeader {
+		print(">>> Entering userAgent(value=\(value))")
         HTTPHeader(name: "User-Agent", value: value)
+		print("<<< Exiting userAgent(value=\(value))")
     }
 
     /// Returns a `Sec-WebSocket-Protocol` header.
@@ -329,7 +374,9 @@ extension HTTPHeader {
     /// - Parameter value: The `Sec-WebSocket-Protocol` value.
     /// - Returns:         The header.
     public static func websocketProtocol(_ value: String) -> HTTPHeader {
+		print(">>> Entering websocketProtocol(value=\(value))")
         HTTPHeader(name: "Sec-WebSocket-Protocol", value: value)
+		print("<<< Exiting websocketProtocol(value=\(value))")
     }
 }
 
@@ -434,10 +481,13 @@ extension HTTPHeader {
 
 extension Collection<String> {
     func qualityEncoded() -> String {
+		print(">>> Entering qualityEncoded()")
         enumerated().map { index, encoding in
             let quality = 1.0 - (Double(index) * 0.1)
+			print("qualityEncoded(): quality → \(quality)")
             return "\(encoding);q=\(quality)"
         }.joined(separator: ", ")
+		print("<<< Exiting qualityEncoded()")
     }
 }
 
