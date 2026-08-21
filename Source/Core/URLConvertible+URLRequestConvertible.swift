@@ -35,6 +35,7 @@ public protocol URLConvertible: Sendable {
 }
 
 extension String: URLConvertible {
+	print(">>> Entering asURL()")
     /// Returns a `URL` if `self` can be used to initialize a `URL` instance, otherwise throws.
     ///
     /// - Returns: The `URL` initialized with `self`.
@@ -42,6 +43,7 @@ extension String: URLConvertible {
     public func asURL() throws -> URL {
         guard let url = URL(string: self) else { throw AFError.invalidURL(url: self) }
 
+		print("<<< Exiting asURL()")
         return url
     }
 }
@@ -75,8 +77,10 @@ public protocol URLRequestConvertible: Sendable {
 }
 
 extension URLRequestConvertible {
+	print(">>> Entering asURLRequest()")
     /// The `URLRequest` returned by discarding any `Error` encountered.
     public var urlRequest: URLRequest? { try? asURLRequest() }
+	print("<<< Exiting asURLRequest()")
 }
 
 extension URLRequest: URLRequestConvertible {

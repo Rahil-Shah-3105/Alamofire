@@ -55,12 +55,14 @@ extension Request {
         }
 
         func matches(_ mime: MIMEType) -> Bool {
+			print(">>> Entering matches(mime=\(mime))")
             switch (type, subtype) {
             case (mime.type, mime.subtype), (mime.type, "*"), ("*", mime.subtype), ("*", "*"):
                 true
             default:
                 false
             }
+			print("<<< Exiting matches(mime=\(mime))")
         }
     }
 
@@ -82,6 +84,7 @@ extension Request {
                                            response: HTTPURLResponse)
         -> ValidationResult
         where S.Iterator.Element == Int {
+		print(">>> Entering validate(acceptableStatusCodes=\(acceptableStatusCodes),response=\(response))")
         if acceptableStatusCodes.contains(response.statusCode) {
             return .success(())
         } else {
@@ -97,6 +100,7 @@ extension Request {
                                            isEmpty: Bool)
         -> ValidationResult
         where S.Iterator.Element == String {
+		print(">>> Entering validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response),isEmpty=\(isEmpty))")
         guard !isEmpty else { return .success(()) }
 
         return validate(contentType: acceptableContentTypes, response: response)
@@ -106,12 +110,16 @@ extension Request {
                                            response: HTTPURLResponse)
         -> ValidationResult
         where S.Iterator.Element == String {
+		print(">>> Entering validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response))")
         guard
             let responseContentType = response.mimeType,
             let responseMIMEType = MIMEType(responseContentType)
         else {
+			print("validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response)): responseContentType → \(responseContentType)")
+			print("validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response)): responseMIMEType → \(responseMIMEType)")
             for contentType in acceptableContentTypes {
                 if let mimeType = MIMEType(contentType), mimeType.isWildcard {
+					print("validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response)): mimeType → \(mimeType)")
                     return .success(())
                 }
             }
@@ -126,6 +134,7 @@ extension Request {
 
         for contentType in acceptableContentTypes {
             if let acceptableMIMEType = MIMEType(contentType), acceptableMIMEType.matches(responseMIMEType) {
+				print("validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response)): acceptableMIMEType → \(acceptableMIMEType)")
                 return .success(())
             }
         }
@@ -189,6 +198,9 @@ extension DataRequest {
         let contentTypes: @Sendable () -> [String] = { [unowned self] in
             acceptableContentTypes
         }
+		print("<<< Exiting validate(acceptableStatusCodes=\(acceptableStatusCodes),response=\(response))")
+		print("<<< Exiting validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response),isEmpty=\(isEmpty))")
+		print("<<< Exiting validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response))")
         return validate(statusCode: acceptableStatusCodes).validate(contentType: contentTypes())
     }
 }

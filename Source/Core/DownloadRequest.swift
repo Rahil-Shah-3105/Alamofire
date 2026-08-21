@@ -65,10 +65,12 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     public class func suggestedDownloadDestination(for directory: FileManager.SearchPathDirectory = .documentDirectory,
                                                    in domain: FileManager.SearchPathDomainMask = .userDomainMask,
                                                    options: Options = []) -> Destination {
+												print(">>> Entering suggestedDownloadDestination(directory=\(directory),domain=\(domain),options=\(options))")
         { temporaryURL, response in
             let directoryURLs = FileManager.default.urls(for: directory, in: domain)
             let url = response.suggestedFilename.flatMap { directoryURLs.first?.appendingPathComponent($0) } ?? temporaryURL
 
+			print("suggestedDownloadDestination(directory=\(directory),domain=\(domain),options=\(options)): directoryURLs → \(directoryURLs)")
             return (url, options)
         }
     }
@@ -168,12 +170,14 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     }
 
     override func reset() {
+		print(">>> Entering reset()")
         super.reset()
 
         mutableDownloadState.write {
             $0.resumeData = nil
             $0.fileURL = nil
         }
+		print("<<< Exiting reset()")
     }
 
     /// Called when a download has finished.
@@ -182,12 +186,14 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     ///   - task:   `URLSessionTask` that finished the download.
     ///   - result: `Result` of the automatic move to `destination`.
     func didFinishDownloading(using task: URLSessionTask, with result: Result<URL, AFError>) {
+		print(">>> Entering didFinishDownloading(task=\(task),result=\(result))")
         eventMonitor?.request(self, didFinishDownloadingUsing: task, with: result)
 
         switch result {
         case let .success(url): mutableDownloadState.write { $0.fileURL = url }
         case let .failure(error): self.error = error
         }
+		print("<<< Exiting didFinishDownloading(task=\(task),result=\(result))")
     }
 
     /// Updates the `downloadProgress` using the provided values.
@@ -196,14 +202,20 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     ///   - bytesWritten:              Total bytes written so far.
     ///   - totalBytesExpectedToWrite: Total bytes expected to write.
     func updateDownloadProgress(bytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+		print(">>> Entering updateDownloadProgress(bytesWritten=\(bytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite))")
         downloadProgress.totalUnitCount = totalBytesExpectedToWrite
         downloadProgress.completedUnitCount += bytesWritten
+		print("updateDownloadProgress(bytesWritten=\(bytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite)): downloadProgress.totalUnitCount → \(downloadProgress.totalUnitCount)")
 
         downloadProgressHandler?.queue.async { self.downloadProgressHandler?.handler(self.downloadProgress) }
+		print("<<< Exiting updateDownloadProgress(bytesWritten=\(bytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite))")
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		print(">>> Entering task(request=\(request),session=\(session))")
         session.downloadTask(with: request)
+		print(">>> Entering task(data=\(data),session=\(session))")
+		print("<<< Exiting task(request=\(request),session=\(session))")
     }
 
     /// Creates a `URLSessionTask` from the provided resume data.
@@ -225,7 +237,11 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     override public func cancel() -> Self {
+		print(">>> Entering cancel()")
         cancel(producingResumeData: false)
+		print("<<< Exiting cancel()")
+		print(">>> Entering cancel(shouldProduceResumeData=\(shouldProduceResumeData))")
+		print("<<< Exiting cancel(shouldProduceResumeData=\(shouldProduceResumeData))")
     }
 
     /// Cancels the instance, optionally producing resume data. Once cancelled, a `DownloadRequest` can no longer be
@@ -255,6 +271,9 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     @discardableResult
     public func cancel(byProducingResumeData completionHandler: @escaping @Sendable (_ data: Data?) -> Void) -> Self {
         cancel(optionallyProducingResumeData: completionHandler)
+		print(">>> Entering cancel(completionHandler=\(completionHandler))")
+		print("cancel(completionHandler=\(completionHandler)): mutableState.state → \(mutableState.state)")
+		print("<<< Exiting cancel(completionHandler=\(completionHandler))")
     }
 
     /// Internal implementation of cancellation that optionally takes a resume data handler. If no handler is passed,
@@ -311,11 +330,13 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     /// - Returns:              The instance.
     @discardableResult
     public func validate(_ validation: @escaping Validation) -> Self {
+		print(">>> Entering validate(validation=\(validation))")
         let validator: @Sendable () -> Void = { [unowned self] in
             guard error == nil, let response else { return }
 
             let result = validation(request, response, fileURL)
 
+			print("validate(validation=\(validation)): result → \(result)")
             if case let .failure(error) = result {
                 self.error = error.asAFError(or: .responseValidationFailed(reason: .customValidationFailed(error: error)))
             }
@@ -329,6 +350,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
 
         validators.write { $0.append(validator) }
 
+		print("<<< Exiting validate(validation=\(validation))")
         return self
     }
 
@@ -346,10 +368,12 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     public func response(queue: DispatchQueue = .main,
                          completionHandler: @escaping @Sendable (AFDownloadResponse<URL?>) -> Void)
         -> Self {
+		print(">>> Entering response(queue=\(queue),completionHandler=\(completionHandler))")
         appendResponseSerializer {
             // Start work that should be on the serialization queue.
             let result = AFResult<URL?>(value: self.fileURL, error: self.error)
             // End work that should be on the serialization queue.
+			print("response(queue=\(queue),completionHandler=\(completionHandler)): result → \(result)")
 
             self.underlyingQueue.async {
                 let response = DownloadResponse(request: self.request,
@@ -360,12 +384,15 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                                                 serializationDuration: 0,
                                                 result: result)
 
+												print("response(queue=\(queue),completionHandler=\(completionHandler)): response → \(response)")
                 self.eventMonitor?.request(self, didParseResponse: response)
 
                 self.responseSerializerDidComplete { queue.async { completionHandler(response) } }
             }
         }
 
+		print("<<< Exiting response(queue=\(queue),completionHandler=\(completionHandler))")
+		print("<<< Exiting response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler))")
         return self
     }
 
@@ -373,6 +400,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                                                                            responseSerializer: Serializer,
                                                                            completionHandler: @escaping @Sendable (AFDownloadResponse<Serializer.SerializedObject>) -> Void)
         -> Self {
+		print(">>> Entering _response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler))")
         appendResponseSerializer {
             // Start work that should be on the serialization queue.
             let start = ProcessInfo.processInfo.systemUptime
@@ -396,6 +424,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                                                 serializationDuration: end - start,
                                                 result: result)
 
+												print("_response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler)): response → \(response)")
                 self.eventMonitor?.request(self, didParseResponse: response)
 
                 guard !self.isCancelled, let serializerError = result.failure, let delegate = self.delegate else {
@@ -415,6 +444,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                     switch retryResult {
                     case .doNotRetry:
                         didComplete = { completionHandler(response) }
+						print("_response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler)): didComplete → \(didComplete)")
 
                     case let .doNotRetryWithError(retryError):
                         let result: AFResult<Serializer.SerializedObject> = .failure(retryError.asAFError(orFailWith: "Received retryError was not already AFError"))
@@ -436,6 +466,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
             }
         }
 
+		print("<<< Exiting _response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler))")
         return self
     }
 
@@ -488,7 +519,9 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     @discardableResult
     public func responseURL(queue: DispatchQueue = .main,
                             completionHandler: @escaping @Sendable (AFDownloadResponse<URL>) -> Void) -> Self {
+							print(">>> Entering responseURL(queue=\(queue),completionHandler=\(completionHandler))")
         response(queue: queue, responseSerializer: URLResponseSerializer(), completionHandler: completionHandler)
+		print("<<< Exiting responseURL(queue=\(queue),completionHandler=\(completionHandler))")
     }
 
     /// Adds a handler using a `DataResponseSerializer` to be called once the request has finished.
@@ -511,11 +544,13 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                              emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                              emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods,
                              completionHandler: @escaping @Sendable (AFDownloadResponse<Data>) -> Void) -> Self {
+							print(">>> Entering responseData(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))")
         response(queue: queue,
                  responseSerializer: DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				print("<<< Exiting responseData(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))")
     }
 
     /// Adds a handler using a `StringResponseSerializer` to be called once the request has finished.
@@ -541,12 +576,14 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                                emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                                emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods,
                                completionHandler: @escaping @Sendable (AFDownloadResponse<String>) -> Void) -> Self {
+							print(">>> Entering responseString(queue=\(queue),dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))")
         response(queue: queue,
                  responseSerializer: StringResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                               encoding: encoding,
                                                               emptyResponseCodes: emptyResponseCodes,
                                                               emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				print("<<< Exiting responseString(queue=\(queue),dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))")
     }
 
     /// Adds a handler using a `JSONResponseSerializer` to be called once the request has finished.
@@ -573,12 +610,14 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                              emptyRequestMethods: Set<HTTPMethod> = JSONResponseSerializer.defaultEmptyRequestMethods,
                              options: JSONSerialization.ReadingOptions = .allowFragments,
                              completionHandler: @escaping @Sendable (AFDownloadResponse<Any>) -> Void) -> Self {
+							print(">>> Entering responseJSON(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),options=\(options),completionHandler=\(completionHandler))")
         response(queue: queue,
                  responseSerializer: JSONResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods,
                                                             options: options),
                  completionHandler: completionHandler)
+				print("<<< Exiting responseJSON(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),options=\(options),completionHandler=\(completionHandler))")
     }
 
     /// Adds a handler using a `DecodableResponseSerializer` to be called once the request has finished.
@@ -605,11 +644,13 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                                                 emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
                                                 emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods,
                                                 completionHandler: @escaping @Sendable (AFDownloadResponse<T>) -> Void) -> Self where T: Sendable {
+												print(">>> Entering responseDecodable(type=\(type),queue=\(queue),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))")
         response(queue: queue,
                  responseSerializer: DecodableResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                                  decoder: decoder,
                                                                  emptyResponseCodes: emptyResponseCodes,
                                                                  emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				print("<<< Exiting responseDecodable(type=\(type),queue=\(queue),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))")
     }
 }

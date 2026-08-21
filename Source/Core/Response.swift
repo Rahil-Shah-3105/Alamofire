@@ -143,6 +143,8 @@ extension DataResponse {
                                           metrics: metrics,
                                           serializationDuration: serializationDuration,
                                           result: result.map(transform))
+										print(">>> Entering map(transform=\(transform))")
+										print("<<< Exiting map(transform=\(transform))")
     }
 
     /// Evaluates the given closure when the result of this `DataResponse` is a success, passing the unwrapped result
@@ -166,6 +168,8 @@ extension DataResponse {
                                             metrics: metrics,
                                             serializationDuration: serializationDuration,
                                             result: result.tryMap(transform))
+											print(">>> Entering tryMap(transform=\(transform))")
+											print("<<< Exiting tryMap(transform=\(transform))")
     }
 
     /// Evaluates the specified closure when the `DataResponse` is a failure, passing the unwrapped error as a parameter.
@@ -185,6 +189,8 @@ extension DataResponse {
                                           metrics: metrics,
                                           serializationDuration: serializationDuration,
                                           result: result.mapError(transform))
+										print(">>> Entering mapError(transform=\(transform))")
+										print("<<< Exiting mapError(transform=\(transform))")
     }
 
     /// Evaluates the specified closure when the `DataResponse` is a failure, passing the unwrapped error as a parameter.
@@ -206,6 +212,8 @@ extension DataResponse {
                                          metrics: metrics,
                                          serializationDuration: serializationDuration,
                                          result: result.tryMapError(transform))
+										print(">>> Entering tryMapError(transform=\(transform))")
+										print("<<< Exiting tryMapError(transform=\(transform))")
     }
 }
 
@@ -318,6 +326,7 @@ extension DownloadResponse {
     /// - returns: A `DownloadResponse` whose result wraps the value returned by the given closure. If this instance's
     ///            result is a failure, returns a response wrapping the same failure.
     public func map<NewSuccess>(_ transform: (Success) -> NewSuccess) -> DownloadResponse<NewSuccess, Failure> {
+		print(">>> Entering map(transform=\(transform))")
         DownloadResponse<NewSuccess, Failure>(request: request,
                                               response: response,
                                               fileURL: fileURL,
@@ -325,6 +334,7 @@ extension DownloadResponse {
                                               metrics: metrics,
                                               serializationDuration: serializationDuration,
                                               result: result.map(transform))
+											print("<<< Exiting map(transform=\(transform))")
     }
 
     /// Evaluates the given closure when the result of this `DownloadResponse` is a success, passing the unwrapped
@@ -342,6 +352,7 @@ extension DownloadResponse {
     /// - returns: A success or failure `DownloadResponse` depending on the result of the given closure. If this
     /// instance's result is a failure, returns the same failure.
     public func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> DownloadResponse<NewSuccess, any Error> {
+		print(">>> Entering tryMap(transform=\(transform))")
         DownloadResponse<NewSuccess, any Error>(request: request,
                                                 response: response,
                                                 fileURL: fileURL,
@@ -349,6 +360,7 @@ extension DownloadResponse {
                                                 metrics: metrics,
                                                 serializationDuration: serializationDuration,
                                                 result: result.tryMap(transform))
+												print("<<< Exiting tryMap(transform=\(transform))")
     }
 
     /// Evaluates the specified closure when the `DownloadResponse` is a failure, passing the unwrapped error as a parameter.
@@ -362,6 +374,7 @@ extension DownloadResponse {
     ///
     /// - Returns: A `DownloadResponse` instance containing the result of the transform.
     public func mapError<NewFailure: Error>(_ transform: (Failure) -> NewFailure) -> DownloadResponse<Success, NewFailure> {
+		print(">>> Entering mapError(transform=\(transform))")
         DownloadResponse<Success, NewFailure>(request: request,
                                               response: response,
                                               fileURL: fileURL,
@@ -369,6 +382,7 @@ extension DownloadResponse {
                                               metrics: metrics,
                                               serializationDuration: serializationDuration,
                                               result: result.mapError(transform))
+											print("<<< Exiting mapError(transform=\(transform))")
     }
 
     /// Evaluates the specified closure when the `DownloadResponse` is a failure, passing the unwrapped error as a parameter.
@@ -384,6 +398,7 @@ extension DownloadResponse {
     ///
     /// - Returns: A `DownloadResponse` instance containing the result of the transform.
     public func tryMapError<NewFailure: Error>(_ transform: (Failure) throws -> NewFailure) -> DownloadResponse<Success, any Error> {
+		print(">>> Entering tryMapError(transform=\(transform))")
         DownloadResponse<Success, any Error>(request: request,
                                              response: response,
                                              fileURL: fileURL,
@@ -391,20 +406,27 @@ extension DownloadResponse {
                                              metrics: metrics,
                                              serializationDuration: serializationDuration,
                                              result: result.tryMapError(transform))
+											print("<<< Exiting tryMapError(transform=\(transform))")
     }
 }
 
 private enum DebugDescription {
     static func description(of request: URLRequest) -> String {
+		print(">>> Entering description(request=\(request))")
         let requestSummary = "\(request.httpMethod!) \(request)"
         let requestHeadersDescription = DebugDescription.description(for: request.headers)
         let requestBodyDescription = DebugDescription.description(for: request.httpBody, headers: request.headers)
 
+		print("description(request=\(request)): requestHeadersDescription → \(requestHeadersDescription)")
+		print("description(request=\(request)): requestBodyDescription → \(requestBodyDescription)")
+		print("description(request=\(request)): requestSummary → \(requestSummary)")
         return """
         [Request]: \(requestSummary)
             \(requestHeadersDescription.indentingNewlines())
             \(requestBodyDescription.indentingNewlines())
         """
+		print(">>> Entering description(response=\(response))")
+		print("<<< Exiting description(request=\(request))")
     }
 
     static func description(of response: HTTPURLResponse) -> String {
@@ -413,6 +435,8 @@ private enum DebugDescription {
             [Status Code]: \(response.statusCode)
             \(DebugDescription.description(for: response.headers).indentingNewlines())
         """
+		print(">>> Entering description(headers=\(headers))")
+		print("description(headers=\(headers)): headerDescription → \(headerDescription)")
     }
 
     static func description(for headers: HTTPHeaders) -> String {
@@ -423,6 +447,7 @@ private enum DebugDescription {
         [Headers]:
             \(headerDescription)
         """
+		print(">>> Entering description(data=\(data),headers=\(headers),printableTypes=\(printableTypes),maximumLength=\(maximumLength))")
     }
 
     static func description(for data: Data?,
@@ -447,7 +472,10 @@ private enum DebugDescription {
 
 extension String {
     fileprivate func indentingNewlines(by spaceCount: Int = 4) -> String {
+		print(">>> Entering indentingNewlines(spaceCount=\(spaceCount))")
         let spaces = String(repeating: " ", count: spaceCount)
+		print("indentingNewlines(spaceCount=\(spaceCount)): spaces → \(spaces)")
+		print("<<< Exiting indentingNewlines(spaceCount=\(spaceCount))")
         return replacingOccurrences(of: "\n", with: "\n\(spaces)")
     }
 }

@@ -69,8 +69,11 @@ extension NotificationCenter {
     ///   - name:    The name of the notification.
     ///   - request: The `Request` payload.
     func postNotification(named name: Notification.Name, with request: Request) {
+		print(">>> Entering postNotification(name=\(name),request=\(request))")
+		print("postNotification(name=\(name),request=\(request)): notification → \(notification)")
         let notification = Notification(name: name, request: request)
         post(notification)
+		print("<<< Exiting postNotification(name=\(name),request=\(request))")
     }
 }
 
@@ -85,19 +88,27 @@ public final class AlamofireNotifications: EventMonitor {
     public init() {}
 
     public func requestDidResume(_ request: Request) {
+		print(">>> Entering requestDidResume(request=\(request))")
         NotificationCenter.default.postNotification(named: Request.didResumeNotification, with: request)
+		print("<<< Exiting requestDidResume(request=\(request))")
     }
 
     public func requestDidSuspend(_ request: Request) {
+		print(">>> Entering requestDidSuspend(request=\(request))")
         NotificationCenter.default.postNotification(named: Request.didSuspendNotification, with: request)
+		print("<<< Exiting requestDidSuspend(request=\(request))")
     }
 
     public func requestDidCancel(_ request: Request) {
+		print(">>> Entering requestDidCancel(request=\(request))")
         NotificationCenter.default.postNotification(named: Request.didCancelNotification, with: request)
+		print("<<< Exiting requestDidCancel(request=\(request))")
     }
 
     public func requestDidFinish(_ request: Request) {
+		print(">>> Entering requestDidFinish(request=\(request))")
         NotificationCenter.default.postNotification(named: Request.didFinishNotification, with: request)
+		print("<<< Exiting requestDidFinish(request=\(request))")
     }
 
     public func request(_ request: Request, didResumeTask task: URLSessionTask) {
@@ -105,7 +116,9 @@ public final class AlamofireNotifications: EventMonitor {
     }
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
+		print(">>> Entering request(request=\(request),task=\(task))")
         NotificationCenter.default.postNotification(named: Request.didSuspendTaskNotification, with: request)
+		print("<<< Exiting request(request=\(request),task=\(task))")
     }
 
     public func request(_ request: Request, didCancelTask task: URLSessionTask) {
@@ -113,6 +126,8 @@ public final class AlamofireNotifications: EventMonitor {
     }
 
     public func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?) {
+		print(">>> Entering request(request=\(request),task=\(task),error=\(error))")
         NotificationCenter.default.postNotification(named: Request.didCompleteTaskNotification, with: request)
+		print("<<< Exiting request(request=\(request),task=\(task),error=\(error))")
     }
 }

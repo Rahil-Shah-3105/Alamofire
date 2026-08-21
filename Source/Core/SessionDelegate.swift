@@ -46,6 +46,7 @@ open class SessionDelegate: NSObject, @unchecked Sendable {
     ///   - task: The `URLSessionTask` for which to find the associated `Request`.
     ///   - type: The `Request` subclass type to cast any `Request` associate with `task`.
     func request<R: Request>(for task: URLSessionTask, as type: R.Type) -> R? {
+		print(">>> Entering request(task=\(task),type=\(type))")
         guard let provider = stateProvider else {
             assertionFailure("StateProvider is nil for task \(task.taskIdentifier).")
             return nil
@@ -62,16 +63,20 @@ protocol SessionStateProvider: AnyObject, Sendable {
     var cachedResponseHandler: (any CachedResponseHandler)? { get }
 
     func request(for task: URLSessionTask) -> Request?
+	print(">>> Entering request(task=\(task))")
     func didGatherMetricsForTask(_ task: URLSessionTask)
     func didCompleteTask(_ task: URLSessionTask, completion: @escaping () -> Void)
     func credential(for task: URLSessionTask, in protectionSpace: URLProtectionSpace) -> URLCredential?
+	print(">>> Entering didGatherMetricsForTask(task=\(task))")
     func cancelRequestsForSessionInvalidation(with error: (any Error)?)
 }
 
 // MARK: URLSessionDelegate
+print(">>> Entering cancelRequestsForSessionInvalidation(error=\(error))")
 
 extension SessionDelegate: URLSessionDelegate {
     open func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
+		print(">>> Entering urlSession(session=\(session),error=\(error))")
         eventMonitor?.urlSession(session, didBecomeInvalidWithError: error)
 
         // When invalidated due to Session.deinit, stateProvider will already have dropped to nil.
@@ -80,9 +85,11 @@ extension SessionDelegate: URLSessionDelegate {
         let sessionInvalidationCleanup = sessionInvalidationCleanup.write {
             let cleanup = $0
             $0 = nil
+			print("<<< Exiting cancelRequestsForSessionInvalidation(error=\(error))")
             return cleanup
         }
         sessionInvalidationCleanup?()
+		print("<<< Exiting urlSession(session=\(session),error=\(error))")
     }
 }
 
@@ -96,6 +103,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
                          task: URLSessionTask,
                          didReceive challenge: URLAuthenticationChallenge,
                          completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+						print(">>> Entering urlSession(session=\(session),task=\(task),challenge=\(challenge),completionHandler=\(completionHandler))")
         eventMonitor?.urlSession(session, task: task, didReceive: challenge)
 
         let evaluation: ChallengeEvaluation = switch challenge.protectionSpace.authenticationMethod {
@@ -126,6 +134,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     ///
     /// - Returns:             The `ChallengeEvaluation`.
     func attemptServerTrustAuthentication(with challenge: URLAuthenticationChallenge) -> ChallengeEvaluation {
+		print(">>> Entering attemptServerTrustAuthentication(challenge=\(challenge))")
         let host = challenge.protectionSpace.host
 
         guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
@@ -136,6 +145,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
         do {
             guard let evaluator = try stateProvider?.serverTrustManager?.serverTrustEvaluator(forHost: host) else {
+				print("attemptServerTrustAuthentication(challenge=\(challenge)): evaluator → \(evaluator)")
                 return (.performDefaultHandling, nil, nil)
             }
 
@@ -143,6 +153,8 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
             return (.useCredential, URLCredential(trust: trust), nil)
         } catch {
+			print("Exception in attemptServerTrustAuthentication(challenge=\(challenge)): \(error)")
+			print("<<< Exiting attemptServerTrustAuthentication(challenge=\(challenge))")
             return (.cancelAuthenticationChallenge, nil, error.asAFError(or: .serverTrustEvaluationFailed(reason: .customEvaluationFailed(error: error))))
         }
     }
@@ -157,11 +169,14 @@ extension SessionDelegate: URLSessionTaskDelegate {
     /// - Returns:     The `ChallengeEvaluation`.
     func attemptCredentialAuthentication(for challenge: URLAuthenticationChallenge,
                                          belongingTo task: URLSessionTask) -> ChallengeEvaluation {
+										print(">>> Entering attemptCredentialAuthentication(challenge=\(challenge),task=\(task))")
         guard challenge.previousFailureCount == 0 else {
             return (.rejectProtectionSpace, nil, nil)
         }
 
         guard let credential = stateProvider?.credential(for: task, in: challenge.protectionSpace) else {
+			print("attemptCredentialAuthentication(challenge=\(challenge),task=\(task)): credential → <redacted>")
+		print("<<< Exiting attemptCredentialAuthentication(challenge=\(challenge),task=\(task))")
             return (.performDefaultHandling, nil, nil)
         }
 
@@ -173,6 +188,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
                          didSendBodyData bytesSent: Int64,
                          totalBytesSent: Int64,
                          totalBytesExpectedToSend: Int64) {
+						print(">>> Entering urlSession(session=\(session),task=\(task),bytesSent=\(bytesSent),totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))")
         eventMonitor?.urlSession(session,
                                  task: task,
                                  didSendBodyData: bytesSent,
@@ -186,11 +202,14 @@ extension SessionDelegate: URLSessionTaskDelegate {
     open func urlSession(_ session: URLSession,
                          task: URLSessionTask,
                          needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+						print(">>> Entering urlSession(session=\(session),task=\(task),completionHandler=\(completionHandler))")
         eventMonitor?.urlSession(session, taskNeedsNewBodyStream: task)
 
         guard let request = request(for: task, as: UploadRequest.self) else {
+			print("urlSession(session=\(session),task=\(task),completionHandler=\(completionHandler)): request → \(request)")
             assertionFailure("needNewBodyStream did not find UploadRequest.")
             completionHandler(nil)
+			print("<<< Exiting request(task=\(task),type=\(type))")
             return
         }
 
@@ -202,9 +221,11 @@ extension SessionDelegate: URLSessionTaskDelegate {
                          willPerformHTTPRedirection response: HTTPURLResponse,
                          newRequest request: URLRequest,
                          completionHandler: @escaping (URLRequest?) -> Void) {
+						print(">>> Entering urlSession(session=\(session),task=\(task),response=\(response),request=\(request),completionHandler=\(completionHandler))")
         eventMonitor?.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request)
 
         if let redirectHandler = stateProvider?.request(for: task)?.redirectHandler ?? stateProvider?.redirectHandler {
+			print("urlSession(session=\(session),task=\(task),response=\(response),request=\(request),completionHandler=\(completionHandler)): redirectHandler → \(redirectHandler)")
             redirectHandler.task(task, willBeRedirectedTo: request, for: response, completion: completionHandler)
         } else {
             completionHandler(request)
@@ -212,6 +233,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     }
 
     open func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+		print(">>> Entering urlSession(session=\(session),task=\(task),metrics=\(metrics))")
         eventMonitor?.urlSession(session, task: task, didFinishCollecting: metrics)
 
         stateProvider?.request(for: task)?.didGatherMetrics(metrics)
@@ -220,10 +242,12 @@ extension SessionDelegate: URLSessionTaskDelegate {
     }
 
     open func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+		print(">>> Entering urlSession(session=\(session),task=\(task),error=\(error))")
         eventMonitor?.urlSession(session, task: task, didCompleteWithError: error)
 
         let request = stateProvider?.request(for: task)
 
+		print("urlSession(session=\(session),task=\(task),error=\(error)): request → \(request)")
         stateProvider?.didCompleteTask(task) {
             request?.didCompleteTask(task, with: error.map { $0.asAFError(or: .sessionTaskFailed(error: $0)) })
         }
@@ -231,6 +255,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
     @available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
     open func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
+		print(">>> Entering urlSession(session=\(session),task=\(task))")
         eventMonitor?.urlSession(session, taskIsWaitingForConnectivity: task)
     }
 }
@@ -242,11 +267,14 @@ extension SessionDelegate: URLSessionDataDelegate {
                          dataTask: URLSessionDataTask,
                          didReceive response: URLResponse,
                          completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+						print(">>> Entering urlSession(session=\(session),dataTask=\(dataTask),response=\(response),completionHandler=\(completionHandler))")
         eventMonitor?.urlSession(session, dataTask: dataTask, didReceive: response)
 
         guard let response = response as? HTTPURLResponse else { completionHandler(.allow); return }
+		print("urlSession(session=\(session),dataTask=\(dataTask),response=\(response),completionHandler=\(completionHandler)): response → \(response)")
 
         if let request = request(for: dataTask, as: DataRequest.self) {
+			print("urlSession(session=\(session),dataTask=\(dataTask),response=\(response),completionHandler=\(completionHandler)): request → \(request)")
             request.didReceiveResponse(response, completionHandler: completionHandler)
         } else if let request = request(for: dataTask, as: DataStreamRequest.self) {
             request.didReceiveResponse(response, completionHandler: completionHandler)
@@ -258,9 +286,11 @@ extension SessionDelegate: URLSessionDataDelegate {
     }
 
     open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+		print(">>> Entering urlSession(session=\(session),dataTask=\(dataTask),data=\(data))")
         eventMonitor?.urlSession(session, dataTask: dataTask, didReceive: data)
 
         if let request = request(for: dataTask, as: DataRequest.self) {
+			print("urlSession(session=\(session),dataTask=\(dataTask),data=\(data)): request → \(request)")
             request.didReceive(data: data)
         } else if let request = request(for: dataTask, as: DataStreamRequest.self) {
             request.didReceive(data: data)
@@ -274,9 +304,11 @@ extension SessionDelegate: URLSessionDataDelegate {
                          dataTask: URLSessionDataTask,
                          willCacheResponse proposedResponse: CachedURLResponse,
                          completionHandler: @escaping (CachedURLResponse?) -> Void) {
+						print(">>> Entering urlSession(session=\(session),dataTask=\(dataTask),proposedResponse=\(proposedResponse),completionHandler=\(completionHandler))")
         eventMonitor?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse)
 
         if let handler = stateProvider?.request(for: dataTask)?.cachedResponseHandler ?? stateProvider?.cachedResponseHandler {
+			print("urlSession(session=\(session),dataTask=\(dataTask),proposedResponse=\(proposedResponse),completionHandler=\(completionHandler)): handler → \(handler)")
             handler.dataTask(dataTask, willCacheResponse: proposedResponse, completion: completionHandler)
         } else {
             completionHandler(proposedResponse)
@@ -291,6 +323,7 @@ extension SessionDelegate: URLSessionDataDelegate {
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension SessionDelegate: URLSessionWebSocketDelegate {
     open func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+		print(">>> Entering urlSession(session=\(session),webSocketTask=\(webSocketTask),protocol=\(protocol))")
         // TODO: Add event monitor method.
 //        NSLog("URLSession: \(session), webSocketTask: \(webSocketTask), didOpenWithProtocol: \(`protocol` ?? "None")")
         guard let request = request(for: webSocketTask, as: WebSocketRequest.self) else {
@@ -301,6 +334,7 @@ extension SessionDelegate: URLSessionWebSocketDelegate {
     }
 
     open func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+		print(">>> Entering urlSession(session=\(session),webSocketTask=\(webSocketTask),closeCode=\(closeCode),reason=\(reason))")
         // TODO: Add event monitor method.
 //        NSLog("URLSession: \(session), webSocketTask: \(webSocketTask), didCloseWithCode: \(closeCode.rawValue), reason: \(reason ?? Data())")
         guard let request = request(for: webSocketTask, as: WebSocketRequest.self) else {
@@ -322,11 +356,13 @@ extension SessionDelegate: URLSessionDownloadDelegate {
                          downloadTask: URLSessionDownloadTask,
                          didResumeAtOffset fileOffset: Int64,
                          expectedTotalBytes: Int64) {
+						print(">>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),fileOffset=\(fileOffset),expectedTotalBytes=\(expectedTotalBytes))")
         eventMonitor?.urlSession(session,
                                  downloadTask: downloadTask,
                                  didResumeAtOffset: fileOffset,
                                  expectedTotalBytes: expectedTotalBytes)
         guard let downloadRequest = request(for: downloadTask, as: DownloadRequest.self) else {
+			print("urlSession(session=\(session),downloadTask=\(downloadTask),fileOffset=\(fileOffset),expectedTotalBytes=\(expectedTotalBytes)): downloadRequest → \(downloadRequest)")
             assertionFailure("downloadTask did not find DownloadRequest.")
             return
         }
@@ -340,12 +376,14 @@ extension SessionDelegate: URLSessionDownloadDelegate {
                          didWriteData bytesWritten: Int64,
                          totalBytesWritten: Int64,
                          totalBytesExpectedToWrite: Int64) {
+						print(">>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),bytesWritten=\(bytesWritten),totalBytesWritten=\(totalBytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite))")
         eventMonitor?.urlSession(session,
                                  downloadTask: downloadTask,
                                  didWriteData: bytesWritten,
                                  totalBytesWritten: totalBytesWritten,
                                  totalBytesExpectedToWrite: totalBytesExpectedToWrite)
         guard let downloadRequest = request(for: downloadTask, as: DownloadRequest.self) else {
+								print("urlSession(session=\(session),downloadTask=\(downloadTask),bytesWritten=\(bytesWritten),totalBytesWritten=\(totalBytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite)): downloadRequest → \(downloadRequest)")
             assertionFailure("downloadTask did not find DownloadRequest.")
             return
         }
@@ -355,15 +393,18 @@ extension SessionDelegate: URLSessionDownloadDelegate {
     }
 
     open func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+		print(">>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location))")
         eventMonitor?.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: location)
 
         guard let request = request(for: downloadTask, as: DownloadRequest.self) else {
+			print("urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): request → \(request)")
             assertionFailure("downloadTask did not find DownloadRequest.")
             return
         }
 
         let (destination, options): (URL, DownloadRequest.Options)
         if let response = request.response {
+			print("urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): response → \(response)")
             (destination, options) = request.destination(location, response)
         } else {
             // If there's no response this is likely a local file download, so generate the temporary URL directly.
@@ -380,12 +421,14 @@ extension SessionDelegate: URLSessionDownloadDelegate {
             if options.contains(.createIntermediateDirectories) {
                 let directory = destination.deletingLastPathComponent()
                 try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+				print("urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): directory → \(directory)")
             }
 
             try fileManager.moveItem(at: location, to: destination)
 
             request.didFinishDownloading(using: downloadTask, with: .success(destination))
         } catch {
+			print("Exception in urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): \(error)")
             request.didFinishDownloading(using: downloadTask, with: .failure(.downloadedFileMoveFailed(error: error,
                                                                                                        source: location,
                                                                                                        destination: destination)))

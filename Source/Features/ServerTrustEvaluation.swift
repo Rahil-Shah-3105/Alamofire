@@ -63,11 +63,14 @@ open class ServerTrustManager: @unchecked Sendable {
     /// - Throws:         `AFError.serverTrustEvaluationFailed` if `allHostsMustBeEvaluated` is `true` and no matching
     ///                   evaluators are found.
     open func serverTrustEvaluator(forHost host: String) throws -> (any ServerTrustEvaluating)? {
+		print(">>> Entering serverTrustEvaluator(host=\(host))")
         guard let evaluator = evaluators[host] else {
             if allHostsMustBeEvaluated {
+				print("Throwing serverTrustEvaluationFailed from serverTrustEvaluator(host=\(host))")
                 throw AFError.serverTrustEvaluationFailed(reason: .noRequiredEvaluator(host: host))
             }
 
+		print("<<< Exiting serverTrustEvaluator(host=\(host))")
             return nil
         }
 
@@ -115,6 +118,7 @@ public final class DefaultTrustEvaluator: ServerTrustEvaluating {
 
         try trust.af.performDefaultValidation(forHost: host)
     }
+	print("<<< Exiting evaluate(trust=\(trust),host=\(host))")
 }
 
 /// An evaluator which Uses the default and revoked server trust evaluations allowing you to control whether to validate
@@ -215,9 +219,11 @@ extension ServerTrustEvaluating where Self == RevocationTrustEvaluator {
     public static func revocationChecking(performDefaultValidation: Bool = true,
                                           validateHost: Bool = true,
                                           options: RevocationTrustEvaluator.Options = .any) -> RevocationTrustEvaluator {
+										print(">>> Entering revocationChecking(performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost),options=\(options))")
         RevocationTrustEvaluator(performDefaultValidation: performDefaultValidation,
                                  validateHost: validateHost,
                                  options: options)
+								print("<<< Exiting revocationChecking(performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost),options=\(options))")
     }
 }
 
@@ -256,12 +262,15 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
     }
 
     public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+		print(">>> Entering evaluate(trust=\(trust),host=\(host))")
         guard !certificates.isEmpty else {
+			print("Throwing serverTrustEvaluationFailed from evaluate(trust=\(trust),host=\(host))")
             throw AFError.serverTrustEvaluationFailed(reason: .noCertificatesFound)
         }
 
         if acceptSelfSignedCertificates {
             try trust.af.setAnchorCertificates(certificates)
+			print("evaluate(trust=\(trust),host=\(host)): af → \(af)")
         }
 
         if performDefaultValidation {
@@ -276,6 +285,10 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
         let pinnedCertificatesData = Set(certificates.af.data)
         let pinnedCertificatesInServerData = !serverCertificatesData.isDisjoint(with: pinnedCertificatesData)
         if !pinnedCertificatesInServerData {
+		print("evaluate(trust=\(trust),host=\(host)): serverCertificatesData → \(serverCertificatesData)")
+		print("evaluate(trust=\(trust),host=\(host)): pinnedCertificatesData → <redacted>")
+		print("evaluate(trust=\(trust),host=\(host)): pinnedCertificatesInServerData → <redacted>")
+		print("<<< Exiting evaluate(trust=\(trust),host=\(host))")
             throw AFError.serverTrustEvaluationFailed(reason: .certificatePinningFailed(host: host,
                                                                                         trust: trust,
                                                                                         pinnedCertificates: certificates,
@@ -305,10 +318,12 @@ extension ServerTrustEvaluating where Self == PinnedCertificatesTrustEvaluator {
                                           acceptSelfSignedCertificates: Bool = false,
                                           performDefaultValidation: Bool = true,
                                           validateHost: Bool = true) -> PinnedCertificatesTrustEvaluator {
+										print(">>> Entering pinnedCertificates(certificates=\(certificates),acceptSelfSignedCertificates=\(acceptSelfSignedCertificates),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))")
         PinnedCertificatesTrustEvaluator(certificates: certificates,
                                          acceptSelfSignedCertificates: acceptSelfSignedCertificates,
                                          performDefaultValidation: performDefaultValidation,
                                          validateHost: validateHost)
+										print("<<< Exiting pinnedCertificates(certificates=\(certificates),acceptSelfSignedCertificates=\(acceptSelfSignedCertificates),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))")
     }
 }
 
@@ -394,7 +409,9 @@ extension ServerTrustEvaluating where Self == PublicKeysTrustEvaluator {
     public static func publicKeys(keys: [SecKey] = Bundle.main.af.publicKeys,
                                   performDefaultValidation: Bool = true,
                                   validateHost: Bool = true) -> PublicKeysTrustEvaluator {
+								print(">>> Entering publicKeys(keys=\(keys),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))")
         PublicKeysTrustEvaluator(keys: keys, performDefaultValidation: performDefaultValidation, validateHost: validateHost)
+		print("<<< Exiting publicKeys(keys=\(keys),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))")
     }
 }
 
@@ -420,7 +437,9 @@ extension ServerTrustEvaluating where Self == CompositeTrustEvaluator {
     ///
     /// - Parameter evaluators: The `ServerTrustEvaluating` values used to evaluate the server trust.
     public static func composite(evaluators: [any ServerTrustEvaluating]) -> CompositeTrustEvaluator {
+		print(">>> Entering composite(evaluators=\(evaluators))")
         CompositeTrustEvaluator(evaluators: evaluators)
+		print("<<< Exiting composite(evaluators=\(evaluators))")
     }
 }
 
@@ -492,7 +511,9 @@ extension AlamofireExtension where ExtendedType: Bundle {
     ///
     /// - Returns:         All pathnames for the given filename extensions.
     public func paths(forResourcesOfTypes types: [String]) -> [String] {
+		print(">>> Entering paths(types=\(types))")
         Array(Set(types.flatMap { type.paths(forResourcesOfType: $0, inDirectory: nil) }))
+		print("<<< Exiting paths(types=\(types))")
     }
 }
 
@@ -505,7 +526,13 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Throws:           Any `Error` from applying the `SecPolicy` or from evaluation.
     @available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *)
     public func evaluate(afterApplying policy: SecPolicy) throws {
+		print(">>> Entering evaluate(policy=\(policy))")
         try apply(policy: policy).af.evaluate()
+		print("<<< Exiting evaluate(policy=\(policy))")
+		print(">>> Entering evaluate()")
+		print("evaluate(): evaluationSucceeded → \(evaluationSucceeded)")
+		print("Throwing serverTrustEvaluationFailed from evaluate()")
+		print("<<< Exiting evaluate()")
     }
 
     /// Attempts to validate `self` using the `SecPolicy` provided and transforming any error produced using the closure passed.
@@ -519,7 +546,9 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     @available(tvOS, introduced: 10, deprecated: 12, renamed: "evaluate(afterApplying:)")
     @available(watchOS, introduced: 3, deprecated: 5, renamed: "evaluate(afterApplying:)")
     public func validate(policy: SecPolicy, errorProducer: (_ status: OSStatus, _ result: SecTrustResultType) -> any Error) throws {
+		print(">>> Entering validate(policy=\(policy),errorProducer=\(errorProducer))")
         try apply(policy: policy).af.validate(errorProducer: errorProducer)
+		print("<<< Exiting validate(policy=\(policy),errorProducer=\(errorProducer))")
     }
 
     /// Applies a `SecPolicy` to `self`, throwing if it fails.
@@ -529,9 +558,13 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Returns: `self`, with the policy applied.
     /// - Throws: An `AFError.serverTrustEvaluationFailed` instance with a `.policyApplicationFailed` reason.
     public func apply(policy: SecPolicy) throws -> SecTrust {
+		print(">>> Entering apply(policy=\(policy))")
         let status = SecTrustSetPolicies(type, policy)
 
+		print("apply(policy=\(policy)): status → \(status)")
         guard status.af.isSuccess else {
+			print("Throwing serverTrustEvaluationFailed from apply(policy=\(policy))")
+		print("<<< Exiting apply(policy=\(policy))")
             throw AFError.serverTrustEvaluationFailed(reason: .policyApplicationFailed(trust: type,
                                                                                        policy: policy,
                                                                                        status: status))
@@ -550,6 +583,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
         let evaluationSucceeded = SecTrustEvaluateWithError(type, &error)
 
         if !evaluationSucceeded {
+			print("Throwing serverTrustEvaluationFailed from evaluate()")
             throw AFError.serverTrustEvaluationFailed(reason: .trustEvaluationFailed(error: error))
         }
     }
@@ -564,10 +598,15 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     @available(tvOS, introduced: 10, deprecated: 12, renamed: "evaluate()")
     @available(watchOS, introduced: 3, deprecated: 5, renamed: "evaluate()")
     public func validate(errorProducer: (_ status: OSStatus, _ result: SecTrustResultType) -> any Error) throws {
+		print(">>> Entering validate(errorProducer=\(errorProducer))")
         var result = SecTrustResultType.invalid
         let status = SecTrustEvaluate(type, &result)
 
+		print("validate(errorProducer=\(errorProducer)): status → \(status)")
+		print("validate(errorProducer=\(errorProducer)): result → \(result)")
         guard status.af.isSuccess && result.af.isSuccess else {
+			print("Throwing errorProducer from validate(errorProducer=\(errorProducer))")
+		print("<<< Exiting validate(errorProducer=\(errorProducer))")
             throw errorProducer(status, result)
         }
     }
@@ -577,9 +616,11 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter certificates: The `SecCertificate`s to add to the chain.
     /// - Throws:                 Any error produced when applying the new certificate chain.
     public func setAnchorCertificates(_ certificates: [SecCertificate]) throws {
+		print(">>> Entering setAnchorCertificates(certificates=\(certificates))")
         // Add additional anchor certificates.
         let status = SecTrustSetAnchorCertificates(type, certificates as CFArray)
         guard status.af.isSuccess else {
+		print("setAnchorCertificates(certificates=\(certificates)): status → \(status)")
             throw AFError.serverTrustEvaluationFailed(reason: .settingAnchorCertificatesFailed(status: status,
                                                                                                certificates: certificates))
         }
@@ -587,6 +628,8 @@ extension AlamofireExtension where ExtendedType == SecTrust {
         // Trust only the set anchor certs.
         let onlyStatus = SecTrustSetAnchorCertificatesOnly(type, true)
         guard onlyStatus.af.isSuccess else {
+		print("setAnchorCertificates(certificates=\(certificates)): onlyStatus → \(onlyStatus)")
+		print("<<< Exiting setAnchorCertificates(certificates=\(certificates))")
             throw AFError.serverTrustEvaluationFailed(reason: .settingAnchorCertificatesFailed(status: onlyStatus,
                                                                                                certificates: certificates))
         }
@@ -618,6 +661,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter host: The hostname, used only in the error output if validation fails.
     /// - Throws: An `AFError.serverTrustEvaluationFailed` instance with a `.defaultEvaluationFailed` reason.
     public func performDefaultValidation(forHost host: String) throws {
+		print(">>> Entering performDefaultValidation(host=\(host))")
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
             try evaluate(afterApplying: SecPolicy.af.default)
         } else {
@@ -633,6 +677,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter host: The hostname to use in the validation.
     /// - Throws:         An `AFError.serverTrustEvaluationFailed` instance with a `.defaultEvaluationFailed` reason.
     public func performValidation(forHost host: String) throws {
+		print(">>> Entering performValidation(host=\(host))")
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
             try evaluate(afterApplying: SecPolicy.af.hostname(host))
         } else {
@@ -640,6 +685,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
                 AFError.serverTrustEvaluationFailed(reason: .hostValidationFailed(output: .init(host, type, status, result)))
             }
         }
+		print("<<< Exiting performValidation(host=\(host))")
     }
 }
 
@@ -654,7 +700,9 @@ extension AlamofireExtension where ExtendedType == SecPolicy {
     ///
     /// - Returns:            The `SecPolicy`.
     public static func hostname(_ hostname: String) -> SecPolicy {
+		print(">>> Entering hostname(hostname=\(hostname))")
         SecPolicyCreateSSL(true, hostname as CFString)
+		print("<<< Exiting hostname(hostname=\(hostname))")
     }
 
     /// Creates a `SecPolicy` which checks the revocation of certificates.
@@ -665,10 +713,13 @@ extension AlamofireExtension where ExtendedType == SecPolicy {
     /// - Throws:            An `AFError.serverTrustEvaluationFailed` error with reason `.revocationPolicyCreationFailed`
     ///                      if the policy cannot be created.
     public static func revocation(options: RevocationTrustEvaluator.Options) throws -> SecPolicy {
+		print(">>> Entering revocation(options=\(options))")
         guard let policy = SecPolicyCreateRevocation(options.rawValue) else {
+			print("revocation(options=\(options)): policy → \(policy)")
             throw AFError.serverTrustEvaluationFailed(reason: .revocationPolicyCreationFailed)
         }
 
+		print("<<< Exiting revocation(options=\(options))")
         return policy
     }
 }

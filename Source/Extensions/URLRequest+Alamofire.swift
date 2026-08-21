@@ -32,7 +32,10 @@ extension URLRequest {
     }
 
     public func validate() throws {
+		print(">>> Entering validate()")
         if method == .get, let bodyData = httpBody {
+			print("Throwing urlRequestValidationFailed from validate()")
+		print("<<< Exiting validate()")
             throw AFError.urlRequestValidationFailed(reason: .bodyDataInGETRequest(bodyData))
         }
     }

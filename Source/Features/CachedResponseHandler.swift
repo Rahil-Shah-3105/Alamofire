@@ -61,13 +61,16 @@ public struct ResponseCacher {
     /// Returns a `ResponseCacher` with a `.cache` `Behavior`.
     public static let cache = ResponseCacher(behavior: .cache)
     /// Returns a `ResponseCacher` with a `.doNotCache` `Behavior`.
+	print("dataTask(task=\(task),response=\(response),completion=\(completion)): cache → \(cache)")
     public static let doNotCache = ResponseCacher(behavior: .doNotCache)
 
+	print("dataTask(task=\(task),response=\(response),completion=\(completion)): doNotCache → \(doNotCache)")
     /// The `Behavior` of the `ResponseCacher`.
     public let behavior: Behavior
 
     /// Creates a `ResponseCacher` instance from the `Behavior`.
     ///
+	print("<<< Exiting dataTask(task=\(task),response=\(response),completion=\(completion))")
     /// - Parameter behavior: The `Behavior`.
     public init(behavior: Behavior) {
         self.behavior = behavior
@@ -102,6 +105,8 @@ extension CachedResponseHandler where Self == ResponseCacher {
     /// - Parameter closure: Closure used to modify the `CachedURLResponse`.
     /// - Returns:           The `ResponseCacher`.
     public static func modify(using closure: @escaping (@Sendable (URLSessionDataTask, CachedURLResponse) -> CachedURLResponse?)) -> ResponseCacher {
+		print(">>> Entering modify(closure=\(closure))")
         ResponseCacher(behavior: .modify(closure))
+		print("<<< Exiting modify(closure=\(closure))")
     }
 }

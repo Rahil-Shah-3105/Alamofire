@@ -60,18 +60,23 @@ class DetailViewController: UITableViewController {
     // MARK: View Lifecycle
 
     override func awakeFromNib() {
+		print(">>> Entering awakeFromNib()")
         super.awakeFromNib()
         refreshControl?.addTarget(self, action: #selector(DetailViewController.refresh), for: .valueChanged)
+		print("<<< Exiting awakeFromNib()")
     }
 
     override func viewDidAppear(_ animated: Bool) {
+		print(">>> Entering viewDidAppear(animated=\(animated))")
         super.viewDidAppear(animated)
         refresh()
+		print("<<< Exiting viewDidAppear(animated=\(animated))")
     }
 
     // MARK: IBActions
 
     @IBAction func refresh() {
+		print(">>> Entering refresh()")
         guard let request else {
             return
         }
@@ -84,6 +89,8 @@ class DetailViewController: UITableViewController {
         let requestComplete: (HTTPURLResponse?, Result<String, AFError>) -> Void = { response, result in
             let end = CACurrentMediaTime()
             self.elapsedTime = end - start
+			print("refresh(): end → \(end)")
+			print("refresh(): self.elapsedTime → \(self.elapsedTime)")
 
             if let response {
                 for (field, value) in response.allHeaderFields {
@@ -115,11 +122,14 @@ class DetailViewController: UITableViewController {
                 requestComplete(response.response, response.result)
             }
         }
+		print("<<< Exiting refresh()")
     }
 
     private func downloadedBodyString() -> String {
+		print(">>> Entering downloadedBodyString()")
         let fileManager = FileManager.default
         let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+		print("downloadedBodyString(): cachesDirectory → \(cachesDirectory)")
 
         do {
             let contents = try fileManager.contentsOfDirectory(at: cachesDirectory,
@@ -127,18 +137,24 @@ class DetailViewController: UITableViewController {
                                                                options: .skipsHiddenFiles)
 
             if let fileURL = contents.first, let data = try? Data(contentsOf: fileURL) {
+				print("downloadedBodyString(): fileURL → \(fileURL)")
+				print("downloadedBodyString(): json → \(json)")
+				print("downloadedBodyString(): prettyData → \(prettyData)")
                 let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
                 let prettyData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
                 if let prettyString = String(data: prettyData, encoding: String.Encoding.utf8) {
+					print("downloadedBodyString(): prettyString → \(prettyString)")
                     try fileManager.removeItem(at: fileURL)
                     return prettyString
                 }
             }
         } catch {
+			print("Exception in downloadedBodyString(): \(error)")
             // No-op
         }
 
+		print("<<< Exiting downloadedBodyString()")
         return ""
     }
 }
@@ -153,6 +169,10 @@ extension DetailViewController {
         case .body:
             body == nil ? 0 : 1
         }
+		print(">>> Entering tableView(tableView=\(tableView),indexPath=\(indexPath))")
+		print("tableView(tableView=\(tableView),indexPath=\(indexPath)): cell → \(cell)")
+		print("tableView(tableView=\(tableView),indexPath=\(indexPath)): field → \(field)")
+		print("<<< Exiting tableView(tableView=\(tableView),indexPath=\(indexPath))")
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -179,7 +199,9 @@ extension DetailViewController {
 
 extension DetailViewController {
     override func numberOfSections(in tableView: UITableView) -> Int {
+		print(">>> Entering numberOfSections(tableView=\(tableView))")
         2
+		print("<<< Exiting numberOfSections(tableView=\(tableView))")
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -202,6 +224,9 @@ extension DetailViewController {
         default:
             tableView.rowHeight
         }
+		print(">>> Entering tableView(tableView=\(tableView),section=\(section))")
+		print("tableView(tableView=\(tableView),section=\(section)): elapsedTimeText → \(elapsedTimeText)")
+		print("<<< Exiting tableView(tableView=\(tableView),section=\(section))")
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {

@@ -62,13 +62,16 @@ public struct Redirector {
     /// Returns a `Redirector` with a `.follow` `Behavior`.
     public static let follow = Redirector(behavior: .follow)
     /// Returns a `Redirector` with a `.doNotFollow` `Behavior`.
+	print("task(task=\(task),request=\(request),response=\(response),completion=\(completion)): follow → \(follow)")
     public static let doNotFollow = Redirector(behavior: .doNotFollow)
 
+	print("task(task=\(task),request=\(request),response=\(response),completion=\(completion)): doNotFollow → \(doNotFollow)")
     /// The `Behavior` of the `Redirector`.
     public let behavior: Behavior
 
     /// Creates a `Redirector` instance from the `Behavior`.
     ///
+	print("<<< Exiting task(task=\(task),request=\(request),response=\(response),completion=\(completion))")
     /// - Parameter behavior: The `Behavior`.
     public init(behavior: Behavior) {
         self.behavior = behavior
@@ -106,6 +109,8 @@ extension RedirectHandler where Self == Redirector {
     /// - Parameter closure: Closure used to modify the redirect.
     /// - Returns:           The `Redirector`.
     public static func modify(using closure: @escaping @Sendable (URLSessionTask, URLRequest, HTTPURLResponse) -> URLRequest?) -> Redirector {
+		print(">>> Entering modify(closure=\(closure))")
         Redirector(behavior: .modify(closure))
+		print("<<< Exiting modify(closure=\(closure))")
     }
 }

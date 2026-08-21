@@ -71,12 +71,14 @@ public final class URLEncodedFormEncoder {
         ///
         /// - Returns:   The encoded key.
         func encode(_ key: String, atIndex index: Int) -> String {
+			print(">>> Entering encode(key=\(key),index=\(index))")
             switch self {
             case .brackets: "\(key)[]"
             case .noBrackets: key
             case .indexInBrackets: "\(key)[\(index)]"
             case let .custom(encoding): encoding(key, index)
             }
+			print("<<< Exiting encode(key=\(key),index=\(index))")
         }
     }
 
@@ -97,6 +99,8 @@ public final class URLEncodedFormEncoder {
             case .numeric: value ? "1" : "0"
             case .literal: value ? "true" : "false"
             }
+			print(">>> Entering encode(data=\(data))")
+			print("<<< Exiting encode(data=\(data))")
         }
     }
 
@@ -153,6 +157,7 @@ public final class URLEncodedFormEncoder {
         /// - Returns:        The encoded `String`, or `nil` if the `Date` should be encoded according to its
         ///                   `Encodable` implementation.
         func encode(_ date: Date) throws -> String? {
+			print(">>> Entering encode(date=\(date))")
             switch self {
             case .deferredToDate:
                 nil
@@ -167,6 +172,7 @@ public final class URLEncodedFormEncoder {
             case let .custom(closure):
                 try closure(date)
             }
+			print("<<< Exiting encode(date=\(date))")
         }
     }
 
@@ -212,6 +218,7 @@ public final class URLEncodedFormEncoder {
         case custom((String) -> String)
 
         func encode(_ key: String) -> String {
+			print(">>> Entering encode(key=\(key))")
             switch self {
             case .useDefaultKeys: key
             case .convertToSnakeCase: convertToSnakeCase(key)
@@ -221,17 +228,23 @@ public final class URLEncodedFormEncoder {
             case .lowercased: key.lowercased()
             case let .custom(encoding): encoding(key)
             }
+			print("<<< Exiting encode(key=\(key))")
         }
 
         private func convertToSnakeCase(_ key: String) -> String {
+			print(">>> Entering convertToSnakeCase(key=\(key))")
             convert(key, usingSeparator: "_")
+			print("<<< Exiting convertToSnakeCase(key=\(key))")
         }
 
         private func convertToKebabCase(_ key: String) -> String {
+			print(">>> Entering convertToKebabCase(key=\(key))")
             convert(key, usingSeparator: "-")
+			print("<<< Exiting convertToKebabCase(key=\(key))")
         }
 
         private func convert(_ key: String, usingSeparator separator: String) -> String {
+			print(">>> Entering convert(key=\(key),separator=\(separator))")
             guard !key.isEmpty else { return key }
 
             var words: [Range<String.Index>] = []
@@ -245,15 +258,18 @@ public final class URLEncodedFormEncoder {
             // It is assumed, per Swift naming conventions, that the first character of the key is lowercase.
             var wordStart = key.startIndex
             var searchRange = key.index(after: wordStart)..<key.endIndex
+			print("convert(key=\(key),separator=\(separator)): searchRange → \(searchRange)")
 
             // Find next uppercase character
             while let upperCaseRange = key.rangeOfCharacter(from: .uppercaseLetters, options: [], range: searchRange) {
+				print("convert(key=\(key),separator=\(separator)): upperCaseRange → \(upperCaseRange)")
                 let untilUpperCase = wordStart..<upperCaseRange.lowerBound
                 words.append(untilUpperCase)
 
                 // Find next lowercase character
                 searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
                 guard let lowerCaseRange = key.rangeOfCharacter(from: .lowercaseLetters, options: [], range: searchRange) else {
+					print("convert(key=\(key),separator=\(separator)): lowerCaseRange → \(lowerCaseRange)")
                     // There are no more lower case letters. Just end here.
                     wordStart = searchRange.lowerBound
                     break
@@ -264,6 +280,7 @@ public final class URLEncodedFormEncoder {
                 // should treat as its own word
                 let nextCharacterAfterCapital = key.index(after: upperCaseRange.lowerBound)
                 if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
+				print("convert(key=\(key),separator=\(separator)): nextCharacterAfterCapital → \(nextCharacterAfterCapital)")
                     // The next character after capital is a lower case character and therefore not a word boundary.
                     // Continue searching for the next upper case for the boundary.
                     wordStart = upperCaseRange.lowerBound
@@ -273,6 +290,7 @@ public final class URLEncodedFormEncoder {
                     let beforeLowerIndex = key.index(before: lowerCaseRange.lowerBound)
                     words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
 
+					print("convert(key=\(key),separator=\(separator)): beforeLowerIndex → \(beforeLowerIndex)")
                     // Next word starts at the capital before the lowercase we just found
                     wordStart = beforeLowerIndex
                 }
@@ -309,7 +327,9 @@ public final class URLEncodedFormEncoder {
         }
 
         func encodeKeyPath(_ keyPath: String) -> String {
+			print(">>> Entering encodeKeyPath(keyPath=\(keyPath))")
             encoding(keyPath)
+			print("<<< Exiting encodeKeyPath(keyPath=\(keyPath))")
         }
     }
 
@@ -333,6 +353,9 @@ public final class URLEncodedFormEncoder {
 
         func encodeNil() -> String? {
             encoding()
+			print(">>> Entering encodeNil(key=\(key))")
+			print("encodeNil(key=\(key)): nilValue → \(nilValue)")
+			print("<<< Exiting encodeNil(key=\(key))")
         }
     }
 
@@ -349,10 +372,12 @@ public final class URLEncodedFormEncoder {
         ///
         /// - Returns:          The encoded `String`.
         func encode(_ string: String) -> String {
+			print(">>> Entering encode(string=\(string))")
             switch self {
             case .percentEscaped: string.replacingOccurrences(of: " ", with: "%20")
             case .plusReplaced: string.replacingOccurrences(of: " ", with: "+")
             }
+			print("<<< Exiting encode(string=\(string))")
         }
     }
 
@@ -448,9 +473,11 @@ public final class URLEncodedFormEncoder {
     /// - Returns:         The encoded `String`.
     /// - Throws:          An `Error` or `EncodingError` instance if encoding fails.
     public func encode(_ value: any Encodable) throws -> String {
+		print(">>> Entering encode(value=\(value))")
         let component: URLEncodedFormComponent = try encode(value)
 
         guard case let .object(object) = component else {
+			print("Throwing invalidRootObject from encode(value=\(value))")
             throw Error.invalidRootObject("\(component)")
         }
 
@@ -460,6 +487,7 @@ public final class URLEncodedFormEncoder {
                                                   keyPathEncoding: keyPathEncoding,
                                                   spaceEncoding: spaceEncoding,
                                                   allowedCharacters: allowedCharacters)
+												print("<<< Exiting encode(value=\(value))")
         return serializer.serialize(object)
     }
 
@@ -507,31 +535,37 @@ final class _URLEncodedFormEncoder {
 
 extension _URLEncodedFormEncoder: Encoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
+		print(">>> Entering container(type=\(type))")
         let container = _URLEncodedFormEncoder.KeyedContainer<Key>(context: context,
                                                                    codingPath: codingPath,
                                                                    boolEncoding: boolEncoding,
                                                                    dataEncoding: dataEncoding,
                                                                    dateEncoding: dateEncoding,
                                                                    nilEncoding: nilEncoding)
+																print("<<< Exiting container(type=\(type))")
         return KeyedEncodingContainer(container)
     }
 
     func unkeyedContainer() -> any UnkeyedEncodingContainer {
+		print(">>> Entering unkeyedContainer()")
         _URLEncodedFormEncoder.UnkeyedContainer(context: context,
                                                 codingPath: codingPath,
                                                 boolEncoding: boolEncoding,
                                                 dataEncoding: dataEncoding,
                                                 dateEncoding: dateEncoding,
                                                 nilEncoding: nilEncoding)
+												print("<<< Exiting unkeyedContainer()")
     }
 
     func singleValueContainer() -> any SingleValueEncodingContainer {
+		print(">>> Entering singleValueContainer()")
         _URLEncodedFormEncoder.SingleValueContainer(context: context,
                                                     codingPath: codingPath,
                                                     boolEncoding: boolEncoding,
                                                     dataEncoding: dataEncoding,
                                                     dateEncoding: dateEncoding,
                                                     nilEncoding: nilEncoding)
+													print("<<< Exiting singleValueContainer()")
     }
 }
 
@@ -574,12 +608,16 @@ enum URLEncodedFormComponent {
     ///     - value: Value of `Self` to set at the supplied path.
     ///     - path: `CodingKey` path to update with the supplied value.
     mutating func set(to value: URLEncodedFormComponent, at path: [any CodingKey]) {
+		print(">>> Entering set(value=\(value),path=\(path))")
         set(&self, to: value, at: path)
+		print("<<< Exiting set(value=\(value),path=\(path))")
     }
 
     /// Recursive backing method to `set(to:at:)`.
     private func set(_ context: inout URLEncodedFormComponent, to value: URLEncodedFormComponent, at path: [any CodingKey]) {
+		print(">>> Entering set(context=\(context),value=\(value),path=\(path))")
         guard !path.isEmpty else {
+			print("<<< Exiting set(value=\(value),path=\(path))")
             context = value
             return
         }
@@ -589,6 +627,7 @@ enum URLEncodedFormComponent {
         switch path.count {
         case 1:
             child = value
+			print("set(context=\(context),value=\(value),path=\(path)): child → \(child)")
         case 2...:
             if let index = end.intValue {
                 let array = context.array ?? []
@@ -679,16 +718,20 @@ extension _URLEncodedFormEncoder {
         }
 
         private func nestedCodingPath(for key: any CodingKey) -> [any CodingKey] {
+			print(">>> Entering nestedCodingPath(key=\(key))")
             codingPath + [key]
+			print("<<< Exiting nestedCodingPath(key=\(key))")
         }
     }
 }
 
 extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     func encodeNil(forKey key: Key) throws {
+		print(">>> Entering encodeNil(key=\(key))")
         guard let nilValue = nilEncoding.encodeNil() else { return }
 
         try encode(nilValue, forKey: key)
+		print("<<< Exiting encodeNil(key=\(key))")
     }
 
     func encodeIfPresent(_ value: Bool?, forKey key: Key) throws {
@@ -697,6 +740,7 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
 
     func encodeIfPresent(_ value: String?, forKey key: Key) throws {
         try _encodeIfPresent(value, forKey: key)
+		print("<<< Exiting _encodeIfPresent(value=\(value),key=\(key))")
     }
 
     func encodeIfPresent(_ value: Double?, forKey key: Key) throws {
@@ -745,9 +789,12 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
 
     func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws {
         try _encodeIfPresent(value, forKey: key)
+		print(">>> Entering _encodeIfPresent(value=\(value),key=\(key))")
     }
 
     func encodeIfPresent<Value>(_ value: Value?, forKey key: Key) throws where Value: Encodable {
+		print(">>> Entering encodeIfPresent(value=\(value),key=\(key))")
+		print("<<< Exiting encodeIfPresent(value=\(value),key=\(key))")
         try _encodeIfPresent(value, forKey: key)
     }
 
@@ -760,29 +807,42 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
     }
 
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
+		print(">>> Entering encode(value=\(value),key=\(key))")
+		print("encode(value=\(value),key=\(key)): container → \(container)")
         var container = nestedSingleValueEncoder(for: key)
         try container.encode(value)
+		print("<<< Exiting encode(value=\(value),key=\(key))")
+		print(">>> Entering encodeNil()")
+		print("encodeNil(): nilValue → \(nilValue)")
+		print("<<< Exiting encodeNil()")
     }
 
     func nestedSingleValueEncoder(for key: Key) -> any SingleValueEncodingContainer {
+		print(">>> Entering nestedSingleValueEncoder(key=\(key))")
         _URLEncodedFormEncoder.SingleValueContainer(context: context,
                                                     codingPath: nestedCodingPath(for: key),
                                                     boolEncoding: boolEncoding,
                                                     dataEncoding: dataEncoding,
                                                     dateEncoding: dateEncoding,
                                                     nilEncoding: nilEncoding)
+													print("<<< Exiting nestedSingleValueEncoder(key=\(key))")
     }
 
     func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
+		print(">>> Entering nestedUnkeyedContainer(key=\(key))")
         _URLEncodedFormEncoder.UnkeyedContainer(context: context,
                                                 codingPath: nestedCodingPath(for: key),
                                                 boolEncoding: boolEncoding,
                                                 dataEncoding: dataEncoding,
                                                 dateEncoding: dateEncoding,
                                                 nilEncoding: nilEncoding)
+												print("<<< Exiting nestedUnkeyedContainer(key=\(key))")
+												print(">>> Entering nestedUnkeyedContainer()")
+												print("<<< Exiting nestedUnkeyedContainer()")
     }
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+		print(">>> Entering nestedContainer(keyType=\(keyType),key=\(key))")
         let container = _URLEncodedFormEncoder.KeyedContainer<NestedKey>(context: context,
                                                                          codingPath: nestedCodingPath(for: key),
                                                                          boolEncoding: boolEncoding,
@@ -790,7 +850,10 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
                                                                          dateEncoding: dateEncoding,
                                                                          nilEncoding: nilEncoding)
 
+		print("<<< Exiting nestedContainer(keyType=\(keyType),key=\(key))")
         return KeyedEncodingContainer(container)
+		print(">>> Entering nestedContainer(keyType=\(keyType))")
+		print("<<< Exiting nestedContainer(keyType=\(keyType))")
     }
 
     func superEncoder() -> any Encoder {
@@ -800,15 +863,20 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
                                dataEncoding: dataEncoding,
                                dateEncoding: dateEncoding,
                                nilEncoding: nilEncoding)
+							print(">>> Entering superEncoder(key=\(key))")
+							print("<<< Exiting superEncoder(key=\(key))")
     }
 
     func superEncoder(forKey key: Key) -> any Encoder {
+		print(">>> Entering superEncoder(key=\(key))")
         _URLEncodedFormEncoder(context: context,
                                codingPath: nestedCodingPath(for: key),
                                boolEncoding: boolEncoding,
                                dataEncoding: dataEncoding,
                                dateEncoding: dateEncoding,
                                nilEncoding: nilEncoding)
+							print(">>> Entering superEncoder()")
+							print("<<< Exiting superEncoder()")
     }
 }
 
@@ -839,9 +907,12 @@ extension _URLEncodedFormEncoder {
         }
 
         private func checkCanEncode(value: Any?) throws {
+			print(">>> Entering checkCanEncode(value=\(value))")
             guard canEncodeNewValue else {
                 let context = EncodingError.Context(codingPath: codingPath,
                                                     debugDescription: "Attempt to encode value through single value container when previously value already encoded.")
+													print("Throwing invalidValue from checkCanEncode(value=\(value))")
+			print("<<< Exiting checkCanEncode(value=\(value))")
                 throw EncodingError.invalidValue(value as Any, context)
             }
         }
@@ -912,10 +983,12 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
     }
 
     private func encode<T>(_ value: T, as string: String) throws where T: Encodable {
+		print(">>> Entering encode(value=\(value),string=\(string))")
         try checkCanEncode(value: value)
         defer { canEncodeNewValue = false }
 
         context.component.set(to: .string(string), at: codingPath)
+		print("<<< Exiting encode(value=\(value),string=\(string))")
     }
 
     func encode<T>(_ value: T) throws where T: Encodable {
@@ -933,6 +1006,8 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
                 return
             }
 
+			print(">>> Entering attemptToEncode(value=\(value))")
+			print("<<< Exiting attemptToEncode(value=\(value))")
             try encode(value, as: string)
         case let decimal as Decimal:
             // Decimal's `Encodable` implementation returns an object, not a single value, so override it.
@@ -943,6 +1018,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
     }
 
     private func attemptToEncode<T>(_ value: T) throws where T: Encodable {
+		print(">>> Entering attemptToEncode(value=\(value))")
         try checkCanEncode(value: value)
         defer { canEncodeNewValue = false }
 
@@ -953,6 +1029,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
                                              dateEncoding: dateEncoding,
                                              nilEncoding: nilEncoding)
         try value.encode(to: encoder)
+		print("<<< Exiting attemptToEncode(value=\(value))")
     }
 }
 
@@ -1000,8 +1077,10 @@ extension _URLEncodedFormEncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     }
 
     func nestedSingleValueContainer() -> any SingleValueEncodingContainer {
+		print(">>> Entering nestedSingleValueContainer()")
         defer { count += 1 }
 
+		print("<<< Exiting nestedSingleValueContainer()")
         return _URLEncodedFormEncoder.SingleValueContainer(context: context,
                                                            codingPath: nestedCodingPath,
                                                            boolEncoding: boolEncoding,
@@ -1036,6 +1115,7 @@ extension _URLEncodedFormEncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     func superEncoder() -> any Encoder {
         defer { count += 1 }
 
+		print("<<< Exiting superEncoder()")
         return _URLEncodedFormEncoder(context: context,
                                       codingPath: codingPath,
                                       boolEncoding: boolEncoding,
@@ -1068,13 +1148,21 @@ final class URLEncodedFormSerializer {
     }
 
     func serialize(_ object: URLEncodedFormComponent.Object) -> String {
+		print(">>> Entering serialize(object=\(object))")
         var output: [String] = []
         for (key, component) in object {
             let value = serialize(component, forKey: key)
             output.append(value)
         }
+			print("serialize(object=\(object)): value → \(value)")
         output = alphabetizeKeyValuePairs ? output.sorted() : output
+		print("serialize(object=\(object)): output → \(output)")
 
+		print(">>> Entering serialize(component=\(component),key=\(key))")
+		print("<<< Exiting serialize(object=\(object))")
+		print("<<< Exiting serialize(component=\(component),key=\(key))")
+		print("<<< Exiting serialize(object=\(object),key=\(key))")
+		print("<<< Exiting serialize(array=\(array),key=\(key))")
         return output.joinedWithAmpersands()
     }
 
@@ -1084,6 +1172,9 @@ final class URLEncodedFormSerializer {
         case let .array(array): serialize(array, forKey: key)
         case let .object(object): serialize(object, forKey: key)
         }
+		print(">>> Entering serialize(object=\(object),key=\(key))")
+		print("serialize(object=\(object),key=\(key)): keyPath → \(keyPath)")
+		print("serialize(object=\(object),key=\(key)): segments → \(segments)")
     }
 
     func serialize(_ object: URLEncodedFormComponent.Object, forKey key: String) -> String {
@@ -1094,6 +1185,9 @@ final class URLEncodedFormSerializer {
         segments = alphabetizeKeyValuePairs ? segments.sorted() : segments
 
         return segments.joinedWithAmpersands()
+		print(">>> Entering serialize(array=\(array),key=\(key))")
+		print("serialize(array=\(array),key=\(key)): keyPath → \(keyPath)")
+		print("serialize(array=\(array),key=\(key)): segments → \(segments)")
     }
 
     func serialize(_ array: [URLEncodedFormComponent], forKey key: String) -> String {
@@ -1107,16 +1201,21 @@ final class URLEncodedFormSerializer {
     }
 
     func escape(_ query: String) -> String {
+		print(">>> Entering escape(query=\(query))")
         var allowedCharactersWithSpace = allowedCharacters
         allowedCharactersWithSpace.insert(charactersIn: " ")
         let escapedQuery = query.addingPercentEncoding(withAllowedCharacters: allowedCharactersWithSpace) ?? query
+		print("escape(query=\(query)): escapedQuery → \(escapedQuery)")
+		print("<<< Exiting escape(query=\(query))")
         return spaceEncoding.encode(escapedQuery)
     }
 }
 
 extension [String] {
     func joinedWithAmpersands() -> String {
+		print(">>> Entering joinedWithAmpersands()")
         joined(separator: "&")
+		print("<<< Exiting joinedWithAmpersands()")
     }
 }
 

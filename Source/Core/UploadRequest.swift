@@ -91,23 +91,30 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
     ///
     /// - Parameter uploadable: The `Uploadable` that was created.
     func didCreateUploadable(_ uploadable: Uploadable) {
+		print(">>> Entering didCreateUploadable(uploadable=\(uploadable))")
         self.uploadable = uploadable
 
+		print("didCreateUploadable(uploadable=\(uploadable)): self.uploadable → \(self.uploadable)")
         eventMonitor?.request(self, didCreateUploadable: uploadable)
+		print("<<< Exiting didCreateUploadable(uploadable=\(uploadable))")
     }
 
     /// Called when the `Uploadable` value could not be created.
     ///
     /// - Parameter error: `AFError` produced by the failure.
     func didFailToCreateUploadable(with error: AFError) {
+		print(">>> Entering didFailToCreateUploadable(error=\(error))")
         self.error = error
 
+		print("didFailToCreateUploadable(error=\(error)): self.error → \(self.error)")
         eventMonitor?.request(self, didFailToCreateUploadableWithError: error)
 
         retryOrFinish(error: error)
+		print("<<< Exiting didFailToCreateUploadable(error=\(error))")
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		print(">>> Entering task(request=\(request),session=\(session))")
         guard let uploadable else {
             fatalError("Attempting to create a URLSessionUploadTask when Uploadable value doesn't exist.")
         }
@@ -117,13 +124,17 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
         case let .file(url, _): return session.uploadTask(with: request, fromFile: url)
         case .stream: return session.uploadTask(withStreamedRequest: request)
         }
+		print("<<< Exiting task(request=\(request),session=\(session))")
     }
 
     override func reset() {
+		print(">>> Entering reset()")
         // Uploadable must be recreated on every retry.
         uploadable = nil
+		print("reset(): uploadable → \(uploadable)")
 
         super.reset()
+		print("<<< Exiting reset()")
     }
 
     /// Produces the `InputStream` from `uploadable`, if it can.
@@ -132,6 +143,7 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
     ///
     /// - Returns: The `InputStream`.
     func inputStream() -> InputStream {
+		print(">>> Entering inputStream()")
         guard let uploadable else {
             fatalError("Attempting to access the input stream but the uploadable doesn't exist.")
         }
@@ -142,10 +154,12 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
 
         eventMonitor?.request(self, didProvideInputStream: stream)
 
+		print("<<< Exiting inputStream()")
         return stream
     }
 
     override public func cleanup() {
+		print(">>> Entering cleanup()")
         defer { super.cleanup() }
 
         guard
@@ -155,6 +169,7 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
         else { return }
 
         try? fileManager.removeItem(at: url)
+		print("<<< Exiting cleanup()")
     }
 }
 
@@ -169,7 +184,9 @@ public protocol UploadableConvertible: Sendable {
 
 extension UploadRequest.Uploadable: UploadableConvertible {
     public func createUploadable() throws -> UploadRequest.Uploadable {
+		print(">>> Entering createUploadable()")
         self
+		print("<<< Exiting createUploadable()")
     }
 }
 
