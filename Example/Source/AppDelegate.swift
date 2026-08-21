@@ -34,11 +34,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+					print(">>> Entering application(application=\(application),launchOptions=\(launchOptions))")
         let splitViewController = window!.rootViewController as! UISplitViewController
         let navigationController = splitViewController.viewControllers.last as! UINavigationController
         navigationController.topViewController!.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem
         splitViewController.delegate = self
+		print("application(application=\(application),launchOptions=\(launchOptions)): splitViewController.delegate → \(splitViewController.delegate)")
 
+		print("<<< Exiting application(application=\(application),launchOptions=\(launchOptions))")
         return true
     }
 
@@ -48,12 +51,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
                              collapseSecondary secondaryViewController: UIViewController,
                              onto primaryViewController: UIViewController)
         -> Bool {
+		print(">>> Entering splitViewController(splitViewController=\(splitViewController),secondaryViewController=\(secondaryViewController),primaryViewController=\(primaryViewController))")
         if
             let secondaryAsNavController = secondaryViewController as? UINavigationController,
             let topAsDetailController = secondaryAsNavController.topViewController as? DetailViewController {
             return topAsDetailController.request == nil
         }
 
+		print("<<< Exiting splitViewController(splitViewController=\(splitViewController),secondaryViewController=\(secondaryViewController),primaryViewController=\(primaryViewController))")
         return false
     }
 }

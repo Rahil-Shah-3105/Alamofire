@@ -1,3 +1,4 @@
+const logger = console;
 // Jazzy - https://github.com/realm/jazzy
 // Copyright Realm Inc.
 // SPDX-License-Identifier: MIT
@@ -13,17 +14,22 @@ if (navigator.userAgent.match(/xcode/i)) {
 }
 
 function toggleItem($link, $content) {
+logger.debug(`>>> Entering toggleItem($link=${$link},$content=${$content})`);
   var animationDuration = 300;
   $link.toggleClass('token-open');
   $content.slideToggle(animationDuration);
+logger.debug(`<<< Exiting toggleItem($link=${$link},$content=${$content})`);
 }
 
 function itemLinkToContent($link) {
+logger.debug(`>>> Entering itemLinkToContent($link=${$link})`);
+logger.debug(`<<< Exiting itemLinkToContent($link=${$link})`);
   return $link.parent().parent().next();
 }
 
 // On doc load + hash-change, open any targeted item
 function openCurrentItemIfClosed() {
+logger.debug('>>> Entering openCurrentItemIfClosed()');
   if (window.jazzy.docset) {
     return;
   }
@@ -32,6 +38,7 @@ function openCurrentItemIfClosed() {
   if ($content.is(':hidden')) {
     toggleItem($link, $content);
   }
+logger.debug('<<< Exiting openCurrentItemIfClosed()');
 }
 
 $(openCurrentItemIfClosed);
@@ -39,6 +46,7 @@ $(window).on('hashchange', openCurrentItemIfClosed);
 
 // On item link ('token') click, toggle its discussion
 $('.token').on('click', function(event) {
+logger.debug('>>> Entering on()');
   if (window.jazzy.docset) {
     return;
   }
@@ -47,10 +55,12 @@ $('.token').on('click', function(event) {
 
   // Keeps the document from jumping to the hash.
   var href = $link.attr('href');
+logger.debug(`on(): href → ${href}`);
   if (history.pushState) {
     history.pushState({}, '', href);
   } else {
     location.hash = href;
+	logger.debug(`on(): location.hash → ${location.hash}`);
   }
   event.preventDefault();
 });

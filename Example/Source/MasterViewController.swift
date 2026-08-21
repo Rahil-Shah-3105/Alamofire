@@ -37,25 +37,36 @@ class MasterViewController: UITableViewController {
     // MARK: - View Lifecycle
 
     override func awakeFromNib() {
+		print(">>> Entering awakeFromNib()")
         super.awakeFromNib()
 
         navigationItem.titleView = titleImageView
+		print("awakeFromNib(): navigationItem.titleView → \(navigationItem.titleView)")
+		print("awakeFromNib(): clearsSelectionOnViewWillAppear → \(clearsSelectionOnViewWillAppear)")
         clearsSelectionOnViewWillAppear = true
 
         reachability = NetworkReachabilityManager.default
+		print("awakeFromNib(): reachability → \(reachability)")
         monitorReachability()
+		print("<<< Exiting awakeFromNib()")
     }
 
     // MARK: - UIStoryboardSegue
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+		print(">>> Entering prepare(segue=\(segue),sender=\(sender))")
         if
             let navigationController = segue.destination as? UINavigationController,
             let detailViewController = navigationController.topViewController as? DetailViewController {
             func requestForSegue(_ segue: UIStoryboardSegue) -> Request? {
+				let __logStart = ContinuousClock.now
                 switch segue.identifier! {
                 case "GET":
+					print(">>> Entering requestForSegue(segue=\(segue))")
+					print("requestForSegue(segue=\(segue)): detailViewController.segueIdentifier → \(detailViewController.segueIdentifier)")
                     detailViewController.segueIdentifier = "GET"
+					print("requestForSegue(segue)=\(segue): external service call took \(Int((ContinuousClock.now - __logStart) / .milliseconds(1))) ms")
+					print("<<< Exiting requestForSegue(segue=\(segue))")
                     return AF.request("https://httpbin.org/get")
                 case "POST":
                     detailViewController.segueIdentifier = "POST"
@@ -80,15 +91,19 @@ class MasterViewController: UITableViewController {
                 detailViewController.request = request
             }
         }
+		print(">>> Entering monitorReachability()")
+		print("<<< Exiting monitorReachability()")
     }
 
     // MARK: - UITableViewDelegate
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+		print(">>> Entering tableView(tableView=\(tableView),indexPath=\(indexPath))")
         if indexPath.section == 3 && indexPath.row == 0 {
             print("Reachability Status: \(reachability.status)")
             tableView.deselectRow(at: indexPath, animated: true)
         }
+		print("<<< Exiting tableView(tableView=\(tableView),indexPath=\(indexPath))")
     }
 
     // MARK: - Private - Reachability

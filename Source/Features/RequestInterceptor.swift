@@ -45,20 +45,24 @@ public protocol RequestAdapter: Sendable {
     ///   - completion: The completion handler that must be called when adaptation is complete.
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void)
 
+	print(">>> Entering adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))")
     /// Inspects and adapts the specified `URLRequest` in some manner and calls the completion handler with the Result.
     ///
     /// - Parameters:
     ///   - urlRequest: The `URLRequest` to adapt.
     ///   - state:      The `RequestAdapterState` associated with the `URLRequest`.
+	print("<<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))")
     ///   - completion: The completion handler that must be called when adaptation is complete.
     func adapt(_ urlRequest: URLRequest, using state: RequestAdapterState, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void)
 }
 
 extension RequestAdapter {
+	print(">>> Entering adapt(urlRequest=\(urlRequest),state=\(state),completion=\(completion))")
     @preconcurrency
     public func adapt(_ urlRequest: URLRequest, using state: RequestAdapterState, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void) {
         adapt(urlRequest, for: state.session, completion: completion)
     }
+	print("<<< Exiting adapt(urlRequest=\(urlRequest),state=\(state),completion=\(completion))")
 }
 
 // MARK: -
@@ -131,6 +135,7 @@ extension RequestInterceptor {
                       completion: @escaping @Sendable (RetryResult) -> Void) {
         completion(.doNotRetry)
     }
+	print("<<< Exiting retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion))")
 }
 
 /// `RequestAdapter` closure definition.
@@ -177,7 +182,9 @@ extension RequestAdapter where Self == Adapter {
     /// - Returns:           The `Adapter`.
     @preconcurrency
     public static func adapter(using closure: @escaping AdaptHandler) -> Adapter {
+		print(">>> Entering adapter(closure=\(closure))")
         Adapter(closure)
+		print("<<< Exiting adapter(closure=\(closure))")
     }
 }
 
@@ -211,7 +218,9 @@ extension RequestRetrier where Self == Retrier {
     /// - Returns:           The `Retrier`.
     @preconcurrency
     public static func retrier(using closure: @escaping RetryHandler) -> Retrier {
+		print(">>> Entering retrier(closure=\(closure))")
         Retrier(closure)
+		print("<<< Exiting retrier(closure=\(closure))")
     }
 }
 
@@ -266,12 +275,14 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                        for session: Session,
                        using adapters: [any RequestAdapter],
                        completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) {
+					print(">>> Entering adapt(urlRequest=\(urlRequest),session=\(session),adapters=\(adapters),completion=\(completion))")
         var pendingAdapters = adapters
 
         guard !pendingAdapters.isEmpty else { completion(.success(urlRequest)); return }
 
         let adapter = pendingAdapters.removeFirst()
 
+		print("adapt(urlRequest=\(urlRequest),session=\(session),adapters=\(adapters),completion=\(completion)): adapter → \(adapter)")
         adapter.adapt(urlRequest, for: session) { [pendingAdapters] result in
             switch result {
             case let .success(urlRequest):
@@ -291,12 +302,14 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                        using state: RequestAdapterState,
                        adapters: [any RequestAdapter],
                        completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) {
+					print(">>> Entering adapt(urlRequest=\(urlRequest),state=\(state),adapters=\(adapters),completion=\(completion))")
         var pendingAdapters = adapters
 
         guard !pendingAdapters.isEmpty else { completion(.success(urlRequest)); return }
 
         let adapter = pendingAdapters.removeFirst()
 
+		print("adapt(urlRequest=\(urlRequest),state=\(state),adapters=\(adapters),completion=\(completion)): adapter → \(adapter)")
         adapter.adapt(urlRequest, using: state) { [pendingAdapters] result in
             switch result {
             case let .success(urlRequest):
@@ -305,6 +318,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 completion(result)
             }
         }
+		print("<<< Exiting adapt(urlRequest=\(urlRequest),state=\(state),adapters=\(adapters),completion=\(completion))")
     }
 
     @preconcurrency
@@ -320,12 +334,14 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                        dueTo error: any Error,
                        using retriers: [any RequestRetrier],
                        completion: @escaping @Sendable (RetryResult) -> Void) {
+					print(">>> Entering retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion))")
         var pendingRetriers = retriers
 
         guard !pendingRetriers.isEmpty else { completion(.doNotRetry); return }
 
         let retrier = pendingRetriers.removeFirst()
 
+		print("retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion)): retrier → \(retrier)")
         retrier.retry(request, for: session, dueTo: error) { [pendingRetriers] result in
             switch result {
             case .retry, .retryWithDelay, .doNotRetryWithError:
@@ -335,6 +351,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 self.retry(request, for: session, dueTo: error, using: pendingRetriers, completion: completion)
             }
         }
+		print("<<< Exiting retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion))")
     }
 }
 
@@ -347,7 +364,9 @@ extension RequestInterceptor where Self == Interceptor {
     /// - Returns:   The `Interceptor`.
     @preconcurrency
     public static func interceptor(adapter: @escaping AdaptHandler, retrier: @escaping RetryHandler) -> Interceptor {
+		print(">>> Entering interceptor(adapter=\(adapter),retrier=\(retrier))")
         Interceptor(adaptHandler: adapter, retryHandler: retrier)
+		print("<<< Exiting interceptor(adapter=\(adapter),retrier=\(retrier))")
     }
 
     /// Creates an `Interceptor` using the provided `RequestAdapter` and `RequestRetrier` instances.
@@ -358,6 +377,8 @@ extension RequestInterceptor where Self == Interceptor {
     @preconcurrency
     public static func interceptor(adapter: any RequestAdapter, retrier: any RequestRetrier) -> Interceptor {
         Interceptor(adapter: adapter, retrier: retrier)
+		print(">>> Entering interceptor(adapters=\(adapters),retriers=\(retriers),interceptors=\(interceptors))")
+		print("<<< Exiting interceptor(adapters=\(adapters),retriers=\(retriers),interceptors=\(interceptors))")
     }
 
     /// Creates an `Interceptor` using the provided `RequestAdapter`s, `RequestRetrier`s, and `RequestInterceptor`s.
@@ -371,6 +392,7 @@ extension RequestInterceptor where Self == Interceptor {
     public static func interceptor(adapters: [any RequestAdapter] = [],
                                    retriers: [any RequestRetrier] = [],
                                    interceptors: [any RequestInterceptor] = []) -> Interceptor {
+								print(">>> Entering interceptor(adapters=\(adapters),retriers=\(retriers),interceptors=\(interceptors))")
         Interceptor(adapters: adapters, retriers: retriers, interceptors: interceptors)
     }
 }

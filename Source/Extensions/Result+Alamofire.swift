@@ -80,14 +80,17 @@ extension Result {
     /// - returns: A `Result` containing the result of the given closure. If this instance is a failure, returns the
     ///            same failure.
     func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> Result<NewSuccess, any Error> {
+		print(">>> Entering tryMap(transform=\(transform))")
         switch self {
         case let .success(value):
             do {
                 return try .success(transform(value))
             } catch {
+				print("Exception in tryMap(transform=\(transform)): \(error)")
                 return .failure(error)
             }
         case let .failure(error):
+		print("<<< Exiting tryMap(transform=\(transform))")
             return .failure(error)
         }
     }
@@ -106,14 +109,17 @@ extension Result {
     /// - Returns: A `Result` instance containing the result of the transform. If this instance is a success, returns
     ///            the same success.
     func tryMapError<NewFailure: Error>(_ transform: (Failure) throws -> NewFailure) -> Result<Success, any Error> {
+		print(">>> Entering tryMapError(transform=\(transform))")
         switch self {
         case let .failure(error):
             do {
                 return try .failure(transform(error))
             } catch {
+				print("Exception in tryMapError(transform=\(transform)): \(error)")
                 return .failure(error)
             }
         case let .success(value):
+		print("<<< Exiting tryMapError(transform=\(transform))")
             return .success(value)
         }
     }

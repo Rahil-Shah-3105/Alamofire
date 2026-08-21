@@ -255,9 +255,11 @@ open class Session: @unchecked Sendable {
     /// - Parameters:
     ///   - action:     Closure to perform with all `Request`s.
     public func withAllRequests(perform action: @escaping @Sendable (Set<Request>) -> Void) {
+		print(">>> Entering withAllRequests(action=\(action))")
         rootQueue.async {
             action(self.mutableState.read(\.activeRequests))
         }
+		print("<<< Exiting withAllRequests(action=\(action))")
     }
 
     /// Cancel all active `Request`s, optionally calling a completion handler when complete.
@@ -270,12 +272,14 @@ open class Session: @unchecked Sendable {
     ///   - queue:      `DispatchQueue` on which the completion handler is run. `.main` by default.
     ///   - completion: Closure to be called when all `Request`s have been cancelled.
     public func cancelAllRequests(completingOnQueue queue: DispatchQueue = .main, completion: (@Sendable () -> Void)? = nil) {
+		print(">>> Entering cancelAllRequests(queue=\(queue),completion=\(completion))")
         withAllRequests { requests in
             requests.forEach { $0.cancel() }
             queue.async {
                 completion?()
             }
         }
+		print("<<< Exiting cancelAllRequests(queue=\(queue),completion=\(completion))")
     }
 
     // MARK: - DataRequest
@@ -295,6 +299,7 @@ open class Session: @unchecked Sendable {
             var request = try URLRequest(url: url, method: method, headers: headers)
             try requestModifier?(&request)
 
+			print("<<< Exiting asURLRequest()")
             return try encoding.encode(request, with: parameters)
         }
     }
@@ -323,6 +328,7 @@ open class Session: @unchecked Sendable {
                       interceptor: (any RequestInterceptor)? = nil,
                       shouldAutomaticallyResume: Bool? = nil,
                       requestModifier: RequestModifier? = nil) -> DataRequest {
+					print(">>> Entering request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
         let convertible = RequestConvertible(url: convertible,
                                              method: method,
                                              parameters: parameters,
@@ -372,6 +378,7 @@ open class Session: @unchecked Sendable {
                                                         interceptor: (any RequestInterceptor)? = nil,
                                                         shouldAutomaticallyResume: Bool? = nil,
                                                         requestModifier: RequestModifier? = nil) -> DataRequest {
+														print(">>> Entering request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
         let convertible = RequestEncodableConvertible(url: convertible,
                                                       method: method,
                                                       parameters: parameters,
@@ -403,6 +410,8 @@ open class Session: @unchecked Sendable {
 
         performEagerlyIfNecessary(request)
 
+		print("<<< Exiting request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
+		print("<<< Exiting request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
         return request
     }
 
@@ -437,6 +446,7 @@ open class Session: @unchecked Sendable {
                                                               interceptor: (any RequestInterceptor)? = nil,
                                                               shouldAutomaticallyResume: Bool? = nil,
                                                               requestModifier: RequestModifier? = nil) -> DataStreamRequest {
+															print(">>> Entering streamRequest(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
         let convertible = RequestEncodableConvertible(url: convertible,
                                                       method: method,
                                                       parameters: parameters,
@@ -444,10 +454,13 @@ open class Session: @unchecked Sendable {
                                                       headers: headers,
                                                       requestModifier: requestModifier)
 
+		print("<<< Exiting streamRequest(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
         return streamRequest(convertible,
                              automaticallyCancelOnStreamError: automaticallyCancelOnStreamError,
                              interceptor: interceptor,
                              shouldAutomaticallyResume: shouldAutomaticallyResume)
+							print(">>> Entering streamRequest(convertible=\(convertible),method=\(method),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
+							print("<<< Exiting streamRequest(convertible=\(convertible),method=\(method),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
     }
 
     /// Creates a `DataStreamRequest` from the passed components and `RequestInterceptor`.
@@ -480,10 +493,12 @@ open class Session: @unchecked Sendable {
                                                       headers: headers,
                                                       requestModifier: requestModifier)
 
+		print("<<< Exiting streamRequest(convertible=\(convertible),method=\(method),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))")
         return streamRequest(convertible,
                              automaticallyCancelOnStreamError: automaticallyCancelOnStreamError,
                              interceptor: interceptor,
                              shouldAutomaticallyResume: shouldAutomaticallyResume)
+							print(">>> Entering streamRequest(convertible=\(convertible),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume))")
     }
 
     /// Creates a `DataStreamRequest` from the passed `URLRequestConvertible` value and `RequestInterceptor`.
@@ -618,6 +633,7 @@ open class Session: @unchecked Sendable {
                        shouldAutomaticallyResume: Bool? = nil,
                        requestModifier: RequestModifier? = nil,
                        to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
+					print(">>> Entering download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))")
         let convertible = RequestConvertible(url: convertible,
                                              method: method,
                                              parameters: parameters,
@@ -625,7 +641,10 @@ open class Session: @unchecked Sendable {
                                              headers: headers,
                                              requestModifier: requestModifier)
 
+		print("<<< Exiting download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))")
         return download(convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, to: destination)
+		print(">>> Entering download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))")
+		print("<<< Exiting download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))")
     }
 
     /// Creates a `DownloadRequest` from a `URLRequest` created using the passed components, `Encodable` parameters, and
@@ -655,6 +674,7 @@ open class Session: @unchecked Sendable {
                                                          shouldAutomaticallyResume: Bool? = nil,
                                                          requestModifier: RequestModifier? = nil,
                                                          to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
+														print(">>> Entering download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))")
         let convertible = RequestEncodableConvertible(url: convertible,
                                                       method: method,
                                                       parameters: parameters,
@@ -663,6 +683,9 @@ open class Session: @unchecked Sendable {
                                                       requestModifier: requestModifier)
 
         return download(convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, to: destination)
+		print(">>> Entering download(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination))")
+		print("download(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination)): request → \(request)")
+		print("<<< Exiting download(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination))")
     }
 
     /// Creates a `DownloadRequest` from a `URLRequestConvertible` value, a `RequestInterceptor`, and a `Destination`.
@@ -690,6 +713,8 @@ open class Session: @unchecked Sendable {
 
         performEagerlyIfNecessary(request)
 
+		print("download(data=\(data),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination)): request → \(request)")
+		print("<<< Exiting download(data=\(data),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination))")
         return request
     }
 
@@ -751,7 +776,9 @@ open class Session: @unchecked Sendable {
         let uploadable: any UploadableConvertible
 
         func createUploadable() throws -> UploadRequest.Uploadable {
+			print(">>> Entering createUploadable()")
             try uploadable.createUploadable()
+			print("<<< Exiting createUploadable()")
         }
 
         func asURLRequest() throws -> URLRequest {
@@ -784,17 +811,20 @@ open class Session: @unchecked Sendable {
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default,
                      requestModifier: RequestModifier? = nil) -> UploadRequest {
+					print(">>> Entering upload(data=\(data),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))")
         let convertible = ParameterlessRequestConvertible(url: convertible,
                                                           method: method,
                                                           headers: headers,
                                                           requestModifier: requestModifier)
 
+														print("<<< Exiting upload(data=\(data),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))")
         return upload(data,
                       with: convertible,
                       interceptor: interceptor,
                       shouldAutomaticallyResume: shouldAutomaticallyResume,
                       fileManager: fileManager)
     }
+					print("Exception in upload(data=\(data),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier)): \(error)")
 
     /// Creates an `UploadRequest` for the given `Data` using the `URLRequestConvertible` value and `RequestInterceptor`.
     ///
@@ -811,12 +841,14 @@ open class Session: @unchecked Sendable {
                      interceptor: (any RequestInterceptor)? = nil,
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default) -> UploadRequest {
+					print(">>> Entering upload(data=\(data),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))")
         upload(.data(data),
                with: convertible,
                interceptor: interceptor,
                shouldAutomaticallyResume: shouldAutomaticallyResume,
                fileManager: fileManager)
     }
+			print("Exception in upload(data=\(data),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
 
     // MARK: File
 
@@ -842,16 +874,21 @@ open class Session: @unchecked Sendable {
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default,
                      requestModifier: RequestModifier? = nil) -> UploadRequest {
+					print(">>> Entering upload(fileURL=\(fileURL),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))")
         let convertible = ParameterlessRequestConvertible(url: convertible,
                                                           method: method,
                                                           headers: headers,
                                                           requestModifier: requestModifier)
 
+														print("<<< Exiting upload(fileURL=\(fileURL),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))")
         return upload(fileURL,
                       with: convertible,
                       interceptor: interceptor,
                       shouldAutomaticallyResume: shouldAutomaticallyResume,
                       fileManager: fileManager)
+					print("Exception in upload(fileURL=\(fileURL),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier)): \(error)")
+					print("Exception in upload(fileURL=\(fileURL),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
+					print("<<< Exiting upload(stream=\(stream),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))")
     }
 
     /// Creates an `UploadRequest` for the file at the given file `URL` using the `URLRequestConvertible` value and
@@ -877,6 +914,7 @@ open class Session: @unchecked Sendable {
                shouldAutomaticallyResume: shouldAutomaticallyResume,
                fileManager: fileManager)
     }
+			print("Exception in upload(fileURL=\(fileURL),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
 
     // MARK: InputStream
 
@@ -909,6 +947,14 @@ open class Session: @unchecked Sendable {
                                                           requestModifier: requestModifier)
 
         return upload(stream, with: convertible, interceptor: interceptor, fileManager: fileManager)
+		print("Exception in upload(stream=\(stream),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
+		print("upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier)): formData → \(formData)")
+		print("Exception in upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier)): \(error)")
+		print("Exception in upload(multipartFormData=\(multipartFormData),request=\(request),encodingMemoryThreshold=\(encodingMemoryThreshold),interceptor=\(interceptor),fileManager=\(fileManager)): \(error)")
+		print("upload(multipartFormData=\(multipartFormData),request=\(request),encodingMemoryThreshold=\(encodingMemoryThreshold),interceptor=\(interceptor),fileManager=\(fileManager)): formData → \(formData)")
+		print("Exception in upload(multipartFormData=\(multipartFormData),request=\(request),encodingMemoryThreshold=\(encodingMemoryThreshold),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
+		print("Exception in upload(uploadable=\(uploadable),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
+		print("upload(uploadable=\(uploadable),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): uploadable → \(uploadable)")
     }
 
     /// Creates an `UploadRequest` from the provided `InputStream` using the `URLRequestConvertible` value and
@@ -985,6 +1031,7 @@ open class Session: @unchecked Sendable {
                       interceptor: interceptor,
                       fileManager: fileManager)
     }
+					print("Exception in upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier)): \(error)")
 
     /// Creates an `UploadRequest` using a `MultipartFormData` building closure, the provided `URLRequestConvertible`
     /// value, and a `RequestInterceptor`.
@@ -1117,6 +1164,7 @@ open class Session: @unchecked Sendable {
                                               request: request,
                                               multipartFormData: multipartFormData)
 
+											print("Exception in upload(multipartFormData=\(multipartFormData),request=\(request),encodingMemoryThreshold=\(encodingMemoryThreshold),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): \(error)")
         return upload(multipartUpload, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, fileManager: fileManager)
     }
 
@@ -1155,15 +1203,18 @@ open class Session: @unchecked Sendable {
     // MARK: Perform
 
     func performEagerlyIfNecessary(_ request: Request) {
+		print(">>> Entering performEagerlyIfNecessary(request=\(request))")
         guard requestSetup == .eager else { return }
 
         perform(request)
+		print("<<< Exiting performEagerlyIfNecessary(request=\(request))")
     }
 
     /// Starts performing the provided `Request`.
     ///
     /// - Parameter request: The `Request` to perform.
     func perform(_ request: Request, forRetry isRetrying: Bool = false) {
+		print(">>> Entering perform(request=\(request),isRetrying=\(isRetrying))")
         rootQueue.async {
             self.mutableState.write { mutableState in
                 guard !request.isCancelled else { return }
@@ -1194,45 +1245,63 @@ open class Session: @unchecked Sendable {
                 }
             }
         }
+		print("<<< Exiting perform(request=\(request),isRetrying=\(isRetrying))")
     }
 
     func performDataRequest(_ request: DataRequest) {
+		print(">>> Entering performDataRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		print("<<< Exiting performDataRequest(request=\(request))")
     }
 
     func performDataStreamRequest(_ request: DataStreamRequest) {
+		print(">>> Entering performDataStreamRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		print("<<< Exiting performDataStreamRequest(request=\(request))")
     }
 
     #if canImport(Darwin) && !canImport(FoundationNetworking)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func performWebSocketRequest(_ request: WebSocketRequest) {
+		print(">>> Entering performWebSocketRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		print("<<< Exiting performWebSocketRequest(request=\(request))")
     }
     #endif
 
     func performUploadRequest(_ request: UploadRequest) {
+		print(">>> Entering performUploadRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible) {
             do {
                 let uploadable = try request.upload.createUploadable()
                 self.rootQueue.async { request.didCreateUploadable(uploadable) }
+				print("performUploadRequest(request=\(request)): uploadable → \(uploadable)")
                 return true
             } catch {
+				print("Exception in performUploadRequest(request=\(request)): \(error)")
                 self.rootQueue.async { request.didFailToCreateUploadable(with: error.asAFError(or: .createUploadableFailed(error: error))) }
+				print(">>> Entering performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask))")
+				print("performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): initialRequest → \(initialRequest)")
+				print("performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): adapter → \(adapter)")
+				print("performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): adapterState → \(adapterState)")
+				print("performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): adaptedRequest → \(adaptedRequest)")
+				print("<<< Exiting performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask))")
                 return false
             }
         }
+		print("<<< Exiting performUploadRequest(request=\(request))")
     }
 
     func performDownloadRequest(_ request: DownloadRequest) {
+		print(">>> Entering performDownloadRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         switch request.downloadable {
@@ -1241,6 +1310,7 @@ open class Session: @unchecked Sendable {
         case let .resumeData(resumeData):
             rootQueue.async { self.didReceiveResumeData(resumeData, for: request) }
         }
+		print("<<< Exiting performDownloadRequest(request=\(request))")
     }
 
     func performSetupOperations(for request: Request,
@@ -1265,6 +1335,7 @@ open class Session: @unchecked Sendable {
         guard let adapter = adapter(for: request) else {
             guard shouldCreateTask() else { return }
             rootQueue.async { self.didCreateURLRequest(initialRequest, for: request) }
+			print("<<< Exiting adapter(request=\(request))")
             return
         }
 
@@ -1289,6 +1360,7 @@ open class Session: @unchecked Sendable {
     // MARK: - Task Handling
 
     func didCreateURLRequest(_ urlRequest: URLRequest, for request: Request) {
+		print(">>> Entering didCreateURLRequest(urlRequest=\(urlRequest),request=\(request))")
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         request.didCreateURLRequest(urlRequest)
@@ -1297,17 +1369,22 @@ open class Session: @unchecked Sendable {
 
         let task = request.task(for: urlRequest, using: session)
         mutableState.write { $0.requestTaskMap[request] = task }
+		print("didCreateURLRequest(urlRequest=\(urlRequest),request=\(request)): task → \(task)")
         request.didCreateTask(task)
+		print("<<< Exiting didCreateURLRequest(urlRequest=\(urlRequest),request=\(request))")
     }
 
     func didReceiveResumeData(_ data: Data, for request: DownloadRequest) {
+		print(">>> Entering didReceiveResumeData(data=\(data),request=\(request))")
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         guard !request.isCancelled else { return }
 
         let task = request.task(forResumeData: data, using: session)
         mutableState.write { $0.requestTaskMap[request] = task }
+		print("didReceiveResumeData(data=\(data),request=\(request)): task → \(task)")
         request.didCreateTask(task)
+		print("<<< Exiting didReceiveResumeData(data=\(data),request=\(request))")
     }
 
     // MARK: - Adapters and Retriers
@@ -1321,11 +1398,13 @@ open class Session: @unchecked Sendable {
     }
 
     func retrier(for request: Request) -> (any RequestRetrier)? {
+		print(">>> Entering retrier(request=\(request))")
         if let requestInterceptor = request.interceptor, let sessionInterceptor = interceptor {
             Interceptor(retriers: [sessionInterceptor, requestInterceptor])
         } else {
             request.interceptor ?? interceptor
         }
+		print("<<< Exiting retrier(request=\(request))")
     }
 }
 
@@ -1339,30 +1418,40 @@ extension Session: RequestDelegate {
     public var startImmediately: Bool { startRequestsImmediately }
 
     public func readyToPerform(request: Request) {
+		print(">>> Entering readyToPerform(request=\(request))")
         perform(request)
+		print("<<< Exiting readyToPerform(request=\(request))")
     }
 
     public func cleanup(after request: Request) {
+		print(">>> Entering cleanup(request=\(request))")
         mutableState.write { $0.activeRequests.remove(request) }
+		print("<<< Exiting cleanup(request=\(request))")
     }
 
     public func retryResult(for request: Request, dueTo error: AFError, completion: @escaping @Sendable (RetryResult) -> Void) {
+		print(">>> Entering retryResult(request=\(request),error=\(error),completion=\(completion))")
         guard let retrier = retrier(for: request) else {
             rootQueue.async { completion(.doNotRetry) }
+			print("retryResult(request=\(request),error=\(error),completion=\(completion)): retrier → \(retrier)")
             return
         }
 
         retrier.retry(request, for: self, dueTo: error) { retryResult in
             self.rootQueue.async {
                 guard let retryResultError = retryResult.error else { completion(retryResult); return }
+				print("retryResult(request=\(request),error=\(error),completion=\(completion)): retryResultError → \(retryResultError)")
 
                 let retryError = AFError.requestRetryFailed(retryError: retryResultError, originalError: error)
                 completion(.doNotRetryWithError(retryError))
             }
+				print("retryResult(request=\(request),error=\(error),completion=\(completion)): retryError → \(retryError)")
         }
+		print("<<< Exiting retryResult(request=\(request),error=\(error),completion=\(completion))")
     }
 
     public func retryRequest(_ request: Request, withDelay timeDelay: TimeInterval?) {
+		print(">>> Entering retryRequest(request=\(request),timeDelay=\(timeDelay))")
         rootQueue.async {
             let retry: @Sendable () -> Void = {
                 guard !request.isCancelled else { return }
@@ -1377,6 +1466,7 @@ extension Session: RequestDelegate {
                 retry()
             }
         }
+		print("<<< Exiting retryRequest(request=\(request),timeDelay=\(timeDelay))")
     }
 }
 
@@ -1390,11 +1480,13 @@ extension Session: SessionStateProvider {
     }
 
     func didGatherMetricsForTask(_ task: URLSessionTask) {
+		print(">>> Entering didGatherMetricsForTask(task=\(task))")
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         let completion: (() -> Void)? = mutableState.write { mutableState in
             let didDisassociate = mutableState.requestTaskMap.disassociateIfNecessaryAfterGatheringMetricsForTask(task)
 
+			print("didGatherMetricsForTask(task=\(task)): didDisassociate → \(didDisassociate)")
             if didDisassociate {
                 let completion = mutableState.waitingCompletions[task]
                 mutableState.waitingCompletions[task] = nil
@@ -1404,15 +1496,18 @@ extension Session: SessionStateProvider {
             }
         }
         completion?()
+		print("<<< Exiting didGatherMetricsForTask(task=\(task))")
     }
 
     func didCompleteTask(_ task: URLSessionTask, completion: @escaping () -> Void) {
+		print(">>> Entering didCompleteTask(task=\(task),completion=\(completion))")
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         let immediatelyPerformCompletion = mutableState.write { mutableState in
             let didDisassociate = mutableState.requestTaskMap.disassociateIfNecessaryAfterCompletingTask(task)
 
             if didDisassociate {
+				print("didCompleteTask(task=\(task),completion=\(completion)): didDisassociate → \(didDisassociate)")
                 return true
             } else {
                 mutableState.waitingCompletions[task] = completion
@@ -1421,21 +1516,27 @@ extension Session: SessionStateProvider {
         }
 
         if immediatelyPerformCompletion { completion() }
+		print("<<< Exiting didCompleteTask(task=\(task),completion=\(completion))")
     }
 
     func credential(for task: URLSessionTask, in protectionSpace: URLProtectionSpace) -> URLCredential? {
+		print(">>> Entering credential(task=\(task),protectionSpace=\(protectionSpace))")
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
+		print("<<< Exiting credential(task=\(task),protectionSpace=\(protectionSpace))")
         return mutableState.read { $0.requestTaskMap[task]?.credential } ??
             session.configuration.urlCredentialStorage?.defaultCredential(for: protectionSpace)
     }
 
     func cancelRequestsForSessionInvalidation(with error: (any Error)?) {
+		print(">>> Entering cancelRequestsForSessionInvalidation(error=\(error))")
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         let requests = mutableState.read(\.activeRequests)
         for request in requests where !request.isFinished {
+		print("cancelRequestsForSessionInvalidation(error=\(error)): requests → \(requests)")
             request.finish(error: .sessionInvalidated(error: error))
         }
+		print("<<< Exiting cancelRequestsForSessionInvalidation(error=\(error))")
     }
 }

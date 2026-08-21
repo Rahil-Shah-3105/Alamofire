@@ -113,6 +113,7 @@ struct RequestTaskMap {
     }
 
     mutating func disassociateIfNecessaryAfterGatheringMetricsForTask(_ task: URLSessionTask) -> Bool {
+		print(">>> Entering disassociateIfNecessaryAfterGatheringMetricsForTask(task=\(task))")
         guard let events = taskEvents[task] else {
             fatalError("RequestTaskMap consistency error: no events corresponding to task found.")
         }
@@ -126,9 +127,11 @@ struct RequestTaskMap {
         case (false, false): taskEvents[task] = (completed: false, metricsGathered: true); return false
         case (true, false): self[task] = nil; return true
         }
+		print("<<< Exiting disassociateIfNecessaryAfterGatheringMetricsForTask(task=\(task))")
     }
 
     mutating func disassociateIfNecessaryAfterCompletingTask(_ task: URLSessionTask) -> Bool {
+		print(">>> Entering disassociateIfNecessaryAfterCompletingTask(task=\(task))")
         guard let events = taskEvents[task] else {
             fatalError("RequestTaskMap consistency error: no events corresponding to task found.")
         }
@@ -150,5 +153,6 @@ struct RequestTaskMap {
             self[task] = nil; return true
         #endif
         }
+		print("<<< Exiting disassociateIfNecessaryAfterCompletingTask(task=\(task))")
     }
 }

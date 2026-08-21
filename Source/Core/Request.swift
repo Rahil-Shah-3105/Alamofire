@@ -60,6 +60,7 @@ public class Request: @unchecked Sendable {
             case (_, .finished):
                 true
             }
+			print("<<< Exiting canTransitionTo(state=\(state))")
         }
     }
 
@@ -298,11 +299,13 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter request: The `URLRequest` created.
     func didCreateInitialURLRequest(_ request: URLRequest) {
+		print(">>> Entering didCreateInitialURLRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.requests.append(request) }
 
         eventMonitor?.request(self, didCreateInitialURLRequest: request)
+		print("<<< Exiting didCreateInitialURLRequest(request=\(request))")
     }
 
     /// Called when initial `URLRequest` creation has failed, typically through a `URLRequestConvertible`.
@@ -311,15 +314,18 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter error: `AFError` thrown from the failed creation.
     func didFailToCreateURLRequest(with error: AFError) {
+		print(">>> Entering didFailToCreateURLRequest(error=\(error))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         self.error = error
+		print("didFailToCreateURLRequest(error=\(error)): self.error → \(self.error)")
 
         eventMonitor?.request(self, didFailToCreateURLRequestWithError: error)
 
         callCURLHandlerIfNecessary()
 
         retryOrFinish(error: error)
+		print("<<< Exiting didFailToCreateURLRequest(error=\(error))")
     }
 
     /// Called when a `RequestAdapter` has successfully adapted a `URLRequest`.
@@ -328,11 +334,13 @@ public class Request: @unchecked Sendable {
     ///   - initialRequest: The `URLRequest` that was adapted.
     ///   - adaptedRequest: The `URLRequest` returned by the `RequestAdapter`.
     func didAdaptInitialRequest(_ initialRequest: URLRequest, to adaptedRequest: URLRequest) {
+		print(">>> Entering didAdaptInitialRequest(initialRequest=\(initialRequest),adaptedRequest=\(adaptedRequest))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.requests.append(adaptedRequest) }
 
         eventMonitor?.request(self, didAdaptInitialRequest: initialRequest, to: adaptedRequest)
+		print("<<< Exiting didAdaptInitialRequest(initialRequest=\(initialRequest),adaptedRequest=\(adaptedRequest))")
     }
 
     /// Called when a `RequestAdapter` fails to adapt a `URLRequest`.
@@ -343,21 +351,25 @@ public class Request: @unchecked Sendable {
     ///   - request: The `URLRequest` the adapter was called with.
     ///   - error:   The `AFError` returned by the `RequestAdapter`.
     func didFailToAdaptURLRequest(_ request: URLRequest, withError error: AFError) {
+		print(">>> Entering didFailToAdaptURLRequest(request=\(request),error=\(error))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         self.error = error
+		print("didFailToAdaptURLRequest(request=\(request),error=\(error)): self.error → \(self.error)")
 
         eventMonitor?.request(self, didFailToAdaptURLRequest: request, withError: error)
 
         callCURLHandlerIfNecessary()
 
         retryOrFinish(error: error)
+		print("<<< Exiting didFailToAdaptURLRequest(request=\(request),error=\(error))")
     }
 
     /// Final `URLRequest` has been created for the instance.
     ///
     /// - Parameter request: The `URLRequest` created.
     func didCreateURLRequest(_ request: URLRequest) {
+		print(">>> Entering didCreateURLRequest(request=\(request))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.read { state in
@@ -369,23 +381,28 @@ public class Request: @unchecked Sendable {
         eventMonitor?.request(self, didCreateURLRequest: request)
 
         callCURLHandlerIfNecessary()
+		print("<<< Exiting didCreateURLRequest(request=\(request))")
     }
 
     /// Asynchronously calls any stored `cURLHandler` and then removes it from `mutableState`.
     private func callCURLHandlerIfNecessary() {
+		print(">>> Entering callCURLHandlerIfNecessary()")
         mutableState.write { mutableState in
             guard let cURLHandler = mutableState.cURLHandler else { return }
 
             cURLHandler.queue.async { cURLHandler.handler(self.cURLDescription()) }
 
             mutableState.cURLHandler = nil
+			print("callCURLHandlerIfNecessary(): mutableState.cURLHandler → \(mutableState.cURLHandler)")
         }
+		print("<<< Exiting callCURLHandlerIfNecessary()")
     }
 
     /// Called when a `URLSessionTask` is created on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` created.
     func didCreateTask(_ task: URLSessionTask) {
+		print(">>> Entering didCreateTask(task=\(task))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
@@ -419,64 +436,79 @@ public class Request: @unchecked Sendable {
                 underlyingQueue.async { self.didCancelTask(task) }
             }
         }
+		print("<<< Exiting didCreateTask(task=\(task))")
     }
 
     /// Called when resumption is completed.
     func didResume() {
+		print(">>> Entering didResume()")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.requestDidResume(self)
+		print("<<< Exiting didResume()")
     }
 
     /// Called when a `URLSessionTask` is resumed on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` resumed.
     func didResumeTask(_ task: URLSessionTask) {
+		print(">>> Entering didResumeTask(task=\(task))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.request(self, didResumeTask: task)
+		print("<<< Exiting didResumeTask(task=\(task))")
     }
 
     /// Called when suspension is completed.
     func didSuspend() {
+		print(">>> Entering didSuspend()")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.requestDidSuspend(self)
+		print("<<< Exiting didSuspend()")
     }
 
     /// Called when a `URLSessionTask` is suspended on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` suspended.
     func didSuspendTask(_ task: URLSessionTask) {
+		print(">>> Entering didSuspendTask(task=\(task))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.request(self, didSuspendTask: task)
+		print("<<< Exiting didSuspendTask(task=\(task))")
     }
 
     /// Called when cancellation is completed, sets `error` to `AFError.explicitlyCancelled`.
     func didCancel() {
+		print(">>> Entering didCancel()")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
             mutableState.error = mutableState.error ?? AFError.explicitlyCancelled
+			print("didCancel(): mutableState.error → \(mutableState.error)")
         }
 
         eventMonitor?.requestDidCancel(self)
+		print("<<< Exiting didCancel()")
     }
 
     /// Called when a `URLSessionTask` is cancelled on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` cancelled.
     func didCancelTask(_ task: URLSessionTask) {
+		print(">>> Entering didCancelTask(task=\(task))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.request(self, didCancelTask: task)
+		print("<<< Exiting didCancelTask(task=\(task))")
     }
 
     /// Called when a `URLSessionTaskMetrics` value is gathered on behalf of the instance.
     ///
     /// - Parameter metrics: The `URLSessionTaskMetrics` gathered.
     func didGatherMetrics(_ metrics: URLSessionTaskMetrics) {
+		print(">>> Entering didGatherMetrics(metrics=\(metrics))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
@@ -488,6 +520,7 @@ public class Request: @unchecked Sendable {
         }
 
         eventMonitor?.request(self, didGatherMetrics: metrics)
+		print("<<< Exiting didGatherMetrics(metrics=\(metrics))")
     }
 
     /// Called when a `URLSessionTask` fails before it is finished, typically during certificate pinning.
@@ -496,12 +529,15 @@ public class Request: @unchecked Sendable {
     ///   - task:  The `URLSessionTask` which failed.
     ///   - error: The early failure `AFError`.
     func didFailTask(_ task: URLSessionTask, earlyWithError error: AFError) {
+		print(">>> Entering didFailTask(task=\(task),error=\(error))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         self.error = error
+		print("didFailTask(task=\(task),error=\(error)): self.error → \(self.error)")
 
         // Task will still complete, so didCompleteTask(_:with:) will handle retry.
         eventMonitor?.request(self, didFailTask: task, earlyWithError: error)
+		print("<<< Exiting didFailTask(task=\(task),error=\(error))")
     }
 
     /// Called when a `URLSessionTask` completes. All tasks will eventually call this method.
@@ -513,20 +549,24 @@ public class Request: @unchecked Sendable {
     ///   - error: The `AFError` `task` may have completed with. If `error` has already been set on the instance, this
     ///            value is ignored.
     func didCompleteTask(_ task: URLSessionTask, with error: AFError?) {
+		print(">>> Entering didCompleteTask(task=\(task),error=\(error))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.error = $0.error ?? error }
 
         let validators = validators.read(\.self)
         validators.forEach { $0() }
+		print("didCompleteTask(task=\(task),error=\(error)): validators → \(validators)")
 
         eventMonitor?.request(self, didCompleteTask: task, with: error)
 
         retryOrFinish(error: self.error)
+		print("<<< Exiting didCompleteTask(task=\(task),error=\(error))")
     }
 
     /// Called when the `RequestDelegate` is going to retry this `Request`. Calls `reset()`.
     func prepareForRetry() {
+		print(">>> Entering prepareForRetry()")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.retryCount += 1 }
@@ -534,6 +574,7 @@ public class Request: @unchecked Sendable {
         reset()
 
         eventMonitor?.requestIsRetrying(self)
+		print("<<< Exiting prepareForRetry()")
     }
 
     /// Called to determine whether retry will be triggered for the particular error, or whether the instance should
@@ -541,6 +582,7 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter error: The possible `AFError` which may trigger retry.
     func retryOrFinish(error: AFError?) {
+		print(">>> Entering retryOrFinish(error=\(error))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         guard !isCancelled, let error, let delegate else { finish(); return }
@@ -555,12 +597,14 @@ public class Request: @unchecked Sendable {
                 delegate.retryRequest(self, withDelay: retryResult.delay)
             }
         }
+		print("<<< Exiting retryOrFinish(error=\(error))")
     }
 
     /// Finishes this `Request` and starts the response serializers.
     ///
     /// - Parameter error: The possible `Error` with which the instance will finish.
     func finish(error: AFError? = nil) {
+		print(">>> Entering finish(error=\(error))")
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         let shouldStartResponseSerializers = mutableState.write { mutableState in
@@ -570,6 +614,7 @@ public class Request: @unchecked Sendable {
 
             if let error { mutableState.error = error }
 
+		print("finish(error=\(error)): mutableState.isFinishing → \(mutableState.isFinishing)")
             return true
         }
 
@@ -579,6 +624,7 @@ public class Request: @unchecked Sendable {
         processNextResponseSerializer()
 
         eventMonitor?.requestDidFinish(self)
+		print("<<< Exiting finish(error=\(error))")
     }
 
     /// Appends the response serialization closure to the instance.
@@ -587,11 +633,13 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter closure: The closure containing the response serialization call.
     func appendResponseSerializer(_ closure: @escaping @Sendable () -> Void) {
+		print(">>> Entering appendResponseSerializer(closure=\(closure))")
         mutableState.write { mutableState in
             mutableState.responseSerializers.append(closure)
 
             if mutableState.state == .finished {
                 mutableState.state = .resumed
+				print("appendResponseSerializer(closure=\(closure)): mutableState.state → \(mutableState.state)")
             }
 
             // If serializers have already been processed, execute the added serializer immediately.
@@ -607,19 +655,24 @@ public class Request: @unchecked Sendable {
                 }
             }
         }
+		print("<<< Exiting appendResponseSerializer(closure=\(closure))")
     }
 
     /// Processes the next response serializer and calls all completions if response serialization is complete.
     func processNextResponseSerializer() {
+		print(">>> Entering processNextResponseSerializer()")
         let executeOutside: (() -> Void)? = mutableState.write { mutableState in
             guard !mutableState.isResponseSerializerEnqueued else { return nil }
 
             let responseSerializerIndex = mutableState.responseSerializerCompletions.count
+			print("processNextResponseSerializer(): responseSerializerIndex → \(responseSerializerIndex)")
             let isAvailableSerializer = responseSerializerIndex < mutableState.responseSerializers.count
             let responseSerializer = isAvailableSerializer ? mutableState.responseSerializers[responseSerializerIndex] : nil
+			print("processNextResponseSerializer(): responseSerializer → \(responseSerializer)")
 
             if let responseSerializer {
                 mutableState.isResponseSerializerEnqueued = true
+				print("processNextResponseSerializer(): mutableState.isResponseSerializerEnqueued → \(mutableState.isResponseSerializerEnqueued)")
                 return { self.serializationQueue.async { responseSerializer() } }
             } else {
                 let completions = mutableState.responseSerializerCompletions
@@ -632,9 +685,12 @@ public class Request: @unchecked Sendable {
 
                 if mutableState.state.canTransitionTo(.finished) {
                     mutableState.state = .finished
+					print("processNextResponseSerializer(): mutableState.state → \(mutableState.state)")
                 }
 
                 mutableState.responseSerializerProcessingFinished = true
+				print("processNextResponseSerializer(): mutableState.responseSerializerProcessingFinished → \(mutableState.responseSerializerProcessingFinished)")
+				print("processNextResponseSerializer(): mutableState.isFinishing → \(mutableState.isFinishing)")
                 mutableState.isFinishing = false
 
                 return {
@@ -647,6 +703,7 @@ public class Request: @unchecked Sendable {
         }
 
         executeOutside?()
+		print("<<< Exiting processNextResponseSerializer()")
     }
 
     /// Notifies the `Request` that the response serializer is complete.
@@ -654,26 +711,39 @@ public class Request: @unchecked Sendable {
     /// - Parameter completion: The completion handler provided with the response serializer, called when all serializers
     ///                         are complete.
     func responseSerializerDidComplete(completion: @escaping @Sendable () -> Void) {
+		print(">>> Entering responseSerializerDidComplete(completion=\(completion))")
         mutableState.write { mutableState in
             mutableState.isResponseSerializerEnqueued = false
+			print("responseSerializerDidComplete(completion=\(completion)): mutableState.isResponseSerializerEnqueued → \(mutableState.isResponseSerializerEnqueued)")
             mutableState.responseSerializerCompletions.append(completion)
         }
         processNextResponseSerializer()
+		print("<<< Exiting responseSerializerDidComplete(completion=\(completion))")
     }
 
     /// Resets all task and response serializer related state for retry.
     func reset() {
+		print(">>> Entering reset()")
         uploadProgress.totalUnitCount = 0
         uploadProgress.completedUnitCount = 0
+		print("reset(): uploadProgress.completedUnitCount → \(uploadProgress.completedUnitCount)")
+		print("reset(): downloadProgress.totalUnitCount → \(downloadProgress.totalUnitCount)")
+		print("reset(): downloadProgress.completedUnitCount → \(downloadProgress.completedUnitCount)")
+		print("reset(): uploadProgress.totalUnitCount → \(uploadProgress.totalUnitCount)")
         downloadProgress.totalUnitCount = 0
         downloadProgress.completedUnitCount = 0
 
         mutableState.write { mutableState in
             mutableState.error = nil
+			print("reset(): mutableState.error → \(mutableState.error)")
+			print("reset(): mutableState.isFinishing → \(mutableState.isFinishing)")
+			print("reset(): mutableState.responseSerializerCompletions → \(mutableState.responseSerializerCompletions)")
+			print("reset(): mutableState.isResponseSerializerEnqueued → \(mutableState.isResponseSerializerEnqueued)")
             mutableState.isFinishing = false
             mutableState.responseSerializerCompletions = []
             mutableState.isResponseSerializerEnqueued = false
         }
+		print("<<< Exiting reset()")
     }
 
     /// Called when updating the upload progress.
@@ -682,10 +752,14 @@ public class Request: @unchecked Sendable {
     ///   - totalBytesSent: Total bytes sent so far.
     ///   - totalBytesExpectedToSend: Total bytes expected to send.
     func updateUploadProgress(totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+		print(">>> Entering updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))")
         uploadProgress.totalUnitCount = totalBytesExpectedToSend
         uploadProgress.completedUnitCount = totalBytesSent
+		print("updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend)): uploadProgress.completedUnitCount → \(uploadProgress.completedUnitCount)")
+		print("updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend)): uploadProgress.totalUnitCount → \(uploadProgress.totalUnitCount)")
 
         uploadProgressHandler?.queue.async { self.uploadProgressHandler?.handler(self.uploadProgress) }
+		print("<<< Exiting updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))")
     }
 
     // MARK: Task Creation
@@ -698,7 +772,9 @@ public class Request: @unchecked Sendable {
     ///
     /// - Returns:   The `URLSessionTask` created.
     func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		print(">>> Entering task(request=\(request),session=\(session))")
         fatalError("Subclasses must override.")
+		print("<<< Exiting task(request=\(request),session=\(session))")
     }
 
     // MARK: - Public API
@@ -712,10 +788,12 @@ public class Request: @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     public func cancel() -> Self {
+		print(">>> Entering cancel()")
         mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.cancelled) else { return }
 
             mutableState.state = .cancelled
+			print("cancel(): mutableState.state → \(mutableState.state)")
 
             underlyingQueue.async { self.didCancel() }
 
@@ -737,6 +815,7 @@ public class Request: @unchecked Sendable {
             underlyingQueue.async { self.didCancelTask(task) }
         }
 
+		print("<<< Exiting cancel()")
         return self
     }
 
@@ -745,10 +824,12 @@ public class Request: @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     public func suspend() -> Self {
+		print(">>> Entering suspend()")
         mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.suspended) else { return }
 
             mutableState.state = .suspended
+			print("suspend(): mutableState.state → \(mutableState.state)")
 
             underlyingQueue.async { self.didSuspend() }
 
@@ -758,6 +839,7 @@ public class Request: @unchecked Sendable {
             underlyingQueue.async { self.didSuspendTask(task) }
         }
 
+		print("<<< Exiting suspend()")
         return self
     }
 
@@ -766,6 +848,7 @@ public class Request: @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     public func resume() -> Self {
+		print(">>> Entering resume()")
         let needsToPerform = mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.resumed) else { return false }
 
@@ -787,6 +870,7 @@ public class Request: @unchecked Sendable {
             delegate?.readyToPerform(request: self)
         }
 
+		print("<<< Exiting resume()")
         return self
     }
 
@@ -802,8 +886,12 @@ public class Request: @unchecked Sendable {
     /// - Returns:       The instance.
     @discardableResult
     public func authenticate(username: String, password: String, persistence: URLCredential.Persistence = .forSession) -> Self {
+		print(">>> Entering authenticate(username=\(username),password=<redacted>,persistence=\(persistence))")
         let credential = URLCredential(user: username, password: password, persistence: persistence)
 
+		print("authenticate(username=\(username),password=<redacted>,persistence=\(persistence)): credential → <redacted>")
+		print("<<< Exiting authenticate(username=\(username),password=<redacted>,persistence=\(persistence))")
+		print("<<< Exiting authenticate(credential=<redacted>)")
         return authenticate(with: credential)
     }
 
@@ -831,8 +919,11 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func downloadProgress(queue: DispatchQueue = .main, closure: @escaping ProgressHandler) -> Self {
+		print(">>> Entering downloadProgress(queue=\(queue),closure=\(closure))")
+		print("downloadProgress(queue=\(queue),closure=\(closure)): downloadProgressHandler → \(downloadProgressHandler)")
         downloadProgressHandler = (handler: closure, queue: queue)
 
+		print("<<< Exiting downloadProgress(queue=\(queue),closure=\(closure))")
         return self
     }
 
@@ -848,8 +939,11 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func uploadProgress(queue: DispatchQueue = .main, closure: @escaping ProgressHandler) -> Self {
+		print(">>> Entering uploadProgress(queue=\(queue),closure=\(closure))")
         uploadProgressHandler = (handler: closure, queue: queue)
 
+		print("uploadProgress(queue=\(queue),closure=\(closure)): uploadProgressHandler → \(uploadProgressHandler)")
+		print("<<< Exiting uploadProgress(queue=\(queue),closure=\(closure))")
         return self
     }
 
@@ -865,11 +959,14 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func redirect(using handler: any RedirectHandler) -> Self {
+		print(">>> Entering redirect(handler=\(handler))")
         mutableState.write { mutableState in
             precondition(mutableState.redirectHandler == nil, "Redirect handler has already been set.")
             mutableState.redirectHandler = handler
+			print("redirect(handler=\(handler)): mutableState.redirectHandler → \(mutableState.redirectHandler)")
         }
 
+		print("<<< Exiting redirect(handler=\(handler))")
         return self
     }
 
@@ -885,11 +982,14 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func cacheResponse(using handler: any CachedResponseHandler) -> Self {
+		print(">>> Entering cacheResponse(handler=\(handler))")
         mutableState.write { mutableState in
             precondition(mutableState.cachedResponseHandler == nil, "Cached response handler has already been set.")
             mutableState.cachedResponseHandler = handler
+			print("cacheResponse(handler=\(handler)): mutableState.cachedResponseHandler → \(mutableState.cachedResponseHandler)")
         }
 
+		print("<<< Exiting cacheResponse(handler=\(handler))")
         return self
     }
 
@@ -907,6 +1007,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func cURLDescription(on queue: DispatchQueue, calling handler: @escaping @Sendable (String) -> Void) -> Self {
+		print(">>> Entering cURLDescription(queue=\(queue),handler=\(handler))")
         mutableState.write { mutableState in
             if mutableState.requests.last != nil {
                 queue.async { handler(self.cURLDescription()) }
@@ -915,6 +1016,9 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("<<< Exiting cURLDescription(queue=\(queue),handler=\(handler))")
+		print("<<< Exiting cURLDescription(handler=\(handler))")
+		print("<<< Exiting cURLDescription()")
         return self
     }
 
@@ -946,6 +1050,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func onURLRequestCreation(on queue: DispatchQueue = .main, perform handler: @escaping @Sendable (URLRequest) -> Void) -> Self {
+		print(">>> Entering onURLRequestCreation(queue=\(queue),handler=\(handler))")
         mutableState.write { state in
             if let request = state.requests.last {
                 queue.async { handler(request) }
@@ -954,6 +1059,7 @@ public class Request: @unchecked Sendable {
             state.urlRequestHandler = (queue, handler)
         }
 
+		print("<<< Exiting onURLRequestCreation(queue=\(queue),handler=\(handler))")
         return self
     }
 
@@ -971,6 +1077,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func onURLSessionTaskCreation(on queue: DispatchQueue = .main, perform handler: @escaping @Sendable (URLSessionTask) -> Void) -> Self {
+		print(">>> Entering onURLSessionTaskCreation(queue=\(queue),handler=\(handler))")
         mutableState.write { state in
             if let task = state.tasks.last {
                 queue.async { handler(task) }
@@ -979,6 +1086,7 @@ public class Request: @unchecked Sendable {
             state.urlSessionTaskHandler = (queue, handler)
         }
 
+		print("<<< Exiting onURLSessionTaskCreation(queue=\(queue),handler=\(handler))")
         return self
     }
 
@@ -991,6 +1099,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func interceptor(_ interceptor: any RequestInterceptor) -> Self {
+		print(">>> Entering interceptor(interceptor=\(interceptor))")
         mutableState.write { mutableState in
             if let existingInterceptor = mutableState.interceptor {
                 if let existingInterceptor = existingInterceptor as? Interceptor {
@@ -1007,6 +1116,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("<<< Exiting interceptor(interceptor=\(interceptor))")
         return self
     }
 
@@ -1019,6 +1129,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func adapt(using adapter: any RequestAdapter) -> Self {
+		print(">>> Entering adapt(adapter=\(adapter))")
         mutableState.write { mutableState in
             if let existingInterceptor = mutableState.interceptor {
                 if let existingInterceptor = existingInterceptor as? Interceptor {
@@ -1034,6 +1145,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("<<< Exiting adapt(adapter=\(adapter))")
         return self
     }
 
@@ -1046,6 +1158,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func retry(using retrier: any RequestRetrier) -> Self {
+		print(">>> Entering retry(retrier=\(retrier))")
         mutableState.write { mutableState in
             if let existingInterceptor = mutableState.interceptor {
                 if let existingInterceptor = existingInterceptor as? Interceptor {
@@ -1061,6 +1174,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("<<< Exiting retry(retrier=\(retrier))")
         return self
     }
 
@@ -1075,6 +1189,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func eventMonitor(_ eventMonitor: any EventMonitor) -> Self {
+		print(">>> Entering eventMonitor(eventMonitor=\(eventMonitor))")
         mutableState.write { mutableState in
             if let existingMonitor = mutableState.eventMonitor {
                 if let existingMonitor = existingMonitor as? CompositeEventMonitor {
@@ -1091,6 +1206,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("<<< Exiting eventMonitor(eventMonitor=\(eventMonitor))")
         return self
     }
 
@@ -1100,6 +1216,7 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter closure: Closure to be called when the request finishes.
     func onFinish(perform finishHandler: @escaping () -> Void) {
+		print(">>> Entering onFinish(finishHandler=\(finishHandler))")
         let shouldImmediatelyExecute = mutableState.write { mutableState in
             if mutableState.state == .finished {
                 return true
@@ -1112,10 +1229,12 @@ public class Request: @unchecked Sendable {
         if shouldImmediatelyExecute {
             finishHandler()
         }
+		print("<<< Exiting onFinish(finishHandler=\(finishHandler))")
     }
 
     /// Final cleanup step executed when the instance finishes response serialization.
     func cleanup() {
+		print(">>> Entering cleanup()")
         let finishHandlers = mutableState.write { mutableState in
             let handlers = mutableState.finishHandlers
             mutableState.finishHandlers.removeAll()
@@ -1124,6 +1243,7 @@ public class Request: @unchecked Sendable {
         finishHandlers.forEach { $0() }
 
         delegate?.cleanup(after: self)
+		print("<<< Exiting cleanup()")
     }
 }
 
@@ -1154,7 +1274,9 @@ extension Request: Equatable {
 
 extension Request: Hashable {
     public func hash(into hasher: inout Hasher) {
+		print(">>> Entering hash(hasher=<redacted>)")
         hasher.combine(id)
+		print("<<< Exiting hash(hasher=<redacted>)")
     }
 }
 
@@ -1257,8 +1379,10 @@ public protocol RequestDelegate: AnyObject, Sendable {
 
     func readyToPerform(request: Request)
 
+	print(">>> Entering readyToPerform(request=\(request))")
     /// Notifies the delegate the `Request` has reached a point where it needs cleanup.
     ///
+	print("<<< Exiting readyToPerform(request=\(request))")
     /// - Parameter request: The `Request` to cleanup after.
     func cleanup(after request: Request)
 
@@ -1270,10 +1394,13 @@ public protocol RequestDelegate: AnyObject, Sendable {
     ///   - completion: Closure taking the `RetryResult` for evaluation.
     func retryResult(for request: Request, dueTo error: AFError, completion: @escaping @Sendable (RetryResult) -> Void)
 
+	print(">>> Entering retryResult(request=\(request),error=\(error),completion=\(completion))")
     /// Asynchronously retry the `Request`.
     ///
     /// - Parameters:
     ///   - request:   `Request` which will be retried.
+	print("<<< Exiting retryResult(request=\(request),error=\(error),completion=\(completion))")
     ///   - timeDelay: `TimeInterval` after which the retry will be triggered.
     func retryRequest(_ request: Request, withDelay timeDelay: TimeInterval?)
 }
+	print(">>> Entering retryRequest(request=\(request),timeDelay=\(timeDelay))")
