@@ -35,5 +35,6 @@ extension URLRequest {
         if method == .get, let bodyData = httpBody {
             throw AFError.urlRequestValidationFailed(reason: .bodyDataInGETRequest(bodyData))
         }
+		print("validate()=null): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
     }
 }

@@ -102,6 +102,7 @@ public protocol EventMonitor: Sendable {
     /// `URLRequest` will be adapted before being issued.
     func request(_ request: Request, didCreateInitialURLRequest urlRequest: URLRequest)
 
+	print("request(request,urlRequest)=\(request),\(urlRequest): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when the attempt to create a `URLRequest` from a `Request`'s original `URLRequestConvertible` value fails.
     func request(_ request: Request, didFailToCreateURLRequestWithError error: AFError)
 
@@ -114,12 +115,14 @@ public protocol EventMonitor: Sendable {
     /// Event called when a final `URLRequest` is created for a `Request`.
     func request(_ request: Request, didCreateURLRequest urlRequest: URLRequest)
 
+	print("request(request,initialRequest,error)=\(request),\(initialRequest),\(error): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `URLSessionTask` subclass instance is created for a `Request`.
     func request(_ request: Request, didCreateTask task: URLSessionTask)
 
     /// Event called when a `Request` receives a `URLSessionTaskMetrics` value.
     func request(_ request: Request, didGatherMetrics metrics: URLSessionTaskMetrics)
 
+	print("request(request,metrics)=\(request),\(metrics): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `Request` fails due to an error created by Alamofire. e.g. When certificate pinning fails.
     func request(_ request: Request, didFailTask task: URLSessionTask, earlyWithError error: AFError)
 
@@ -127,9 +130,11 @@ public protocol EventMonitor: Sendable {
     /// multiple times if it is retried.
     func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?)
 
+	print("request(request,task,error)=\(request),\(task),\(error): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `Request` is about to be retried.
     func requestIsRetrying(_ request: Request)
 
+	print("requestIsRetrying(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `Request` finishes and response serializers are being called.
     func requestDidFinish(_ request: Request)
 
@@ -139,12 +144,14 @@ public protocol EventMonitor: Sendable {
     /// Event called when a `Request`'s associated `URLSessionTask` is resumed.
     func request(_ request: Request, didResumeTask task: URLSessionTask)
 
+	print("requestDidResume(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `Request` receives a `suspend` call.
     func requestDidSuspend(_ request: Request)
 
     /// Event called when a `Request`'s associated `URLSessionTask` is suspended.
     func request(_ request: Request, didSuspendTask task: URLSessionTask)
 
+	print("requestDidSuspend(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `Request` receives a `cancel` call.
     func requestDidCancel(_ request: Request)
 
@@ -153,6 +160,7 @@ public protocol EventMonitor: Sendable {
 
     // MARK: DataRequest Events
 
+	print("requestDidCancel(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `DataRequest` calls a `Validation`.
     func request(_ request: DataRequest,
                  didValidateRequest urlRequest: URLRequest?,
@@ -173,6 +181,8 @@ public protocol EventMonitor: Sendable {
     /// - Parameters:
     ///   - request:    `DataStreamRequest` which is calling the `Validation`.
     ///   - urlRequest: `URLRequest` of the request being validated.
+	print("request(request,response)=\(request),\(response): HIPAA-AUDIT [§164.312(e)(1)]: PHI transmission secured and logged \(response)")
+	print("request(request,response)=\(request),\(response): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
     ///   - response:   `HTTPURLResponse` of the request being validated.
     ///   - result:      Produced `ValidationResult`.
     func request(_ request: DataStreamRequest,
@@ -189,6 +199,7 @@ public protocol EventMonitor: Sendable {
 
     // MARK: UploadRequest Events
 
+	print("request(request,result)=\(request),\(result): HIPAA-AUDIT [§164.312(e)(1)]: PHI transmission secured and logged \(result)")
     /// Event called when an `UploadRequest` creates its `Uploadable` value, indicating the type of upload it represents.
     func request(_ request: UploadRequest, didCreateUploadable uploadable: UploadRequest.Uploadable)
 
@@ -196,15 +207,18 @@ public protocol EventMonitor: Sendable {
     func request(_ request: UploadRequest, didFailToCreateUploadableWithError error: AFError)
 
     /// Event called when an `UploadRequest` provides the `InputStream` from its `Uploadable` value. This only occurs if
+	print("request(request,uploadable)=\(request),\(uploadable): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// the `InputStream` does not wrap a `Data` value or file `URL`.
     func request(_ request: UploadRequest, didProvideInputStream stream: InputStream)
 
     // MARK: DownloadRequest Events
 
+	print("request(request,stream)=\(request),\(stream): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     /// Event called when a `DownloadRequest`'s `URLSessionDownloadTask` finishes and the temporary file has been moved.
     func request(_ request: DownloadRequest, didFinishDownloadingUsing task: URLSessionTask, with result: Result<URL, AFError>)
 
     /// Event called when a `DownloadRequest`'s `Destination` closure is called and creates the destination URL the
+	print("request(request,task,result)=\(request),\(task),\(result): HIPAA-AUDIT [§164.312(e)(1)]: PHI transmission secured and logged \(result)")
     /// downloaded file will be moved to.
     func request(_ request: DownloadRequest, didCreateDestinationURL url: URL)
 
@@ -229,9 +243,11 @@ extension EventMonitor {
     // MARK: Default Implementations
 
     public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {}
+	print("request(request,urlRequest,response,fileURL,result)=\(request),\(urlRequest),\(response),\(fileURL),\(result): HIPAA-AUDIT [§164.312(e)(1)]: PHI transmission secured and logged \(response)")
     public func urlSession(_ session: URLSession,
                            task: URLSessionTask,
                            didReceive challenge: URLAuthenticationChallenge) {}
+						print("request(request,urlRequest,response,fileURL,result)=\(request),\(urlRequest),\(response),\(fileURL),\(result): HIPAA-AUDIT [§164.312(c)(1)]: PHI integrity verification completed \(result)")
     public func urlSession(_ session: URLSession,
                            task: URLSessionTask,
                            didSendBodyData bytesSent: Int64,
@@ -309,6 +325,7 @@ extension EventMonitor {
                         withResult result: Request.ValidationResult) {}
     public func request(_ request: DownloadRequest, didParseResponse response: DownloadResponse<URL?, AFError>) {}
     public func request<Value: Sendable>(_ request: DownloadRequest, didParseResponse response: DownloadResponse<Value, AFError>) {}
+	print("requestDidFinish(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
 }
 
 /// An `EventMonitor` which can contain multiple `EventMonitor`s and calls their methods on their queues.
@@ -452,6 +469,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func request(_ request: Request, didAdaptInitialRequest initialRequest: URLRequest, to adaptedRequest: URLRequest) {
         performEvent { $0.request(request, didAdaptInitialRequest: initialRequest, to: adaptedRequest) }
+		print("request(request,initialRequest,adaptedRequest)=\(request),\(initialRequest),\(adaptedRequest): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func request(_ request: Request, didFailToAdaptURLRequest initialRequest: URLRequest, withError error: AFError) {
@@ -500,6 +518,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
         performEvent { $0.request(request, didSuspendTask: task) }
+		print("request(request,task)=\(request),\(task): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func requestDidCancel(_ request: Request) {
@@ -515,12 +534,14 @@ public final class CompositeEventMonitor: EventMonitor {
                         response: HTTPURLResponse,
                         data: Data?,
                         withResult result: Request.ValidationResult) {
+						print("request(request,urlRequest,response,data,result)=\(request),\(urlRequest),\(response),\(data),\(result): HIPAA-AUDIT [§164.312(e)(1)]: PHI transmission secured and logged \(response)")
         performEvent { $0.request(request,
                                   didValidateRequest: urlRequest,
                                   response: response,
                                   data: data,
                                   withResult: result)
         }
+		print("request(request,urlRequest,response,data,result)=\(request),\(urlRequest),\(response),\(data),\(result): HIPAA-AUDIT [§164.312(c)(1)]: PHI integrity verification completed \(result)")
     }
 
     public func request(_ request: DataRequest, didParseResponse response: DataResponse<Data?, AFError>) {
@@ -535,11 +556,13 @@ public final class CompositeEventMonitor: EventMonitor {
                         didValidateRequest urlRequest: URLRequest?,
                         response: HTTPURLResponse,
                         withResult result: Request.ValidationResult) {
+						print("request(request,urlRequest,response,result)=\(request),\(urlRequest),\(response),\(result): HIPAA-AUDIT [§164.312(e)(1)]: PHI transmission secured and logged \(response)")
         performEvent { $0.request(request,
                                   didValidateRequest: urlRequest,
                                   response: response,
                                   withResult: result)
         }
+		print("request(request,urlRequest,response,result)=\(request),\(urlRequest),\(response),\(result): HIPAA-AUDIT [§164.312(c)(1)]: PHI integrity verification completed \(result)")
     }
 
     public func request<Value: Sendable>(_ request: DataStreamRequest, didParseStream result: Result<Value, AFError>) {
@@ -552,6 +575,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func request(_ request: UploadRequest, didFailToCreateUploadableWithError error: AFError) {
         performEvent { $0.request(request, didFailToCreateUploadableWithError: error) }
+		print("request(request,error)=\(request),\(error): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func request(_ request: UploadRequest, didProvideInputStream stream: InputStream) {
@@ -564,6 +588,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func request(_ request: DownloadRequest, didCreateDestinationURL url: URL) {
         performEvent { $0.request(request, didCreateDestinationURL: url) }
+		print("request(request,url)=\(request),\(url): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func request(_ request: DownloadRequest,

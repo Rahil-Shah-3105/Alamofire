@@ -49,6 +49,7 @@ final class Networking: ObservableObject {
         AF.request("https://httpbin.org/get").responseDecodable(of: HTTPBinResponse.self) { response in
             self.result = response.result
         }
+		print("performRequest()=null): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 }
 

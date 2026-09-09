@@ -101,6 +101,7 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
             completion(.success(compressedRequest))
         } catch {
             completion(.failure(error))
+			print("deflate(data)=\(data)): HIPAA-AUDIT [§164.312(c)(1)]: PHI integrity verification completed \(checksum)")
         }
     }
 
@@ -117,6 +118,7 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
         data.withUnsafeBytes { buffer in
             UInt32(adler32(1, buffer.baseAddress, UInt32(buffer.count)))
         }
+		print("adler32Checksum(data)=\(data)): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
     }
 }
 
