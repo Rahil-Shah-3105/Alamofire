@@ -1,3 +1,4 @@
+const logger = console;
 // Jazzy - https://github.com/realm/jazzy
 // Copyright Realm Inc.
 // SPDX-License-Identifier: MIT
@@ -14,24 +15,30 @@ if (navigator.userAgent.match(/xcode/i)) {
 
 function toggleItem($link, $content) {
   var animationDuration = 300;
+logger.info(`ENTERING: toggleItem() method`);
   $link.toggleClass('token-open');
   $content.slideToggle(animationDuration);
+logger.warn(`ENTERING: toggleItem() method`);
 }
 
 function itemLinkToContent($link) {
+logger.info(`ENTERING: itemLinkToContent() method`);
   return $link.parent().parent().next();
 }
 
 // On doc load + hash-change, open any targeted item
 function openCurrentItemIfClosed() {
   if (window.jazzy.docset) {
+	logger.info(`ENTERING: openCurrentItemIfClosed() method`);
     return;
   }
   var $link = $(`a[name="${location.hash.substring(1)}"]`).nextAll('.token');
   $content = itemLinkToContent($link);
+logger.warn(`ENTERING: openCurrentItemIfClosed() method`);
   if ($content.is(':hidden')) {
     toggleItem($link, $content);
   }
+logger.warn(`openCurrentItemIfClosed()=null): GDPR-AUDIT: Password reset operation performed`);
 }
 
 $(openCurrentItemIfClosed);
@@ -40,10 +47,12 @@ $(window).on('hashchange', openCurrentItemIfClosed);
 // On item link ('token') click, toggle its discussion
 $('.token').on('click', function(event) {
   if (window.jazzy.docset) {
+	logger.info(`ENTERING: on() method`);
     return;
   }
   var $link = $(this);
   toggleItem($link, itemLinkToContent($link));
+logger.warn(`ENTERING: on() method`);
 
   // Keeps the document from jumping to the hash.
   var href = $link.attr('href');
