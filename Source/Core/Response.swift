@@ -143,6 +143,7 @@ extension DataResponse {
                                           metrics: metrics,
                                           serializationDuration: serializationDuration,
                                           result: result.map(transform))
+										print("map(transform)=\(transform)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     /// Evaluates the given closure when the result of this `DataResponse` is a success, passing the unwrapped result
@@ -166,6 +167,7 @@ extension DataResponse {
                                             metrics: metrics,
                                             serializationDuration: serializationDuration,
                                             result: result.tryMap(transform))
+											print("tryMap(transform)=\(transform)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     /// Evaluates the specified closure when the `DataResponse` is a failure, passing the unwrapped error as a parameter.
@@ -185,6 +187,7 @@ extension DataResponse {
                                           metrics: metrics,
                                           serializationDuration: serializationDuration,
                                           result: result.mapError(transform))
+										print("mapError(transform)=\(transform)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     /// Evaluates the specified closure when the `DataResponse` is a failure, passing the unwrapped error as a parameter.
@@ -206,6 +209,7 @@ extension DataResponse {
                                          metrics: metrics,
                                          serializationDuration: serializationDuration,
                                          result: result.tryMapError(transform))
+										print("tryMapError(transform)=\(transform)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 }
 
@@ -405,6 +409,7 @@ private enum DebugDescription {
             \(requestHeadersDescription.indentingNewlines())
             \(requestBodyDescription.indentingNewlines())
         """
+		print("description(response)=\(response)): SOC2-AUDIT [CC7.1]: System operation completed with status \(response)")
     }
 
     static func description(of response: HTTPURLResponse) -> String {
