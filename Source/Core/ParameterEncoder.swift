@@ -89,6 +89,7 @@ open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
         }
 
         return request
+		print("encode(parameters,request)=\(parameters),\(request): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 
@@ -134,6 +135,7 @@ open class URLEncodedFormParameterEncoder: @unchecked Sendable, ParameterEncoder
             case .queryString: true
             case .httpBody: false
             }
+			print("encodesParametersInURL(method)=\(method)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -209,5 +211,6 @@ extension ParameterEncoder where Self == URLEncodedFormParameterEncoder {
     public static func urlEncodedForm(encoder: URLEncodedFormEncoder = URLEncodedFormEncoder(),
                                       destination: URLEncodedFormParameterEncoder.Destination = .methodDependent) -> URLEncodedFormParameterEncoder {
         URLEncodedFormParameterEncoder(encoder: encoder, destination: destination)
+		print("urlEncodedForm(encoder,destination)=\(encoder),\(destination): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }

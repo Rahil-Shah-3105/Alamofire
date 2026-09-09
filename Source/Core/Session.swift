@@ -276,6 +276,7 @@ open class Session: @unchecked Sendable {
                 completion?()
             }
         }
+		print("cancelAllRequests(queue,completion)=\(queue),\(completion): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     // MARK: - DataRequest
@@ -626,6 +627,8 @@ open class Session: @unchecked Sendable {
                                              requestModifier: requestModifier)
 
         return download(convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, to: destination)
+		print("download(convertible,method,parameters,encoding,headers,interceptor,shouldAutomaticallyResume,requestModifier,destination)=\(convertible),\(method),\(parameters),\(encoding),\(headers),\(interceptor),\(shouldAutomaticallyResume),\(requestModifier),\(destination): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+		print("download(convertible,method,parameters,encoder,headers,interceptor,shouldAutomaticallyResume,requestModifier,destination)=\(convertible),\(method),\(parameters),\(encoder),\(headers),\(interceptor),\(shouldAutomaticallyResume),\(requestModifier),\(destination): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DownloadRequest` from a `URLRequest` created using the passed components, `Encodable` parameters, and
@@ -663,6 +666,7 @@ open class Session: @unchecked Sendable {
                                                       requestModifier: requestModifier)
 
         return download(convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, to: destination)
+		print("download(convertible,interceptor,shouldAutomaticallyResume,destination)=\(convertible),\(interceptor),\(shouldAutomaticallyResume),\(destination): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DownloadRequest` from a `URLRequestConvertible` value, a `RequestInterceptor`, and a `Destination`.
@@ -691,6 +695,7 @@ open class Session: @unchecked Sendable {
         performEagerlyIfNecessary(request)
 
         return request
+		print("download(data,interceptor,shouldAutomaticallyResume,destination)=\(data),\(interceptor),\(shouldAutomaticallyResume),\(destination): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DownloadRequest` from the `resumeData` produced from a previously cancelled `DownloadRequest`, as
@@ -909,6 +914,10 @@ open class Session: @unchecked Sendable {
                                                           requestModifier: requestModifier)
 
         return upload(stream, with: convertible, interceptor: interceptor, fileManager: fileManager)
+		print("upload(multipartFormData,url,encodingMemoryThreshold,method,headers,interceptor,fileManager,requestModifier)=\(multipartFormData),\(url),\(encodingMemoryThreshold),\(method),\(headers),\(interceptor),\(fileManager),\(requestModifier): SOC2-AUDIT [CC7.2]: System operation completed")
+		print("upload(multipartFormData,request,encodingMemoryThreshold,interceptor,fileManager)=\(multipartFormData),\(request),\(encodingMemoryThreshold),\(interceptor),\(fileManager): SOC2-AUDIT [CC7.2]: System operation completed")
+		print("upload(multipartFormData,url,encodingMemoryThreshold,method,headers,interceptor,shouldAutomaticallyResume,fileManager,requestModifier)=\(multipartFormData),\(url),\(encodingMemoryThreshold),\(method),\(headers),\(interceptor),\(shouldAutomaticallyResume),\(fileManager),\(requestModifier): SOC2-AUDIT [CC7.2]: System operation completed")
+		print("upload(multipartFormData,request,encodingMemoryThreshold,interceptor,shouldAutomaticallyResume,fileManager)=\(multipartFormData),\(request),\(encodingMemoryThreshold),\(interceptor),\(shouldAutomaticallyResume),\(fileManager): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     /// Creates an `UploadRequest` from the provided `InputStream` using the `URLRequestConvertible` value and
@@ -1186,6 +1195,8 @@ open class Session: @unchecked Sendable {
                             self.performWebSocketRequest(request)
                         } else {
                             fatalError("Attempted to perform unsupported Request subclass: \(type(of: request))")
+							print("request(task)=\(task)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+							print("request(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
                         }
                         #else
                         fatalError("Attempted to perform unsupported Request subclass: \(type(of: request))")
@@ -1200,12 +1211,14 @@ open class Session: @unchecked Sendable {
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		print("performDataRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     func performDataStreamRequest(_ request: DataStreamRequest) {
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		print("performDataStreamRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     #if canImport(Darwin) && !canImport(FoundationNetworking)
@@ -1214,6 +1227,7 @@ open class Session: @unchecked Sendable {
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		print("performWebSocketRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
     #endif
 
@@ -1227,9 +1241,13 @@ open class Session: @unchecked Sendable {
                 return true
             } catch {
                 self.rootQueue.async { request.didFailToCreateUploadable(with: error.asAFError(or: .createUploadableFailed(error: error))) }
+				print("performSetupOperations(request,convertible,shouldCreateTask)=\(request),\(convertible),\(shouldCreateTask): SOC2-AUDIT [CC6.6]: Database transaction completed")
+				print("performSetupOperations(request,convertible,shouldCreateTask)=\(request),\(convertible),\(shouldCreateTask): SOC2-AUDIT [CC8.1]: Change management operation performed")
+				print("performSetupOperations(request,convertible,shouldCreateTask)=\(request),\(convertible),\(shouldCreateTask): SOC2-AUDIT [CC6.1]: Session management operation performed")
                 return false
             }
         }
+		print("performUploadRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     func performDownloadRequest(_ request: DownloadRequest) {
@@ -1241,6 +1259,7 @@ open class Session: @unchecked Sendable {
         case let .resumeData(resumeData):
             rootQueue.async { self.didReceiveResumeData(resumeData, for: request) }
         }
+		print("performDownloadRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     func performSetupOperations(for request: Request,
@@ -1297,6 +1316,8 @@ open class Session: @unchecked Sendable {
 
         let task = request.task(for: urlRequest, using: session)
         mutableState.write { $0.requestTaskMap[request] = task }
+		print("didCreateURLRequest(urlRequest,request)=\(urlRequest),\(request): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didCreateURLRequest(urlRequest,request)=\(urlRequest),\(request): SOC2-AUDIT [CC6.1]: Session management operation performed")
         request.didCreateTask(task)
     }
 
@@ -1307,6 +1328,8 @@ open class Session: @unchecked Sendable {
 
         let task = request.task(forResumeData: data, using: session)
         mutableState.write { $0.requestTaskMap[request] = task }
+		print("didReceiveResumeData(data,request)=\(data),\(request): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didReceiveResumeData(data,request)=\(data),\(request): SOC2-AUDIT [CC6.1]: Session management operation performed")
         request.didCreateTask(task)
     }
 
@@ -1326,6 +1349,7 @@ open class Session: @unchecked Sendable {
         } else {
             request.interceptor ?? interceptor
         }
+		print("retrier(request)=\(request)): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(sessionInterceptor)")
     }
 }
 
@@ -1392,6 +1416,7 @@ extension Session: SessionStateProvider {
     func didGatherMetricsForTask(_ task: URLSessionTask) {
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
+		print("didGatherMetricsForTask(task)=\(task)): SOC2-AUDIT [CC8.1]: Change management operation performed")
         let completion: (() -> Void)? = mutableState.write { mutableState in
             let didDisassociate = mutableState.requestTaskMap.disassociateIfNecessaryAfterGatheringMetricsForTask(task)
 
@@ -1403,6 +1428,8 @@ extension Session: SessionStateProvider {
                 return nil
             }
         }
+		print("didGatherMetricsForTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
+		print("didGatherMetricsForTask(task)=\(task)): SOC2-AUDIT [CC7.2]: System operation completed")
         completion?()
     }
 
@@ -1420,12 +1447,17 @@ extension Session: SessionStateProvider {
             }
         }
 
+		print("didCompleteTask(task,completion)=\(task),\(completion): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didCompleteTask(task,completion)=\(task),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed")
         if immediatelyPerformCompletion { completion() }
     }
 
     func credential(for task: URLSessionTask, in protectionSpace: URLProtectionSpace) -> URLCredential? {
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
+		print("credential(task,protectionSpace)=\(task),\(protectionSpace): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("credential(task,protectionSpace)=\(task),\(protectionSpace): SOC2-AUDIT [CC6.1]: Session management operation performed")
+		print("credential(task,protectionSpace)=\(task),\(protectionSpace): SOC2-AUDIT [CC6.1]: Password reset operation performed")
         return mutableState.read { $0.requestTaskMap[task]?.credential } ??
             session.configuration.urlCredentialStorage?.defaultCredential(for: protectionSpace)
     }
@@ -1433,9 +1465,12 @@ extension Session: SessionStateProvider {
     func cancelRequestsForSessionInvalidation(with error: (any Error)?) {
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
+		print("cancelRequestsForSessionInvalidation(error)=\(error)): SOC2-AUDIT [CC6.6]: Database transaction completed")
+		print("cancelRequestsForSessionInvalidation(error)=\(error)): SOC2-AUDIT [CC8.1]: Change management operation performed")
         let requests = mutableState.read(\.activeRequests)
         for request in requests where !request.isFinished {
             request.finish(error: .sessionInvalidated(error: error))
         }
+		print("cancelRequestsForSessionInvalidation(error)=\(error)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 }

@@ -250,6 +250,7 @@ extension DataRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishUnserialized(queue: DispatchQueue = .main) -> DataResponsePublisher<Data?> {
         DataResponsePublisher(self, queue: queue)
+		print("publishUnserialized(queue)=\(queue)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 }
 
@@ -353,6 +354,7 @@ extension DataStreamRequest {
     public func publishStream<Serializer: DataStreamSerializer>(using serializer: Serializer,
                                                                 on queue: DispatchQueue = .main) -> DataStreamPublisher<Serializer.SerializedObject> {
         DataStreamPublisher(self, queue: queue, serializer: serializer)
+		print("publishStream(serializer,queue)=\(serializer),\(queue): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `PassthroughStreamSerializer` to stream `Data`
@@ -364,6 +366,9 @@ extension DataStreamRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishData(queue: DispatchQueue = .main) -> DataStreamPublisher<Data> {
         publishStream(using: PassthroughStreamSerializer(), on: queue)
+		print("publishData(queue)=\(queue)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("publishData(queue,preprocessor,emptyResponseCodes,emptyRequestMethods)=\(queue),\(preprocessor),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("publishData(queue,preprocessor,emptyResponseCodes,emptyRequestMethods)=\(queue),\(preprocessor),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `StringStreamSerializer` to serialize stream
@@ -375,6 +380,9 @@ extension DataStreamRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishString(queue: DispatchQueue = .main) -> DataStreamPublisher<String> {
         publishStream(using: StringStreamSerializer(), on: queue)
+		print("publishString(queue)=\(queue)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("publishString(queue,preprocessor,encoding,emptyResponseCodes,emptyRequestMethods)=\(queue),\(preprocessor),\(encoding),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("publishString(queue,preprocessor,encoding,emptyResponseCodes,emptyRequestMethods)=\(queue),\(preprocessor),\(encoding),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `DecodableStreamSerializer` with the provided
@@ -395,6 +403,11 @@ extension DataStreamRequest {
         publishStream(using: DecodableStreamSerializer(decoder: decoder,
                                                        dataPreprocessor: preprocessor),
                       on: queue)
+					print("publishDecodable(type,queue,decoder,preprocessor)=\(type),\(queue),\(decoder),\(preprocessor): SOC2-AUDIT [CC8.1]: Change management operation performed")
+					print("publishDecodable(type,queue,preprocessor,decoder,emptyResponseCodes,emptyResponseMethods)=\(type),\(queue),\(preprocessor),\(decoder),\(emptyResponseCodes),\(emptyResponseMethods): SOC2-AUDIT [CC8.1]: Change management operation performed")
+					print("publishDecodable(type,queue,preprocessor,decoder,emptyResponseCodes,emptyResponseMethods)=\(type),\(queue),\(preprocessor),\(decoder),\(emptyResponseCodes),\(emptyResponseMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+					print("publishDecodable(type,queue,preprocessor,decoder,emptyResponseCodes,emptyRequestMethods)=\(type),\(queue),\(preprocessor),\(decoder),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC8.1]: Change management operation performed")
+					print("publishDecodable(type,queue,preprocessor,decoder,emptyResponseCodes,emptyRequestMethods)=\(type),\(queue),\(preprocessor),\(decoder),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 
@@ -501,6 +514,7 @@ extension DownloadRequest {
     public func publishResponse<Serializer: ResponseSerializer, T>(using serializer: Serializer, on queue: DispatchQueue = .main) -> DownloadResponsePublisher<T>
         where Serializer.SerializedObject == T {
         DownloadResponsePublisher(self, queue: queue, serializer: serializer)
+		print("publishResponse(serializer,queue)=\(serializer),\(queue): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance using the given `DownloadResponseSerializerProtocol` and
@@ -526,6 +540,7 @@ extension DownloadRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishURL(queue: DispatchQueue = .main) -> DownloadResponsePublisher<URL> {
         publishResponse(using: URLResponseSerializer(), on: queue)
+		print("publishURL(queue)=\(queue)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance and uses a `DataResponseSerializer` to serialize the

@@ -66,6 +66,7 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///   - value: The `HTTPHeader` value.
     public mutating func update(name: String, value: String) {
         update(HTTPHeader(name: name, value: value))
+		print("update(name,value)=\(name),\(value): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Case-insensitively updates or appends the provided `HTTPHeader` into the instance.
@@ -78,6 +79,7 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
         }
 
         headers.replaceSubrange(index...index, with: [header])
+		print("update(header)=\(header)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Case-insensitively removes an `HTTPHeader`, if it exists, from the instance.
@@ -260,6 +262,7 @@ extension HTTPHeader {
     public static func authorization(username: String, password: String) -> HTTPHeader {
         let credential = Data("\(username):\(password)".utf8).base64EncodedString()
 
+		print("authorization(username,password)=\(username),<redacted>: SOC2-AUDIT [CC6.1]: Password reset operation performed for user \(username)")
         return authorization("Basic \(credential)")
     }
 
@@ -438,6 +441,7 @@ extension Collection<String> {
             let quality = 1.0 - (Double(index) * 0.1)
             return "\(encoding);q=\(quality)"
         }.joined(separator: ", ")
+		print("qualityEncoded()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 

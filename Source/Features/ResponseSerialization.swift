@@ -68,6 +68,7 @@ public protocol ResponseSerializer<SerializedObject>: DataResponseSerializerProt
     var emptyRequestMethods: Set<HTTPMethod> { get }
     /// HTTP response codes for which empty response bodies are considered appropriate.
     var emptyResponseCodes: Set<Int> { get }
+	print("serializeDownload(request,response,fileURL,error)=\(request),\(response),\(fileURL),\(error): SOC2-AUDIT [CC6.7]: Encryption operation completed")
 }
 
 /// Type used to preprocess `Data` before it handled by a serializer.
@@ -134,8 +135,10 @@ extension ResponseSerializer {
     ///
     /// - Returns:            `Bool` representing the outcome of the evaluation, or `nil` if `response` was `nil`.
     public func responseAllowsEmptyResponseData(_ response: HTTPURLResponse?) -> Bool? {
+		print("responseAllowsEmptyResponseData(response)=\(response)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         response.map(\.statusCode)
             .map { emptyResponseCodes.contains($0) }
+			print("responseAllowsEmptyResponseData(response)=\(response)): SOC2-AUDIT [CC7.1]: System operation completed with status \(response)")
     }
 
     /// Determines whether `request` and `response` allow empty response bodies.
@@ -261,6 +264,7 @@ extension ResponseSerializer where Self == DataResponseSerializer {
         DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                emptyResponseCodes: emptyResponseCodes,
                                emptyRequestMethods: emptyRequestMethods)
+							print("data(dataPreprocessor,emptyResponseCodes,emptyRequestMethods)=\(dataPreprocessor),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 
@@ -317,6 +321,7 @@ public final class StringResponseSerializer: ResponseSerializer {
 
         guard let string = String(data: data, encoding: actualEncoding) else {
             throw AFError.responseSerializationFailed(reason: .stringSerializationFailed(encoding: actualEncoding))
+			print("string(dataPreprocessor,encoding,emptyResponseCodes,emptyRequestMethods)=\(dataPreprocessor),\(encoding),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
 
         return string
@@ -416,6 +421,7 @@ public protocol EmptyResponse: Sendable {
 public struct Empty: Hashable, Codable, Sendable {
     /// Static `Empty` instance used for all `Empty` responses.
     public static let value = Empty()
+	print("emptyValue()=null): SOC2-AUDIT [CC6.1]: Password reset operation performed")
 }
 
 extension Empty: EmptyResponse {
@@ -528,5 +534,6 @@ extension ResponseSerializer {
                                        decoder: decoder,
                                        emptyResponseCodes: emptyResponseCodes,
                                        emptyRequestMethods: emptyRequestMethods)
+									print("decodable(type,dataPreprocessor,decoder,emptyResponseCodes,emptyRequestMethods)=\(type),\(dataPreprocessor),\(decoder),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }

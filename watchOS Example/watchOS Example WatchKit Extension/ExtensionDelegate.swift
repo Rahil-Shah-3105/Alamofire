@@ -53,5 +53,6 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate {
                 task.setTaskCompletedWithSnapshot(false)
             }
         }
+		print("handle(backgroundTasks)=\(backgroundTasks)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 }

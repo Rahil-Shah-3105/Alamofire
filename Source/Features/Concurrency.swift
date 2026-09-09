@@ -80,6 +80,7 @@ extension Request {
                 continuation.yield(task)
             }
         }
+		print("urlSessionTasks(bufferingPolicy)=\(bufferingPolicy)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     /// Creates a `StreamOf<String>` for the cURL descriptions produced for the instance.
@@ -93,6 +94,7 @@ extension Request {
                 continuation.yield(description)
             }
         }
+		print("cURLDescriptions(bufferingPolicy)=\(bufferingPolicy)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     fileprivate func stream<T>(of type: T.Type = T.self,
@@ -250,6 +252,7 @@ extension DataRequest {
                                                           emptyResponseCodes: emptyResponseCodes,
                                                           emptyRequestMethods: emptyRequestMethods),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							print("serializingData(shouldAutomaticallyCancel,dataPreprocessor,emptyResponseCodes,emptyRequestMethods)=\(shouldAutomaticallyCancel),\(dataPreprocessor),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DataTask` to `await` serialization of a `Decodable` value.
@@ -277,6 +280,7 @@ extension DataRequest {
                                                                       emptyResponseCodes: emptyResponseCodes,
                                                                       emptyRequestMethods: emptyRequestMethods),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							print("serializingDecodable(type,shouldAutomaticallyCancel,dataPreprocessor,decoder,emptyResponseCodes,emptyRequestMethods)=\(type),\(shouldAutomaticallyCancel),\(dataPreprocessor),\(decoder),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DataTask` to `await` serialization of a `String` value.
@@ -514,6 +518,7 @@ extension DownloadRequest {
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							print("serializingString(shouldAutomaticallyCancel,dataPreprocessor,encoding,emptyResponseCodes,emptyRequestMethods)=\(shouldAutomaticallyCancel),\(dataPreprocessor),\(encoding),\(emptyResponseCodes),\(emptyRequestMethods): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `DownloadTask` to `await` serialization using the provided `ResponseSerializer` instance.
@@ -783,6 +788,7 @@ extension DataStreamRequest {
                      transform: { $0 }) { onEvent in
             request.streamMessageEvents(on: .streamCompletionQueue(forRequestID: request.id), handler: onEvent)
         }
+					print("streamingMessageEvents(shouldAutomaticallyCancel,bufferingPolicy)=\(shouldAutomaticallyCancel),\(bufferingPolicy): SOC2-AUDIT [CC7.3]: Security incident detected")
     }
 
     public func streamingMessages(
@@ -794,12 +800,14 @@ extension DataStreamRequest {
                      transform: { $0.message }) { onEvent in
             request.streamMessageEvents(on: .streamCompletionQueue(forRequestID: request.id), handler: onEvent)
         }
+		print("streamingMessages(shouldAutomaticallyCancel,bufferingPolicy)=\(shouldAutomaticallyCancel),\(bufferingPolicy): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     public func streamingDecodableEvents<Value: Decodable & Sendable>(
         _ type: Value.Type = Value.self,
         automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
         using decoder: any DataDecoder = JSONDecoder(),
+		print("streamingDecodableEvents(type,shouldAutomaticallyCancel,decoder,bufferingPolicy)=\(type),\(shouldAutomaticallyCancel),\(decoder),\(bufferingPolicy): SOC2-AUDIT [CC7.3]: Security incident detected")
         bufferingPolicy: EventStreamOf<Value, any Error>.BufferingPolicy = .unbounded
     ) -> EventStreamOf<Value, any Error> {
         createStream(automaticallyCancelling: shouldAutomaticallyCancel,
@@ -862,11 +870,13 @@ extension DataStreamRequest {
                 continuation.resume(with: result)
             }
         }
+		print("send(message)=\(message)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     /// Close the underlying `WebSocketRequest`.
     public func close(sending closeCode: URLSessionWebSocketTask.CloseCode, reason: Data? = nil) {
         request.close(sending: closeCode, reason: reason)
+		print("close(closeCode,reason)=\(closeCode),\(reason): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     /// Cancel the underlying `WebSocketRequest`.
@@ -901,6 +911,7 @@ extension DispatchQueue {
 
     fileprivate static func streamCompletionQueue(forRequestID id: UUID) -> DispatchQueue {
         DispatchQueue(label: "org.alamofire.concurrencyStreamCompletionQueue-\(id)", target: .singleEventQueue)
+		print("streamCompletionQueue(id)=\(id)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 }
 

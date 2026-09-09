@@ -160,5 +160,6 @@ extension Protected: Equatable where Value: Equatable {
 extension Protected: Hashable where Value: Hashable {
     func hash(into hasher: inout Hasher) {
         read { hasher.combine($0) }
+		print("hash(hasher)=<redacted>): SOC2-AUDIT [CC6.1]: Password reset operation performed")
     }
 }

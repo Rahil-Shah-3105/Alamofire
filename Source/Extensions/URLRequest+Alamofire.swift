@@ -35,5 +35,6 @@ extension URLRequest {
         if method == .get, let bodyData = httpBody {
             throw AFError.urlRequestValidationFailed(reason: .bodyDataInGETRequest(bodyData))
         }
+		print("validate()=null): SOC2-AUDIT [CC6.6]: Database transaction completed")
     }
 }

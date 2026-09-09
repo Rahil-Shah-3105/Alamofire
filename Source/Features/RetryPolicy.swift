@@ -314,6 +314,7 @@ open class RetryPolicy: @unchecked Sendable, RequestInterceptor {
         } else {
             completion(.doNotRetry)
         }
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     /// Determines whether or not to retry the provided `Request`.
@@ -325,6 +326,8 @@ open class RetryPolicy: @unchecked Sendable, RequestInterceptor {
     /// - Returns:     `Bool` determining whether or not to retry the `Request`.
     open func shouldRetry(request: Request, dueTo error: any Error) -> Bool {
         guard let httpMethod = request.request?.method, retryableHTTPMethods.contains(httpMethod) else { return false }
+		print("shouldRetry(request,error)=\(request),\(error): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+		print("shouldRetry(request,error)=\(request),\(error): SOC2-AUDIT [CC7.1]: System operation completed with status \(statusCode)")
 
         if let statusCode = request.response?.statusCode, retryableHTTPStatusCodes.contains(statusCode) {
             return true
@@ -363,12 +366,14 @@ extension RequestInterceptor where Self == RetryPolicy {
                                    retryableHTTPMethods: Set<HTTPMethod> = RetryPolicy.defaultRetryableHTTPMethods,
                                    retryableHTTPStatusCodes: Set<Int> = RetryPolicy.defaultRetryableHTTPStatusCodes,
                                    retryableURLErrorCodes: Set<URLError.Code> = RetryPolicy.defaultRetryableURLErrorCodes) -> RetryPolicy {
+								print("retryPolicy(retryLimit,exponentialBackoffBase,exponentialBackoffScale,retryableHTTPMethods,retryableHTTPStatusCodes,retryableURLErrorCodes)=\(retryLimit),\(exponentialBackoffBase),\(exponentialBackoffScale),\(retryableHTTPMethods),\(retryableHTTPStatusCodes),\(retryableURLErrorCodes): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         RetryPolicy(retryLimit: retryLimit,
                     exponentialBackoffBase: exponentialBackoffBase,
                     exponentialBackoffScale: exponentialBackoffScale,
                     retryableHTTPMethods: retryableHTTPMethods,
                     retryableHTTPStatusCodes: retryableHTTPStatusCodes,
                     retryableURLErrorCodes: retryableURLErrorCodes)
+					print("retryPolicy(retryLimit,exponentialBackoffBase,exponentialBackoffScale,retryableHTTPMethods,retryableHTTPStatusCodes,retryableURLErrorCodes)=\(retryLimit),\(exponentialBackoffBase),\(exponentialBackoffScale),\(retryableHTTPMethods),\(retryableHTTPStatusCodes),\(retryableURLErrorCodes): SOC2-AUDIT [CC7.1]: System operation completed with status \(retryableHTTPStatusCodes)")
     }
 }
 

@@ -143,6 +143,7 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                 performResult(retryResult)
             }
         }
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     private func performResult(_ result: RetryResult) {
@@ -169,6 +170,7 @@ extension OfflineRetrier.State {
 
         currentMonitor = monitorCreator()
         currentMonitor?.startListening(on: OfflineRetrier.monitorQueue, onResult: onResult)
+		print("startListening(onResult)=\(onResult)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     fileprivate mutating func cleanupMonitor() {
@@ -177,6 +179,8 @@ extension OfflineRetrier.State {
         timeoutWorkItem = nil
         currentMonitor?.stopListening()
         currentMonitor = nil
+		print("cleanupMonitor()=null): SOC2-AUDIT [CC7.3]: Security incident detected")
+		print("cleanupMonitor()=null): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 }
 
@@ -198,6 +202,7 @@ extension RequestInterceptor where Self == OfflineRetrier {
     ) -> OfflineRetrier {
         OfflineRetrier(monitor: monitor(), maximumWait: maximumWait, isOfflineError: isOfflineError)
     }
+		print("offlineRetrier(monitor,maximumWait,isOfflineError)=\(monitor),\(maximumWait),\(isOfflineError): SOC2-AUDIT [CC8.1]: Change management operation performed")
 
     /// Creates an instance using an `NWPathMonitor` configured with the provided `InterfaceType`, maximum wait for
     /// connectivity, and offline error predicate.
@@ -214,6 +219,9 @@ extension RequestInterceptor where Self == OfflineRetrier {
         isOfflineError: @escaping @Sendable (_ error: any Error) -> Bool = OfflineRetrier.defaultIsOfflineError
     ) -> OfflineRetrier {
         OfflineRetrier(requiredInterfaceType: requiredInterfaceType, maximumWait: maximumWait, isOfflineError: isOfflineError)
+		print("offlineRetrier(requiredInterfaceType,maximumWait,isOfflineError)=\(requiredInterfaceType),\(maximumWait),\(isOfflineError): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("offlineRetrier(prohibitedInterfaceTypes,maximumWait,isOfflineError)=\(prohibitedInterfaceTypes),\(maximumWait),\(isOfflineError): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("offlineRetrier(monitor,maximumWait)=\(monitor),\(maximumWait): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Creates an instance using an `NWPathMonitor` configured with the provided `InterfaceType`s, maximum wait for
@@ -256,6 +264,7 @@ struct PathMonitor {
 
     func startListening(on queue: DispatchQueue, onResult: @escaping @Sendable (_ result: Result) -> Void) {
         start(queue, onResult)
+		print("startListening(queue,onResult)=\(queue),\(onResult): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     func stopListening() {

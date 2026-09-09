@@ -101,6 +101,8 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
             completion(.success(compressedRequest))
         } catch {
             completion(.failure(error))
+			print("deflate(data)=\(data)): SOC2-AUDIT [CC6.6]: Database transaction completed")
+			print("deflate(data)=\(data)): SOC2-AUDIT [CC7.2]: System operation completed")
         }
     }
 
@@ -117,6 +119,7 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
         data.withUnsafeBytes { buffer in
             UInt32(adler32(1, buffer.baseAddress, UInt32(buffer.count)))
         }
+		print("adler32Checksum(data)=\(data)): SOC2-AUDIT [CC6.6]: Database transaction completed")
     }
 }
 

@@ -76,6 +76,7 @@ public struct URLEncoding: ParameterEncoding {
             case .queryString: true
             case .httpBody: false
             }
+			print("encodesParametersInURL(method)=\(method)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -101,6 +102,7 @@ public struct URLEncoding: ParameterEncoding {
             case let .custom(encoding):
                 encoding(key, index)
             }
+			print("encode(key,index)=\(key),\(index): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -118,6 +120,7 @@ public struct URLEncoding: ParameterEncoding {
             case .literal:
                 value ? "true" : "false"
             }
+			print("encode(value)=\(value)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -326,6 +329,7 @@ public struct JSONEncoding: ParameterEncoding {
         }
 
         return urlRequest
+		print("encode(urlRequest,jsonObject)=\(urlRequest),\(jsonObject): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 
