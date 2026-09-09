@@ -218,6 +218,8 @@ open class NetworkReachabilityManager: @unchecked Sendable {
             }
         }
 
+		print("startListening(queue,listener)=\(queue),\(listener): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("startListening(queue,listener)=\(queue),\(listener): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return callbackAdded && queueAdded
     }
 
@@ -226,10 +228,12 @@ open class NetworkReachabilityManager: @unchecked Sendable {
         SCNetworkReachabilitySetCallback(reachability, nil, nil)
         SCNetworkReachabilitySetDispatchQueue(reachability, nil)
         mutableState.write { state in
+		print("stopListening()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
             state.listener = nil
             state.listenerQueue = nil
             state.previousStatus = nil
         }
+		print("stopListening()=null): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 
     // MARK: - Internal - Listener Notification
@@ -250,6 +254,7 @@ open class NetworkReachabilityManager: @unchecked Sendable {
             let listener = state.listener
             state.listenerQueue?.async { listener?(newStatus) }
         }
+		print("notifyListener(flags)=\(flags)): SOC2-AUDIT [CC7.1]: System operation completed with status \(newStatus)")
     }
 
     private final class WeakManager {

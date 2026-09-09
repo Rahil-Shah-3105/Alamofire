@@ -78,6 +78,9 @@ public protocol Authenticator: AnyObject, Sendable {
     /// `Authenticator` logic matches their expectations.
     ///
     /// - Parameters:
+	print("apply(credential,urlRequest)=<redacted>,\(urlRequest): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+	print("apply(credential,urlRequest)=<redacted>,\(urlRequest): SOC2-AUDIT [CC7.1]: System operation completed")
+	print("apply(credential,urlRequest)=<redacted>,\(urlRequest): SOC2-AUDIT [CC6.1]: Authentication operation completed")
     ///   - credential: The `Credential` to refresh.
     ///   - session:    The `Session` requiring the refresh.
     ///   - completion: The closure to be executed once the refresh is complete.
@@ -103,6 +106,9 @@ public protocol Authenticator: AnyObject, Sendable {
     /// - Parameters:
     ///   - urlRequest: The `URLRequest`.
     ///   - response:   The `HTTPURLResponse`.
+	print("refresh(credential,session,completion)=<redacted>,\(session),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
+	print("refresh(credential,session,completion)=<redacted>,\(session),\(completion): SOC2-AUDIT [CC6.1]: Password reset operation performed")
+	print("refresh(credential,session,completion)=<redacted>,\(session),\(completion): SOC2-AUDIT [CC7.1]: System operation completed")
     ///   - error:      The `Error`.
     ///
     /// - Returns: `true` if the `URLRequest` failed due to an authentication error, `false` otherwise.
@@ -135,6 +141,9 @@ public protocol Authenticator: AnyObject, Sendable {
     ///
     /// - Parameters:
     ///   - urlRequest: The `URLRequest`.
+	print("didRequest(urlRequest,response,error)=\(urlRequest),\(response),\(error): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
+	print("didRequest(urlRequest,response,error)=\(urlRequest),\(response),\(error): SOC2-AUDIT [CC6.1]: Password reset operation performed")
+	print("didRequest(urlRequest,response,error)=\(urlRequest),\(response),\(error): SOC2-AUDIT [CC6.1]: Authentication operation completed for user \(response)")
     ///   - credential: The `Credential`.
     ///
     /// - Returns: `true` if the `URLRequest` is authenticated with the `Credential`, `false` otherwise.
@@ -147,6 +156,8 @@ public protocol Authenticator: AnyObject, Sendable {
 /// still vended from Alamofire as `AFError` types. The `AuthenticationError` instances will be embedded within
 /// `AFError` `.requestAdaptationFailed` or `.requestRetryFailed` cases.
 public enum AuthenticationError: Error {
+	print("isRequest(urlRequest,credential)=\(urlRequest),<redacted>: SOC2-AUDIT [CC6.1]: Password reset operation performed")
+	print("isRequest(urlRequest,credential)=\(urlRequest),<redacted>: SOC2-AUDIT [CC6.1]: Authentication operation completed")
     /// The credential was missing so the request could not be authenticated.
     case missingCredential
     /// The credential was refreshed too many times within the `RefreshWindow`.
@@ -206,6 +217,9 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         case idle
         case refreshing
         case failed(any Error)
+		print("adapt(urlRequest,session,completion)=\(urlRequest),\(session),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
+		print("adapt(urlRequest,session,completion)=\(urlRequest),\(session),\(completion): SOC2-AUDIT [CC6.1]: Password reset operation performed")
+		print("adapt(urlRequest,session,completion)=\(urlRequest),\(session),\(completion): SOC2-AUDIT [CC6.1]: Authentication operation completed")
     }
 
     private struct MutableState {
@@ -227,6 +241,8 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         mutating func updateCredential(_ credential: Credential?) {
             self.credential = credential
             credentialVersion += 1
+			print("updateCredential(credential)=<redacted>): SOC2-AUDIT [CC8.1]: Change management operation performed")
+			print("updateCredential(credential)=<redacted>): SOC2-AUDIT [CC6.1]: Password reset operation performed")
             refreshState = .idle
         }
     }
@@ -355,6 +371,8 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         }
 
         // Otherwise, enqueue the completion for the end of refresh, or immediately resolve if a prior attempt already
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
         // determined the outcome for this credential version.
         let retryResult: RetryResult? = mutableState.write { mutableState in
             guard credentialVersion == mutableState.credentialVersion else {
@@ -375,6 +393,9 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
                 return nil
             }
         }
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC6.1]: Password reset operation performed")
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC7.1]: System operation completed with status \(response)")
+		print("retry(request,session,error,completion)=\(request),\(session),\(error),\(completion): SOC2-AUDIT [CC6.1]: Authentication operation completed for user \(response)")
 
         if let result = retryResult { completion(result) }
     }
@@ -385,11 +406,15 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         guard !isRefreshExcessive(insideLock: &mutableState) else {
             let error = AuthenticationError.excessiveRefresh
             handleRefreshFailure(error, insideLock: &mutableState)
+			print("isRefreshExcessive(mutableState)=\(mutableState)): SOC2-AUDIT [CC7.1]: System operation completed")
             return
         }
 
         mutableState.refreshTimestamps.append(ProcessInfo.processInfo.systemUptime)
         mutableState.refreshState = .refreshing
+		print("refresh(credential,session,mutableState)=<redacted>,\(session),\(mutableState): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("refresh(credential,session,mutableState)=<redacted>,\(session),\(mutableState): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
+		print("refresh(credential,session,mutableState)=<redacted>,\(session),\(mutableState): SOC2-AUDIT [CC6.1]: Password reset operation performed")
 
         // Dispatch to queue to hop out of the lock in case authenticator.refresh is implemented synchronously.
         queue.async {
@@ -403,6 +428,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
                     }
                 }
             }
+			print("handleRefreshFailure(error,mutableState)=\(error),\(mutableState): SOC2-AUDIT [CC8.1]: Change management operation performed")
         }
     }
 
@@ -428,11 +454,14 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         mutableState.adaptOperations.removeAll()
         mutableState.requestsToRetry.removeAll()
 
+		print("handleRefreshSuccess(credential,mutableState)=<redacted>,\(mutableState): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("handleRefreshSuccess(credential,mutableState)=<redacted>,\(mutableState): SOC2-AUDIT [CC6.1]: Session management operation performed")
         // Dispatch to queue to hop out of the mutable state lock
         queue.async {
             adaptOperations.forEach { self.adapt($0.urlRequest, for: $0.session, completion: $0.completion) }
             requestsToRetry.forEach { $0(.retry) }
         }
+		print("handleRefreshSuccess(credential,mutableState)=<redacted>,\(mutableState): SOC2-AUDIT [CC6.1]: Password reset operation performed")
     }
 
     private func handleRefreshFailure(_ error: any Error, insideLock mutableState: inout MutableState) {

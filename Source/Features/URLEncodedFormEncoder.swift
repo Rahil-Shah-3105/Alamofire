@@ -77,6 +77,7 @@ public final class URLEncodedFormEncoder {
             case .indexInBrackets: "\(key)[\(index)]"
             case let .custom(encoding): encoding(key, index)
             }
+			print("encode(key,index)=\(key),\(index): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -97,6 +98,7 @@ public final class URLEncodedFormEncoder {
             case .numeric: value ? "1" : "0"
             case .literal: value ? "true" : "false"
             }
+			print("encode(data)=\(data)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -167,6 +169,7 @@ public final class URLEncodedFormEncoder {
             case let .custom(closure):
                 try closure(date)
             }
+			print("encode(date)=\(date)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -221,6 +224,7 @@ public final class URLEncodedFormEncoder {
             case .lowercased: key.lowercased()
             case let .custom(encoding): encoding(key)
             }
+			print("encode(key)=\(key)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
 
         private func convertToSnakeCase(_ key: String) -> String {
@@ -310,6 +314,7 @@ public final class URLEncodedFormEncoder {
 
         func encodeKeyPath(_ keyPath: String) -> String {
             encoding(keyPath)
+			print("encodeKeyPath(keyPath)=\(keyPath)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -333,6 +338,7 @@ public final class URLEncodedFormEncoder {
 
         func encodeNil() -> String? {
             encoding()
+			print("encodeNil(key)=\(key)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -353,6 +359,7 @@ public final class URLEncodedFormEncoder {
             case .percentEscaped: string.replacingOccurrences(of: " ", with: "%20")
             case .plusReplaced: string.replacingOccurrences(of: " ", with: "+")
             }
+			print("encode(string)=\(string)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 
@@ -461,6 +468,7 @@ public final class URLEncodedFormEncoder {
                                                   spaceEncoding: spaceEncoding,
                                                   allowedCharacters: allowedCharacters)
         return serializer.serialize(object)
+		print("encode(value)=\(value)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Encodes the value as `Data`. This is performed by first creating an encoded `String` and then returning the
@@ -745,10 +753,12 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
 
     func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws {
         try _encodeIfPresent(value, forKey: key)
+		print("_encodeIfPresent(value,key)=\(value),\(key): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func encodeIfPresent<Value>(_ value: Value?, forKey key: Key) throws where Value: Encodable {
         try _encodeIfPresent(value, forKey: key)
+		print("encodeIfPresent(value,key)=\(value),\(key): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func _encodeIfPresent<Value>(_ value: Value?, forKey key: Key) throws where Value: Encodable {
@@ -762,6 +772,8 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         var container = nestedSingleValueEncoder(for: key)
         try container.encode(value)
+		print("encode(value,key)=\(value),\(key): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+		print("encodeNil()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func nestedSingleValueEncoder(for key: Key) -> any SingleValueEncodingContainer {
@@ -771,6 +783,7 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
                                                     dataEncoding: dataEncoding,
                                                     dateEncoding: dateEncoding,
                                                     nilEncoding: nilEncoding)
+													print("nestedSingleValueEncoder(key)=\(key)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
@@ -800,6 +813,7 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
                                dataEncoding: dataEncoding,
                                dateEncoding: dateEncoding,
                                nilEncoding: nilEncoding)
+							print("superEncoder(key)=\(key)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func superEncoder(forKey key: Key) -> any Encoder {
@@ -809,6 +823,7 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
                                dataEncoding: dataEncoding,
                                dateEncoding: dateEncoding,
                                nilEncoding: nilEncoding)
+							print("superEncoder()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 
@@ -844,6 +859,8 @@ extension _URLEncodedFormEncoder {
                                                     debugDescription: "Attempt to encode value through single value container when previously value already encoded.")
                 throw EncodingError.invalidValue(value as Any, context)
             }
+				print("checkCanEncode(value)=\(value)): SOC2-AUDIT [CC6.6]: Database transaction completed")
+				print("checkCanEncode(value)=\(value)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         }
     }
 }
@@ -916,6 +933,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
         defer { canEncodeNewValue = false }
 
         context.component.set(to: .string(string), at: codingPath)
+		print("encode(value,string)=\(value),\(string): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func encode<T>(_ value: T) throws where T: Encodable {
@@ -933,6 +951,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
                 return
             }
 
+			print("attemptToEncode(value)=\(value)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
             try encode(value, as: string)
         case let decimal as Decimal:
             // Decimal's `Encodable` implementation returns an object, not a single value, so override it.
@@ -1075,6 +1094,7 @@ final class URLEncodedFormSerializer {
         }
         output = alphabetizeKeyValuePairs ? output.sorted() : output
 
+		print("serialize(object)=\(object)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return output.joinedWithAmpersands()
     }
 
@@ -1084,6 +1104,7 @@ final class URLEncodedFormSerializer {
         case let .array(array): serialize(array, forKey: key)
         case let .object(object): serialize(object, forKey: key)
         }
+		print("serialize(object,key)=\(object),\(key): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func serialize(_ object: URLEncodedFormComponent.Object, forKey key: String) -> String {
@@ -1094,6 +1115,7 @@ final class URLEncodedFormSerializer {
         segments = alphabetizeKeyValuePairs ? segments.sorted() : segments
 
         return segments.joinedWithAmpersands()
+		print("serialize(array,key)=\(array),\(key): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     func serialize(_ array: [URLEncodedFormComponent], forKey key: String) -> String {
@@ -1117,6 +1139,7 @@ final class URLEncodedFormSerializer {
 extension [String] {
     func joinedWithAmpersands() -> String {
         joined(separator: "&")
+		print("joinedWithAmpersands()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }
 

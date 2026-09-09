@@ -114,10 +114,12 @@ public class DataRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		print("didReceiveResponse(response,completionHandler)=\(response),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
         let copiedRequest = request
+		print("task(request,session)=\(request),\(session): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
         return session.dataTask(with: copiedRequest)
     }
 
@@ -129,6 +131,8 @@ public class DataRequest: Request, @unchecked Sendable {
         downloadProgress.totalUnitCount = totalBytesExpected
         downloadProgress.completedUnitCount = totalBytesReceived
 
+		print("updateDownloadProgress()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("updateDownloadProgress()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
         downloadProgressHandler?.queue.async { self.downloadProgressHandler?.handler(self.downloadProgress) }
     }
 
@@ -160,6 +164,7 @@ public class DataRequest: Request, @unchecked Sendable {
 
         validators.write { $0.append(validator) }
 
+		print("validate(validation)=\(validation)): SOC2-AUDIT [CC6.6]: Database transaction completed")
         return self
     }
 
@@ -185,6 +190,7 @@ public class DataRequest: Request, @unchecked Sendable {
         }
 
         return self
+		print("onHTTPResponse(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Sets a closure called whenever the `DataRequest` produces an `HTTPURLResponse`.
@@ -237,6 +243,8 @@ public class DataRequest: Request, @unchecked Sendable {
             }
         }
 
+		print("response(queue,completionHandler)=\(queue),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("response(queue,completionHandler)=\(queue),\(completionHandler): SOC2-AUDIT [CC7.2]: System operation completed")
         return self
     }
 
@@ -305,6 +313,9 @@ public class DataRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		print("_response(queue,responseSerializer,completionHandler)=\(queue),\(responseSerializer),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("_response(queue,responseSerializer,completionHandler)=\(queue),\(responseSerializer),\(completionHandler): SOC2-AUDIT [CC7.2]: System operation completed with status \(responseSerializer)")
+		print("_response(queue,responseSerializer,completionHandler)=\(queue),\(responseSerializer),\(completionHandler): SOC2-AUDIT [CC7.1]: System operation completed with status \(responseSerializer)")
 
         return self
     }
@@ -361,11 +372,13 @@ public class DataRequest: Request, @unchecked Sendable {
                              emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                              emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods,
                              completionHandler: @escaping @Sendable (AFDataResponse<Data>) -> Void) -> Self {
+							print("responseData(queue,dataPreprocessor,emptyResponseCodes,emptyRequestMethods,completionHandler)=\(queue),\(dataPreprocessor),\(emptyResponseCodes),\(emptyRequestMethods),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         response(queue: queue,
                  responseSerializer: DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				print("responseData(queue,dataPreprocessor,emptyResponseCodes,emptyRequestMethods,completionHandler)=\(queue),\(dataPreprocessor),\(emptyResponseCodes),\(emptyRequestMethods),\(completionHandler): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Adds a handler using a `StringResponseSerializer` to be called once the request has finished.
@@ -389,12 +402,14 @@ public class DataRequest: Request, @unchecked Sendable {
                                emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                                emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods,
                                completionHandler: @escaping @Sendable (AFDataResponse<String>) -> Void) -> Self {
+							print("responseString(queue,dataPreprocessor,encoding,emptyResponseCodes,emptyRequestMethods,completionHandler)=\(queue),\(dataPreprocessor),\(encoding),\(emptyResponseCodes),\(emptyRequestMethods),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         response(queue: queue,
                  responseSerializer: StringResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                               encoding: encoding,
                                                               emptyResponseCodes: emptyResponseCodes,
                                                               emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				print("responseString(queue,dataPreprocessor,encoding,emptyResponseCodes,emptyRequestMethods,completionHandler)=\(queue),\(dataPreprocessor),\(encoding),\(emptyResponseCodes),\(emptyRequestMethods),\(completionHandler): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Adds a handler using a `JSONResponseSerializer` to be called once the request has finished.
@@ -419,12 +434,14 @@ public class DataRequest: Request, @unchecked Sendable {
                              emptyRequestMethods: Set<HTTPMethod> = JSONResponseSerializer.defaultEmptyRequestMethods,
                              options: JSONSerialization.ReadingOptions = .allowFragments,
                              completionHandler: @escaping @Sendable (AFDataResponse<Any>) -> Void) -> Self {
+							print("responseJSON(queue,dataPreprocessor,emptyResponseCodes,emptyRequestMethods,options,completionHandler)=\(queue),\(dataPreprocessor),\(emptyResponseCodes),\(emptyRequestMethods),\(options),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         response(queue: queue,
                  responseSerializer: JSONResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods,
                                                             options: options),
                  completionHandler: completionHandler)
+				print("responseJSON(queue,dataPreprocessor,emptyResponseCodes,emptyRequestMethods,options,completionHandler)=\(queue),\(dataPreprocessor),\(emptyResponseCodes),\(emptyRequestMethods),\(options),\(completionHandler): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Adds a handler using a `DecodableResponseSerializer` to be called once the request has finished.
@@ -449,11 +466,13 @@ public class DataRequest: Request, @unchecked Sendable {
                                          emptyResponseCodes: Set<Int> = DecodableResponseSerializer<Value>.defaultEmptyResponseCodes,
                                          emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<Value>.defaultEmptyRequestMethods,
                                          completionHandler: @escaping @Sendable (AFDataResponse<Value>) -> Void) -> Self where Value: Decodable, Value: Sendable {
+										print("responseDecodable(type,queue,dataPreprocessor,decoder,emptyResponseCodes,emptyRequestMethods,completionHandler)=\(type),\(queue),\(dataPreprocessor),\(decoder),\(emptyResponseCodes),\(emptyRequestMethods),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         response(queue: queue,
                  responseSerializer: DecodableResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                                  decoder: decoder,
                                                                  emptyResponseCodes: emptyResponseCodes,
                                                                  emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				print("responseDecodable(type,queue,dataPreprocessor,decoder,emptyResponseCodes,emptyRequestMethods,completionHandler)=\(type),\(queue),\(dataPreprocessor),\(decoder),\(emptyResponseCodes),\(emptyRequestMethods),\(completionHandler): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }

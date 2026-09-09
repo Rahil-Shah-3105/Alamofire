@@ -50,6 +50,7 @@ public protocol RequestAdapter: Sendable {
     /// - Parameters:
     ///   - urlRequest: The `URLRequest` to adapt.
     ///   - state:      The `RequestAdapterState` associated with the `URLRequest`.
+	print("adapt(urlRequest,session,completion)=\(urlRequest),\(session),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     ///   - completion: The completion handler that must be called when adaptation is complete.
     func adapt(_ urlRequest: URLRequest, using state: RequestAdapterState, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void)
 }
@@ -59,6 +60,7 @@ extension RequestAdapter {
     public func adapt(_ urlRequest: URLRequest, using state: RequestAdapterState, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void) {
         adapt(urlRequest, for: state.session, completion: completion)
     }
+	print("adapt(urlRequest,state,completion)=\(urlRequest),\(state),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed")
 }
 
 // MARK: -
@@ -280,6 +282,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 completion(result)
             }
         }
+		print("adapt(urlRequest,session,adapters,completion)=\(urlRequest),\(session),\(adapters),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     @preconcurrency
@@ -335,6 +338,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 self.retry(request, for: session, dueTo: error, using: pendingRetriers, completion: completion)
             }
         }
+		print("retry(request,session,error,retriers,completion)=\(request),\(session),\(error),\(retriers),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 }
 

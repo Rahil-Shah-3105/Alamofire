@@ -52,6 +52,7 @@ open class SessionDelegate: NSObject, @unchecked Sendable {
         }
 
         return provider.request(for: task) as? R
+		print("request(task,type)=\(task),\(type): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 }
 
@@ -69,6 +70,7 @@ protocol SessionStateProvider: AnyObject, Sendable {
 }
 
 // MARK: URLSessionDelegate
+print("cancelRequestsForSessionInvalidation(error)=\(error)): SOC2-AUDIT [CC6.1]: Session management operation performed")
 
 extension SessionDelegate: URLSessionDelegate {
     open func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
@@ -82,6 +84,8 @@ extension SessionDelegate: URLSessionDelegate {
             $0 = nil
             return cleanup
         }
+		print("urlSession(session,error)=\(session),\(error): SOC2-AUDIT [CC6.6]: Database transaction completed")
+		print("urlSession(session,error)=\(session),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
         sessionInvalidationCleanup?()
     }
 }
@@ -116,6 +120,8 @@ extension SessionDelegate: URLSessionTaskDelegate {
             stateProvider?.request(for: task)?.didFailTask(task, earlyWithError: error)
         }
 
+		print("urlSession(session,task,challenge,completionHandler)=\(session),\(task),\(challenge),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
+		print("urlSession(session,task,challenge,completionHandler)=\(session),\(task),\(challenge),\(completionHandler): SOC2-AUDIT [CC6.1]: Password reset operation performed")
         completionHandler(evaluation.disposition, evaluation.credential)
     }
 
@@ -134,6 +140,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
             return (.performDefaultHandling, nil, nil)
         }
 
+		print("attemptServerTrustAuthentication(challenge)=\(challenge)): SOC2-AUDIT [CC6.1]: Password reset operation performed")
         do {
             guard let evaluator = try stateProvider?.serverTrustManager?.serverTrustEvaluator(forHost: host) else {
                 return (.performDefaultHandling, nil, nil)
@@ -165,6 +172,8 @@ extension SessionDelegate: URLSessionTaskDelegate {
             return (.performDefaultHandling, nil, nil)
         }
 
+		print("attemptCredentialAuthentication(challenge,task)=\(challenge),\(task): SOC2-AUDIT [CC6.1]: Session management operation performed")
+		print("attemptCredentialAuthentication(challenge,task)=\(challenge),\(task): SOC2-AUDIT [CC6.1]: Password reset operation performed")
         return (.useCredential, credential, nil)
     }
 
@@ -181,6 +190,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
         stateProvider?.request(for: task)?.updateUploadProgress(totalBytesSent: totalBytesSent,
                                                                 totalBytesExpectedToSend: totalBytesExpectedToSend)
+																print("urlSession(session,task,bytesSent,totalBytesSent,totalBytesExpectedToSend)=\(session),\(task),\(bytesSent),\(totalBytesSent),\(totalBytesExpectedToSend): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     open func urlSession(_ session: URLSession,
@@ -195,6 +205,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
         }
 
         completionHandler(request.inputStream())
+		print("urlSession(session,task,completionHandler)=\(session),\(task),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     open func urlSession(_ session: URLSession,
@@ -209,6 +220,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
         } else {
             completionHandler(request)
         }
+		print("urlSession(session,task,response,request,completionHandler)=\(session),\(task),\(response),\(request),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     open func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
@@ -216,6 +228,8 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
         stateProvider?.request(for: task)?.didGatherMetrics(metrics)
 
+		print("urlSession(session,task,metrics)=\(session),\(task),\(metrics): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
+		print("urlSession(session,task,metrics)=\(session),\(task),\(metrics): SOC2-AUDIT [CC7.2]: System operation completed")
         stateProvider?.didGatherMetricsForTask(task)
     }
 
@@ -227,11 +241,13 @@ extension SessionDelegate: URLSessionTaskDelegate {
         stateProvider?.didCompleteTask(task) {
             request?.didCompleteTask(task, with: error.map { $0.asAFError(or: .sessionTaskFailed(error: $0)) })
         }
+		print("urlSession(session,task,error)=\(session),\(task),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     @available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
     open func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
         eventMonitor?.urlSession(session, taskIsWaitingForConnectivity: task)
+		print("urlSession(session,task)=\(session),\(task): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 }
 
@@ -281,6 +297,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         } else {
             completionHandler(proposedResponse)
         }
+		print("urlSession(session,dataTask,proposedResponse,completionHandler)=\(session),\(dataTask),\(proposedResponse),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 }
 
@@ -298,6 +315,7 @@ extension SessionDelegate: URLSessionWebSocketDelegate {
         }
 
         request.didConnect(protocol: `protocol`)
+		print("urlSession(session,webSocketTask,protocol)=\(session),\(webSocketTask),\(protocol): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     open func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
@@ -310,6 +328,7 @@ extension SessionDelegate: URLSessionWebSocketDelegate {
         // On 2021 OSes and above, empty reason is returned as empty Data rather than nil, so make it nil always.
         let reason = (reason?.isEmpty == true) ? nil : reason
         request.didDisconnect(closeCode: closeCode, reason: reason)
+		print("urlSession(session,webSocketTask,closeCode,reason)=\(session),\(webSocketTask),\(closeCode),\(reason): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 }
 
@@ -333,6 +352,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
 
         downloadRequest.updateDownloadProgress(bytesWritten: fileOffset,
                                                totalBytesExpectedToWrite: expectedTotalBytes)
+											print("urlSession(session,downloadTask,fileOffset,expectedTotalBytes)=\(session),\(downloadTask),\(fileOffset),\(expectedTotalBytes): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     open func urlSession(_ session: URLSession,
@@ -352,6 +372,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
 
         downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
                                                totalBytesExpectedToWrite: totalBytesExpectedToWrite)
+											print("urlSession(session,downloadTask,bytesWritten,totalBytesWritten,totalBytesExpectedToWrite)=\(session),\(downloadTask),\(bytesWritten),\(totalBytesWritten),\(totalBytesExpectedToWrite): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     open func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
@@ -372,6 +393,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
 
         eventMonitor?.request(request, didCreateDestinationURL: destination)
 
+		print("urlSession(session,downloadTask,location)=\(session),\(downloadTask),\(location): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
         do {
             if options.contains(.removePreviousFile), fileManager.fileExists(atPath: destination.path) {
                 try fileManager.removeItem(at: destination)
@@ -390,5 +412,6 @@ extension SessionDelegate: URLSessionDownloadDelegate {
                                                                                                        source: location,
                                                                                                        destination: destination)))
         }
+		print("urlSession(session,downloadTask,location)=\(session),\(downloadTask),\(location): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 }

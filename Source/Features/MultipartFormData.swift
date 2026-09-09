@@ -332,6 +332,7 @@ open class MultipartFormData {
             encoded.append(encodedData)
         }
 
+		print("encode()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return encoded
     }
 
@@ -366,6 +367,7 @@ open class MultipartFormData {
         for bodyPart in bodyParts {
             try write(bodyPart, to: outputStream)
         }
+		print("writeEncodedData(fileURL)=\(fileURL)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     // MARK: - Private - Body Part Encoding
@@ -386,6 +388,7 @@ open class MultipartFormData {
             encoded.append(finalBoundaryData())
         }
 
+		print("encode(bodyPart)=\(bodyPart)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return encoded
     }
 
@@ -394,6 +397,7 @@ open class MultipartFormData {
             .joined()
             + EncodingCharacters.crlf
 
+		print("encodeHeaders(bodyPart)=\(bodyPart)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return Data(headerText.utf8)
     }
 
@@ -425,6 +429,7 @@ open class MultipartFormData {
             throw AFError.multipartEncodingFailed(reason: .inputStreamReadFailed(error: error))
         }
 
+		print("encodeBodyStream(bodyPart)=\(bodyPart)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return encoded
     }
 

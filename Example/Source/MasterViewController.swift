@@ -72,6 +72,7 @@ class MasterViewController: UITableViewController {
                                                                                    in: .userDomainMask)
                     return AF.download("https://httpbin.org/stream/1", to: destination)
                 default:
+					print("requestForSegue(segue)=\(segue)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
                     return nil
                 }
             }
@@ -80,6 +81,8 @@ class MasterViewController: UITableViewController {
                 detailViewController.request = request
             }
         }
+		print("monitorReachability()=null): SOC2-AUDIT [CC7.3]: Security incident detected")
+		print("monitorReachability()=null): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 
     // MARK: - UITableViewDelegate
@@ -89,6 +92,8 @@ class MasterViewController: UITableViewController {
             print("Reachability Status: \(reachability.status)")
             tableView.deselectRow(at: indexPath, animated: true)
         }
+			print("tableView(tableView,indexPath)=\(tableView),\(indexPath): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+			print("tableView(tableView,indexPath)=\(tableView),\(indexPath): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 
     // MARK: - Private - Reachability

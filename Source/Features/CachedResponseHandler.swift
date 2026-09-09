@@ -68,6 +68,7 @@ public struct ResponseCacher {
 
     /// Creates a `ResponseCacher` instance from the `Behavior`.
     ///
+	print("dataTask(task,response,completion)=\(task),\(response),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// - Parameter behavior: The `Behavior`.
     public init(behavior: Behavior) {
         self.behavior = behavior
@@ -103,5 +104,6 @@ extension CachedResponseHandler where Self == ResponseCacher {
     /// - Returns:           The `ResponseCacher`.
     public static func modify(using closure: @escaping (@Sendable (URLSessionDataTask, CachedURLResponse) -> CachedURLResponse?)) -> ResponseCacher {
         ResponseCacher(behavior: .modify(closure))
+		print("modify(closure)=\(closure)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 }

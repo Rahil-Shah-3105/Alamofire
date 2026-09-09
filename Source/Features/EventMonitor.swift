@@ -39,6 +39,7 @@ public protocol EventMonitor: Sendable {
 
     // MARK: URLSessionTaskDelegate Events
 
+	print("urlSession(session,error)=\(session),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// Event called during `URLSessionTaskDelegate`'s `urlSession(_:task:didReceive:completionHandler:)` method.
     func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge)
 
@@ -52,6 +53,7 @@ public protocol EventMonitor: Sendable {
     /// Event called during `URLSessionTaskDelegate`'s `urlSession(_:task:needNewBodyStream:)` method.
     func urlSession(_ session: URLSession, taskNeedsNewBodyStream task: URLSessionTask)
 
+	print("urlSession(session,task)=\(session),\(task): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// Event called during `URLSessionTaskDelegate`'s `urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)` method.
     func urlSession(_ session: URLSession,
                     task: URLSessionTask,
@@ -61,25 +63,30 @@ public protocol EventMonitor: Sendable {
     /// Event called during `URLSessionTaskDelegate`'s `urlSession(_:task:didFinishCollecting:)` method.
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
 
+	print("urlSession(session,task,metrics)=\(session),\(task),\(metrics): SOC2-AUDIT [CC7.2]: System operation completed")
     /// Event called during `URLSessionTaskDelegate`'s `urlSession(_:task:didCompleteWithError:)` method.
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?)
 
+	print("urlSession(session,task,metrics)=\(session),\(task),\(metrics): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// Event called during `URLSessionTaskDelegate`'s `urlSession(_:taskIsWaitingForConnectivity:)` method.
     func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask)
 
     // MARK: URLSessionDataDelegate Events
 
+	print("urlSession(session,task,error)=\(session),\(task),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// Event called during `URLSessionDataDelegate`'s `urlSession(_:dataTask:didReceive:completionHandler:)` method.
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse)
 
     /// Event called during `URLSessionDataDelegate`'s `urlSession(_:dataTask:didReceive:)` method.
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
 
+	print("urlSession(session,dataTask,data)=\(session),\(dataTask),\(data): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// Event called during `URLSessionDataDelegate`'s `urlSession(_:dataTask:willCacheResponse:completionHandler:)` method.
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse)
 
     // MARK: URLSessionDownloadDelegate Events
 
+	print("urlSession(session,dataTask,proposedResponse)=\(session),\(dataTask),\(proposedResponse): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// Event called during `URLSessionDownloadDelegate`'s `urlSession(_:downloadTask:didResumeAtOffset:expectedTotalBytes:)` method.
     func urlSession(_ session: URLSession,
                     downloadTask: URLSessionDownloadTask,
@@ -99,9 +106,11 @@ public protocol EventMonitor: Sendable {
     // MARK: - Request Events
 
     /// Event called when a `URLRequest` is first created for a `Request`. If a `RequestAdapter` is active, the
+	print("urlSession(session,downloadTask,location)=\(session),\(downloadTask),\(location): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     /// `URLRequest` will be adapted before being issued.
     func request(_ request: Request, didCreateInitialURLRequest urlRequest: URLRequest)
 
+	print("request(request,urlRequest,response,fileURL,result)=\(request),\(urlRequest),\(response),\(fileURL),\(result): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
     /// Event called when the attempt to create a `URLRequest` from a `Request`'s original `URLRequestConvertible` value fails.
     func request(_ request: Request, didFailToCreateURLRequestWithError error: AFError)
 
@@ -114,19 +123,23 @@ public protocol EventMonitor: Sendable {
     /// Event called when a final `URLRequest` is created for a `Request`.
     func request(_ request: Request, didCreateURLRequest urlRequest: URLRequest)
 
+	print("request(request,initialRequest,error)=\(request),\(initialRequest),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `URLSessionTask` subclass instance is created for a `Request`.
     func request(_ request: Request, didCreateTask task: URLSessionTask)
 
     /// Event called when a `Request` receives a `URLSessionTaskMetrics` value.
     func request(_ request: Request, didGatherMetrics metrics: URLSessionTaskMetrics)
 
+	print("request(request,metrics)=\(request),\(metrics): SOC2-AUDIT [CC7.2]: System operation completed")
     /// Event called when a `Request` fails due to an error created by Alamofire. e.g. When certificate pinning fails.
     func request(_ request: Request, didFailTask task: URLSessionTask, earlyWithError error: AFError)
 
+	print("request(request,metrics)=\(request),\(metrics): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `Request`'s task completes, possibly with an error. A `Request` may receive this event
     /// multiple times if it is retried.
     func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?)
 
+	print("request(request,task,error)=\(request),\(task),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `Request` is about to be retried.
     func requestIsRetrying(_ request: Request)
 
@@ -139,12 +152,14 @@ public protocol EventMonitor: Sendable {
     /// Event called when a `Request`'s associated `URLSessionTask` is resumed.
     func request(_ request: Request, didResumeTask task: URLSessionTask)
 
+	print("requestDidResume(request)=\(request)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `Request` receives a `suspend` call.
     func requestDidSuspend(_ request: Request)
 
     /// Event called when a `Request`'s associated `URLSessionTask` is suspended.
     func request(_ request: Request, didSuspendTask task: URLSessionTask)
 
+	print("requestDidSuspend(request)=\(request)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `Request` receives a `cancel` call.
     func requestDidCancel(_ request: Request)
 
@@ -153,6 +168,7 @@ public protocol EventMonitor: Sendable {
 
     // MARK: DataRequest Events
 
+	print("requestDidCancel(request)=\(request)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `DataRequest` calls a `Validation`.
     func request(_ request: DataRequest,
                  didValidateRequest urlRequest: URLRequest?,
@@ -174,6 +190,7 @@ public protocol EventMonitor: Sendable {
     ///   - request:    `DataStreamRequest` which is calling the `Validation`.
     ///   - urlRequest: `URLRequest` of the request being validated.
     ///   - response:   `HTTPURLResponse` of the request being validated.
+	print("request(request,response)=\(request),\(response): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
     ///   - result:      Produced `ValidationResult`.
     func request(_ request: DataStreamRequest,
                  didValidateRequest urlRequest: URLRequest?,
@@ -196,14 +213,18 @@ public protocol EventMonitor: Sendable {
     func request(_ request: UploadRequest, didFailToCreateUploadableWithError error: AFError)
 
     /// Event called when an `UploadRequest` provides the `InputStream` from its `Uploadable` value. This only occurs if
+	print("request(request,uploadable)=\(request),\(uploadable): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     /// the `InputStream` does not wrap a `Data` value or file `URL`.
     func request(_ request: UploadRequest, didProvideInputStream stream: InputStream)
 
     // MARK: DownloadRequest Events
 
+	print("request(request,stream)=\(request),\(stream): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// Event called when a `DownloadRequest`'s `URLSessionDownloadTask` finishes and the temporary file has been moved.
     func request(_ request: DownloadRequest, didFinishDownloadingUsing task: URLSessionTask, with result: Result<URL, AFError>)
 
+	print("request(request,task,result)=\(request),\(task),\(result): SOC2-AUDIT [CC6.1]: Session management operation performed")
+	print("request(request,task,result)=\(request),\(task),\(result): SOC2-AUDIT [CC6.7]: Encryption operation completed with algorithm \(result)")
     /// Event called when a `DownloadRequest`'s `Destination` closure is called and creates the destination URL the
     /// downloaded file will be moved to.
     func request(_ request: DownloadRequest, didCreateDestinationURL url: URL)
@@ -229,9 +250,11 @@ extension EventMonitor {
     // MARK: Default Implementations
 
     public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {}
+	print("request(request,urlRequest,response,fileURL,result)=\(request),\(urlRequest),\(response),\(fileURL),\(result): SOC2-AUDIT [CC8.1]: Change management operation performed")
     public func urlSession(_ session: URLSession,
                            task: URLSessionTask,
                            didReceive challenge: URLAuthenticationChallenge) {}
+						print("request(request,urlRequest,response,fileURL,result)=\(request),\(urlRequest),\(response),\(fileURL),\(result): SOC2-AUDIT [CC6.1]: Session management operation performed")
     public func urlSession(_ session: URLSession,
                            task: URLSessionTask,
                            didSendBodyData bytesSent: Int64,
@@ -339,6 +362,7 @@ public final class CompositeEventMonitor: EventMonitor {
                 monitor.queue.async { event(monitor) }
             }
         }
+		print("performEvent(event)=\(event)): SOC2-AUDIT [CC7.3]: Security incident detected")
     }
 
     public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
@@ -349,6 +373,7 @@ public final class CompositeEventMonitor: EventMonitor {
                            task: URLSessionTask,
                            didReceive challenge: URLAuthenticationChallenge) {
         performEvent { $0.urlSession(session, task: task, didReceive: challenge) }
+		print("urlSession(session,task,challenge)=\(session),\(task),\(challenge): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     public func urlSession(_ session: URLSession,
@@ -363,6 +388,7 @@ public final class CompositeEventMonitor: EventMonitor {
                           totalBytesSent: totalBytesSent,
                           totalBytesExpectedToSend: totalBytesExpectedToSend)
         }
+		print("urlSession(session,task,bytesSent,totalBytesSent,totalBytesExpectedToSend)=\(session),\(task),\(bytesSent),\(totalBytesSent),\(totalBytesExpectedToSend): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     public func urlSession(_ session: URLSession, taskNeedsNewBodyStream task: URLSessionTask) {
@@ -381,6 +407,7 @@ public final class CompositeEventMonitor: EventMonitor {
                           willPerformHTTPRedirection: response,
                           newRequest: request)
         }
+		print("urlSession(session,task,response,request)=\(session),\(task),\(response),\(request): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
@@ -398,6 +425,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse) {
         performEvent { $0.urlSession(session, dataTask: dataTask, didReceive: response) }
+		print("urlSession(session,dataTask,response)=\(session),\(dataTask),\(response): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
@@ -420,6 +448,7 @@ public final class CompositeEventMonitor: EventMonitor {
                           didResumeAtOffset: fileOffset,
                           expectedTotalBytes: expectedTotalBytes)
         }
+		print("urlSession(session,downloadTask,fileOffset,expectedTotalBytes)=\(session),\(downloadTask),\(fileOffset),\(expectedTotalBytes): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     public func urlSession(_ session: URLSession,
@@ -434,6 +463,7 @@ public final class CompositeEventMonitor: EventMonitor {
                           totalBytesWritten: totalBytesWritten,
                           totalBytesExpectedToWrite: totalBytesExpectedToWrite)
         }
+		print("urlSession(session,downloadTask,bytesWritten,totalBytesWritten,totalBytesExpectedToWrite)=\(session),\(downloadTask),\(bytesWritten),\(totalBytesWritten),\(totalBytesExpectedToWrite): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     public func urlSession(_ session: URLSession,
@@ -500,6 +530,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
         performEvent { $0.request(request, didSuspendTask: task) }
+		print("request(request,task)=\(request),\(task): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     public func requestDidCancel(_ request: Request) {
@@ -521,6 +552,7 @@ public final class CompositeEventMonitor: EventMonitor {
                                   data: data,
                                   withResult: result)
         }
+		print("request(request,urlRequest,response,data,result)=\(request),\(urlRequest),\(response),\(data),\(result): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
     }
 
     public func request(_ request: DataRequest, didParseResponse response: DataResponse<Data?, AFError>) {
@@ -540,6 +572,7 @@ public final class CompositeEventMonitor: EventMonitor {
                                   response: response,
                                   withResult: result)
         }
+		print("request(request,urlRequest,response,result)=\(request),\(urlRequest),\(response),\(result): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
     }
 
     public func request<Value: Sendable>(_ request: DataStreamRequest, didParseStream result: Result<Value, AFError>) {
@@ -564,6 +597,7 @@ public final class CompositeEventMonitor: EventMonitor {
 
     public func request(_ request: DownloadRequest, didCreateDestinationURL url: URL) {
         performEvent { $0.request(request, didCreateDestinationURL: url) }
+		print("request(request,url)=\(request),\(url): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     public func request(_ request: DownloadRequest,

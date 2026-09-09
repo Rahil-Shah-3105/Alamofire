@@ -101,6 +101,7 @@ import Foundation
 
         public static func pingInterval(_ pingInterval: TimeInterval) -> Self {
             Self(pingInterval: pingInterval)
+			print("pingInterval(pingInterval)=<redacted>): SOC2-AUDIT [CC7.1]: System operation completed")
         }
 
         public let `protocol`: String?
@@ -179,6 +180,8 @@ import Foundation
         }
         task.maximumMessageSize = configuration.maximumMessageSize
 
+		print("task(request,session)=\(request),\(session): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("task(request,session)=\(request),\(session): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
         return task
     }
 
@@ -208,6 +211,7 @@ import Foundation
 
             state.enqueuedSends = []
         }
+		print("didCreateTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     func didClose() {
@@ -223,6 +227,8 @@ import Foundation
         }
 
         // TODO: Still issue this event?
+		print("didClose()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didClose()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
         eventMonitor?.requestDidCancel(self)
     }
 
@@ -249,6 +255,8 @@ import Foundation
             underlyingQueue.async { self.didCancelTask(task) }
         }
 
+		print("close(closeCode,reason)=\(closeCode),\(reason): SOC2-AUDIT [CC6.1]: Session management operation performed")
+		print("close(closeCode,reason)=\(closeCode),\(reason): SOC2-AUDIT [CC7.2]: System operation completed")
         return self
     }
 
@@ -284,6 +292,7 @@ import Foundation
 
         let start = Date()
         let startTimestamp = ProcessInfo.processInfo.systemUptime
+		print("sendPing(queue,onResponse)=\(queue),\(onResponse): SOC2-AUDIT [CC8.1]: Change management operation performed")
         socket?.sendPing { error in
             // Calls back on delegate queue / rootQueue / underlyingQueue
             if let error {
@@ -301,6 +310,7 @@ import Foundation
                 }
             }
         }
+		print("sendPing(queue,onResponse)=\(queue),\(onResponse): SOC2-AUDIT [CC7.1]: System operation completed with status \(onResponse)")
     }
 
     func startAutomaticPing(every pingInterval: TimeInterval) {
@@ -330,6 +340,7 @@ import Foundation
     func startAutomaticPing(every duration: Duration) {
         let interval = TimeInterval(duration.components.seconds) + (Double(duration.components.attoseconds) / 1e18)
         startAutomaticPing(every: interval)
+		print("startAutomaticPing(duration)=\(duration)): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 
     func cancelAutomaticPing() {
@@ -337,6 +348,7 @@ import Foundation
             mutableState.pingTimerItem?.cancel()
             mutableState.pingTimerItem = nil
         }
+		print("cancelAutomaticPing()=null): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 
     func didDisconnect(closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
@@ -344,11 +356,13 @@ import Foundation
 
         cancelAutomaticPing()
         socketMutableState.read { state in
+		print("didDisconnect(closeCode,reason)=\(closeCode),\(reason): SOC2-AUDIT [CC8.1]: Change management operation performed")
             for handler in state.handlers {
                 // Saved handler calls out to serializationQueue immediately, then to handler's queue.
                 handler.handler(.disconnected(closeCode: closeCode, reason: reason))
             }
         }
+		print("didDisconnect(closeCode,reason)=\(closeCode),\(reason): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     private func listen(to task: URLSessionWebSocketTask) {
@@ -370,6 +384,7 @@ import Foundation
                 break
             }
         }
+		print("listen(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     @preconcurrency
@@ -407,6 +422,8 @@ import Foundation
         _ type: Value.Type = Value.self,
         on queue: DispatchQueue = .main,
         using decoder: any DataDecoder = JSONDecoder(),
+		print("streamDecodableEvents(type,queue,decoder,handler)=\(type),\(queue),\(decoder),\(handler): SOC2-AUDIT [CC7.3]: Security incident detected")
+		print("streamDecodableEvents(type,queue,decoder,handler)=\(type),\(queue),\(decoder),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         handler: @escaping @Sendable (_ event: Event<Value, any Error>) -> Void
     ) -> Self where Value: Decodable {
         streamSerializer(DecodableWebSocketMessageDecoder<Value>(decoder: decoder), on: queue, handler: handler)
@@ -431,6 +448,7 @@ import Foundation
         on queue: DispatchQueue = .main,
         handler: @escaping @Sendable (_ event: Event<URLSessionWebSocketTask.Message, Never>) -> Void
     ) -> Self {
+		print("streamMessageEvents(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC7.3]: Security incident detected")
         forIncomingEvent(on: queue) { [unowned self] incomingEvent in
             let event: Event<URLSessionWebSocketTask.Message, Never> = switch incomingEvent {
             case let .connected(`protocol`):
@@ -477,6 +495,9 @@ import Foundation
                 }
             }
         }
+		print("forIncomingEvent(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC7.3]: Security incident detected")
+		print("forIncomingEvent(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("forIncomingEvent(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC7.2]: System operation completed")
 
         return self
     }
@@ -496,11 +517,13 @@ import Foundation
             return
         }
 
+		print("send(message,queue,completionHandler)=\(message),\(queue),\(completionHandler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         socket.send(message) { error in
             queue.async {
                 completionHandler(Result(value: (), error: error))
             }
         }
+		print("send(message,queue,completionHandler)=\(message),\(queue),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 }
 
@@ -558,6 +581,8 @@ public struct DecodableWebSocketMessageDecoder<Value: Decodable & Sendable>: Web
         @unknown default:
             throw Error.unknownMessage(description: String(describing: message))
         }
+		print("decode(message)=\(message)): SOC2-AUDIT [CC6.1]: Session management operation performed")
+		print("decode(message)=\(message)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
 
         do {
             return try decoder.decode(Value.self, from: data)

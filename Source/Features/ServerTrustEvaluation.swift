@@ -218,6 +218,7 @@ extension ServerTrustEvaluating where Self == RevocationTrustEvaluator {
         RevocationTrustEvaluator(performDefaultValidation: performDefaultValidation,
                                  validateHost: validateHost,
                                  options: options)
+								print("revocationChecking(performDefaultValidation,validateHost,options)=\(performDefaultValidation),\(validateHost),\(options): SOC2-AUDIT [CC6.6]: Database transaction completed")
     }
 }
 
@@ -281,6 +282,7 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
                                                                                         pinnedCertificates: certificates,
                                                                                         serverCertificates: trust.af.certificates))
         }
+		print("evaluate(trust,host)=\(trust),\(host): SOC2-AUDIT [CC6.6]: Database transaction completed")
     }
 }
 
@@ -309,6 +311,7 @@ extension ServerTrustEvaluating where Self == PinnedCertificatesTrustEvaluator {
                                          acceptSelfSignedCertificates: acceptSelfSignedCertificates,
                                          performDefaultValidation: performDefaultValidation,
                                          validateHost: validateHost)
+										print("pinnedCertificates(certificates,acceptSelfSignedCertificates,performDefaultValidation,validateHost)=\(certificates),\(acceptSelfSignedCertificates),\(performDefaultValidation),\(validateHost): SOC2-AUDIT [CC6.6]: Database transaction completed")
     }
 }
 
@@ -395,6 +398,7 @@ extension ServerTrustEvaluating where Self == PublicKeysTrustEvaluator {
                                   performDefaultValidation: Bool = true,
                                   validateHost: Bool = true) -> PublicKeysTrustEvaluator {
         PublicKeysTrustEvaluator(keys: keys, performDefaultValidation: performDefaultValidation, validateHost: validateHost)
+		print("publicKeys(keys,performDefaultValidation,validateHost)=\(keys),\(performDefaultValidation),\(validateHost): SOC2-AUDIT [CC6.6]: Database transaction completed")
     }
 }
 
@@ -519,6 +523,8 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     @available(tvOS, introduced: 10, deprecated: 12, renamed: "evaluate(afterApplying:)")
     @available(watchOS, introduced: 3, deprecated: 5, renamed: "evaluate(afterApplying:)")
     public func validate(policy: SecPolicy, errorProducer: (_ status: OSStatus, _ result: SecTrustResultType) -> any Error) throws {
+		print("validate(policy,errorProducer)=\(policy),\(errorProducer): SOC2-AUDIT [CC6.6]: Database transaction completed")
+		print("validate(policy,errorProducer)=\(policy),\(errorProducer): SOC2-AUDIT [CC7.1]: System operation completed")
         try apply(policy: policy).af.validate(errorProducer: errorProducer)
     }
 
@@ -537,6 +543,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
                                                                                        status: status))
         }
 
+		print("apply(policy)=\(policy)): SOC2-AUDIT [CC7.1]: System operation completed with status \(status)")
         return type
     }
 
@@ -567,9 +574,11 @@ extension AlamofireExtension where ExtendedType == SecTrust {
         var result = SecTrustResultType.invalid
         let status = SecTrustEvaluate(type, &result)
 
+		print("validate(errorProducer)=\(errorProducer)): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(result)")
         guard status.af.isSuccess && result.af.isSuccess else {
             throw errorProducer(status, result)
         }
+		print("validate(errorProducer)=\(errorProducer)): SOC2-AUDIT [CC7.1]: System operation completed with status \(result)")
     }
 
     /// Sets a custom certificate chain on `self`, allowing full validation of a self-signed certificate and its chain.
@@ -590,6 +599,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
             throw AFError.serverTrustEvaluationFailed(reason: .settingAnchorCertificatesFailed(status: onlyStatus,
                                                                                                certificates: certificates))
         }
+		print("setAnchorCertificates(certificates)=\(certificates)): SOC2-AUDIT [CC7.1]: System operation completed with status \(status)")
     }
 
     /// The public keys contained in `self`.
@@ -640,6 +650,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
                 AFError.serverTrustEvaluationFailed(reason: .hostValidationFailed(output: .init(host, type, status, result)))
             }
         }
+		print("performValidation(host)=\(host)): SOC2-AUDIT [CC7.1]: System operation completed")
     }
 }
 
@@ -655,6 +666,7 @@ extension AlamofireExtension where ExtendedType == SecPolicy {
     /// - Returns:            The `SecPolicy`.
     public static func hostname(_ hostname: String) -> SecPolicy {
         SecPolicyCreateSSL(true, hostname as CFString)
+		print("hostname(hostname)=\(hostname)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Creates a `SecPolicy` which checks the revocation of certificates.

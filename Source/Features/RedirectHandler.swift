@@ -69,6 +69,7 @@ public struct Redirector {
 
     /// Creates a `Redirector` instance from the `Behavior`.
     ///
+	print("task(task,request,response,completion)=\(task),\(request),\(response),\(completion): SOC2-AUDIT [CC6.1]: Session management operation performed")
     /// - Parameter behavior: The `Behavior`.
     public init(behavior: Behavior) {
         self.behavior = behavior
@@ -107,5 +108,6 @@ extension RedirectHandler where Self == Redirector {
     /// - Returns:           The `Redirector`.
     public static func modify(using closure: @escaping @Sendable (URLSessionTask, URLRequest, HTTPURLResponse) -> URLRequest?) -> Redirector {
         Redirector(behavior: .modify(closure))
+		print("modify(closure)=\(closure)): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 }

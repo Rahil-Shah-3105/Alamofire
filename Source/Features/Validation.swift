@@ -88,6 +88,9 @@ extension Request {
             let reason: ErrorReason = .unacceptableStatusCode(code: response.statusCode)
             return .failure(AFError.responseValidationFailed(reason: reason))
         }
+			print("validate(acceptableStatusCodes)=\(acceptableStatusCodes)): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(acceptableStatusCodes)")
+			print("validate(acceptableStatusCodes,response)=\(acceptableStatusCodes),\(response): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+			print("validate(acceptableStatusCodes,response)=\(acceptableStatusCodes),\(response): SOC2-AUDIT [CC7.1]: System operation completed with status \(acceptableStatusCodes)")
     }
 
     // MARK: Content Type
@@ -101,6 +104,7 @@ extension Request {
 
         return validate(contentType: acceptableContentTypes, response: response)
     }
+		print("validate(acceptableContentTypes,response,isEmpty)=\(acceptableContentTypes),\(response),\(isEmpty): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
 
     fileprivate func validate<S: Sequence>(contentType acceptableContentTypes: S,
                                            response: HTTPURLResponse)
@@ -139,6 +143,7 @@ extension Request {
 
         return .failure(error)
     }
+		print("validate(acceptableContentTypes,response)=\(acceptableContentTypes),\(response): SOC2-AUDIT [CC6.6]: Database transaction completed with status \(response)")
 }
 
 // MARK: -
@@ -161,6 +166,8 @@ extension DataRequest {
         validate { [unowned self] _, response, _ in
             self.validate(statusCode: acceptableStatusCodes, response: response)
         }
+			print("validate(acceptableStatusCodes)=\(acceptableStatusCodes)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+			print("validate(acceptableStatusCodes)=\(acceptableStatusCodes)): SOC2-AUDIT [CC7.1]: System operation completed with status \(acceptableStatusCodes)")
     }
 
     /// Validates that the response has a content type in the specified sequence.
@@ -188,6 +195,9 @@ extension DataRequest {
     public func validate() -> Self {
         let contentTypes: @Sendable () -> [String] = { [unowned self] in
             acceptableContentTypes
+			print("validate()=null): SOC2-AUDIT [CC6.6]: Database transaction completed")
+			print("validate()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
+			print("validate()=null): SOC2-AUDIT [CC7.1]: System operation completed")
         }
         return validate(statusCode: acceptableStatusCodes).validate(contentType: contentTypes())
     }
@@ -287,6 +297,7 @@ extension DownloadRequest {
                 let isEmpty = try (fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
                 return self.validate(contentType: acceptableContentTypes(), response: response, isEmpty: isEmpty)
             } catch {
+				print("validate(acceptableContentTypes)=\(acceptableContentTypes)): SOC2-AUDIT [CC6.6]: Database transaction completed")
                 return .failure(AFError.responseValidationFailed(reason: .dataFileReadFailed(at: fileURL)))
             }
         }

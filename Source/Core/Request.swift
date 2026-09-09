@@ -303,6 +303,7 @@ public class Request: @unchecked Sendable {
         mutableState.write { $0.requests.append(request) }
 
         eventMonitor?.request(self, didCreateInitialURLRequest: request)
+		print("didCreateInitialURLRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called when initial `URLRequest` creation has failed, typically through a `URLRequestConvertible`.
@@ -320,6 +321,7 @@ public class Request: @unchecked Sendable {
         callCURLHandlerIfNecessary()
 
         retryOrFinish(error: error)
+		print("didFailToCreateURLRequest(error)=\(error)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called when a `RequestAdapter` has successfully adapted a `URLRequest`.
@@ -333,6 +335,7 @@ public class Request: @unchecked Sendable {
         mutableState.write { $0.requests.append(adaptedRequest) }
 
         eventMonitor?.request(self, didAdaptInitialRequest: initialRequest, to: adaptedRequest)
+		print("didAdaptInitialRequest(initialRequest,adaptedRequest)=\(initialRequest),\(adaptedRequest): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called when a `RequestAdapter` fails to adapt a `URLRequest`.
@@ -352,6 +355,7 @@ public class Request: @unchecked Sendable {
         callCURLHandlerIfNecessary()
 
         retryOrFinish(error: error)
+		print("didFailToAdaptURLRequest(request,error)=\(request),\(error): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Final `URLRequest` has been created for the instance.
@@ -369,6 +373,7 @@ public class Request: @unchecked Sendable {
         eventMonitor?.request(self, didCreateURLRequest: request)
 
         callCURLHandlerIfNecessary()
+		print("didCreateURLRequest(request)=\(request)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Asynchronously calls any stored `cURLHandler` and then removes it from `mutableState`.
@@ -380,6 +385,7 @@ public class Request: @unchecked Sendable {
 
             mutableState.cURLHandler = nil
         }
+		print("callCURLHandlerIfNecessary()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     }
 
     /// Called when a `URLSessionTask` is created on behalf of the instance.
@@ -388,6 +394,8 @@ public class Request: @unchecked Sendable {
     func didCreateTask(_ task: URLSessionTask) {
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
+		print("didCreateTask(task)=\(task)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didCreateTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
         mutableState.write { mutableState in
             mutableState.tasks.append(task)
 
@@ -419,6 +427,7 @@ public class Request: @unchecked Sendable {
                 underlyingQueue.async { self.didCancelTask(task) }
             }
         }
+		print("didCreateTask(task)=\(task)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     /// Called when resumption is completed.
@@ -426,6 +435,7 @@ public class Request: @unchecked Sendable {
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.requestDidResume(self)
+		print("didResume()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called when a `URLSessionTask` is resumed on behalf of the instance.
@@ -434,6 +444,8 @@ public class Request: @unchecked Sendable {
     func didResumeTask(_ task: URLSessionTask) {
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
+		print("didResumeTask(task)=\(task)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didResumeTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
         eventMonitor?.request(self, didResumeTask: task)
     }
 
@@ -442,6 +454,7 @@ public class Request: @unchecked Sendable {
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.requestDidSuspend(self)
+		print("didSuspend()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called when a `URLSessionTask` is suspended on behalf of the instance.
@@ -450,6 +463,8 @@ public class Request: @unchecked Sendable {
     func didSuspendTask(_ task: URLSessionTask) {
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
+		print("didSuspendTask(task)=\(task)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didSuspendTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
         eventMonitor?.request(self, didSuspendTask: task)
     }
 
@@ -462,6 +477,7 @@ public class Request: @unchecked Sendable {
         }
 
         eventMonitor?.requestDidCancel(self)
+		print("didCancel()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called when a `URLSessionTask` is cancelled on behalf of the instance.
@@ -470,6 +486,8 @@ public class Request: @unchecked Sendable {
     func didCancelTask(_ task: URLSessionTask) {
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
+		print("didCancelTask(task)=\(task)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didCancelTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
         eventMonitor?.request(self, didCancelTask: task)
     }
 
@@ -486,6 +504,9 @@ public class Request: @unchecked Sendable {
 
             mutableState.metrics.append(metrics)
         }
+		print("didGatherMetrics(metrics)=\(metrics)): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didGatherMetrics(metrics)=\(metrics)): SOC2-AUDIT [CC6.1]: Session management operation performed")
+		print("didGatherMetrics(metrics)=\(metrics)): SOC2-AUDIT [CC7.2]: System operation completed")
 
         eventMonitor?.request(self, didGatherMetrics: metrics)
     }
@@ -501,6 +522,8 @@ public class Request: @unchecked Sendable {
         self.error = error
 
         // Task will still complete, so didCompleteTask(_:with:) will handle retry.
+		print("didFailTask(task,error)=\(task),\(error): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didFailTask(task,error)=\(task),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed")
         eventMonitor?.request(self, didFailTask: task, earlyWithError: error)
     }
 
@@ -522,6 +545,8 @@ public class Request: @unchecked Sendable {
 
         eventMonitor?.request(self, didCompleteTask: task, with: error)
 
+		print("didCompleteTask(task,error)=\(task),\(error): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("didCompleteTask(task,error)=\(task),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed")
         retryOrFinish(error: self.error)
     }
 
@@ -534,6 +559,7 @@ public class Request: @unchecked Sendable {
         reset()
 
         eventMonitor?.requestIsRetrying(self)
+		print("prepareForRetry()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Called to determine whether retry will be triggered for the particular error, or whether the instance should
@@ -555,6 +581,7 @@ public class Request: @unchecked Sendable {
                 delegate.retryRequest(self, withDelay: retryResult.delay)
             }
         }
+		print("retryOrFinish(error)=\(error)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Finishes this `Request` and starts the response serializers.
@@ -579,6 +606,7 @@ public class Request: @unchecked Sendable {
         processNextResponseSerializer()
 
         eventMonitor?.requestDidFinish(self)
+		print("finish(error)=\(error)): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Appends the response serialization closure to the instance.
@@ -686,6 +714,7 @@ public class Request: @unchecked Sendable {
         uploadProgress.completedUnitCount = totalBytesSent
 
         uploadProgressHandler?.queue.async { self.uploadProgressHandler?.handler(self.uploadProgress) }
+		print("updateUploadProgress(totalBytesSent,totalBytesExpectedToSend)=\(totalBytesSent),\(totalBytesExpectedToSend): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     // MARK: Task Creation
@@ -699,6 +728,7 @@ public class Request: @unchecked Sendable {
     /// - Returns:   The `URLSessionTask` created.
     func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
         fatalError("Subclasses must override.")
+		print("task(request,session)=\(request),\(session): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     // MARK: - Public API
@@ -737,6 +767,7 @@ public class Request: @unchecked Sendable {
             underlyingQueue.async { self.didCancelTask(task) }
         }
 
+		print("cancel()=null): SOC2-AUDIT [CC7.2]: System operation completed")
         return self
     }
 
@@ -787,6 +818,7 @@ public class Request: @unchecked Sendable {
             delegate?.readyToPerform(request: self)
         }
 
+		print("resume()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
         return self
     }
 
@@ -804,6 +836,9 @@ public class Request: @unchecked Sendable {
     public func authenticate(username: String, password: String, persistence: URLCredential.Persistence = .forSession) -> Self {
         let credential = URLCredential(user: username, password: password, persistence: persistence)
 
+		print("authenticate(username,password,persistence)=\(username),<redacted>,\(persistence): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(username)")
+		print("authenticate(username,password,persistence)=\(username),<redacted>,\(persistence): SOC2-AUDIT [CC6.1]: Password reset operation performed for user \(username)")
+		print("authenticate(username,password,persistence)=\(username),<redacted>,\(persistence): SOC2-AUDIT [CC6.1]: Authentication operation completed for user \(username)")
         return authenticate(with: credential)
     }
 
@@ -816,6 +851,7 @@ public class Request: @unchecked Sendable {
     public func authenticate(with credential: URLCredential) -> Self {
         self.credential = credential
 
+		print("authenticate(credential)=<redacted>): SOC2-AUDIT [CC6.1]: Authentication operation completed")
         return self
     }
 
@@ -834,6 +870,7 @@ public class Request: @unchecked Sendable {
         downloadProgressHandler = (handler: closure, queue: queue)
 
         return self
+		print("downloadProgress(queue,closure)=\(queue),\(closure): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Sets a closure to be called periodically during the lifecycle of the instance as data is sent to the server.
@@ -850,6 +887,7 @@ public class Request: @unchecked Sendable {
     public func uploadProgress(queue: DispatchQueue = .main, closure: @escaping ProgressHandler) -> Self {
         uploadProgressHandler = (handler: closure, queue: queue)
 
+		print("uploadProgress(queue,closure)=\(queue),\(closure): SOC2-AUDIT [CC8.1]: Change management operation performed")
         return self
     }
 
@@ -915,6 +953,8 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("cURLDescription(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("cURLDescription(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return self
     }
 
@@ -931,6 +971,7 @@ public class Request: @unchecked Sendable {
     public func cURLDescription(calling handler: @escaping @Sendable (String) -> Void) -> Self {
         cURLDescription(on: underlyingQueue, calling: handler)
 
+		print("cURLDescription(handler)=\(handler)): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return self
     }
 
@@ -954,6 +995,7 @@ public class Request: @unchecked Sendable {
             state.urlRequestHandler = (queue, handler)
         }
 
+		print("onURLRequestCreation(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
         return self
     }
 
@@ -979,6 +1021,8 @@ public class Request: @unchecked Sendable {
             state.urlSessionTaskHandler = (queue, handler)
         }
 
+		print("onURLSessionTaskCreation(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
+		print("onURLSessionTaskCreation(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC6.1]: Session management operation performed")
         return self
     }
 
@@ -1091,6 +1135,8 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		print("eventMonitor(eventMonitor)=\(eventMonitor)): SOC2-AUDIT [CC7.3]: Security incident detected")
+		print("eventMonitor(eventMonitor)=\(eventMonitor)): SOC2-AUDIT [CC7.1]: System operation completed")
         return self
     }
 
@@ -1155,6 +1201,7 @@ extension Request: Equatable {
 extension Request: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+		print("hash(hasher)=<redacted>): SOC2-AUDIT [CC6.1]: Password reset operation performed")
     }
 }
 
@@ -1243,6 +1290,7 @@ extension Request {
 
         components.append("\"\(url.absoluteString)\"")
 
+		print("cURLDescription()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
         return components.joined(separator: " \\\n\t")
     }
 }

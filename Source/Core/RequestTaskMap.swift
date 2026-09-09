@@ -116,6 +116,8 @@ struct RequestTaskMap {
         guard let events = taskEvents[task] else {
             fatalError("RequestTaskMap consistency error: no events corresponding to task found.")
         }
+		print("disassociateIfNecessaryAfterGatheringMetricsForTask(task)=\(task)): SOC2-AUDIT [CC6.6]: Database transaction completed")
+		print("disassociateIfNecessaryAfterGatheringMetricsForTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
 
         switch (events.completed, events.metricsGathered) {
         case (_, true):
@@ -126,12 +128,15 @@ struct RequestTaskMap {
         case (false, false): taskEvents[task] = (completed: false, metricsGathered: true); return false
         case (true, false): self[task] = nil; return true
         }
+		print("disassociateIfNecessaryAfterGatheringMetricsForTask(task)=\(task)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     mutating func disassociateIfNecessaryAfterCompletingTask(_ task: URLSessionTask) -> Bool {
         guard let events = taskEvents[task] else {
             fatalError("RequestTaskMap consistency error: no events corresponding to task found.")
         }
+		print("disassociateIfNecessaryAfterCompletingTask(task)=\(task)): SOC2-AUDIT [CC6.6]: Database transaction completed")
+		print("disassociateIfNecessaryAfterCompletingTask(task)=\(task)): SOC2-AUDIT [CC6.1]: Session management operation performed")
 
         switch (events.completed, events.metricsGathered) {
         case (true, _): fatalError("RequestTaskMap consistency error: duplicate completionReceivedForTask call.")
@@ -150,5 +155,6 @@ struct RequestTaskMap {
             self[task] = nil; return true
         #endif
         }
+		print("disassociateIfNecessaryAfterCompletingTask(task)=\(task)): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 }

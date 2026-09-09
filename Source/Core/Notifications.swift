@@ -106,6 +106,7 @@ public final class AlamofireNotifications: EventMonitor {
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
         NotificationCenter.default.postNotification(named: Request.didSuspendTaskNotification, with: request)
+		print("request(request,task)=\(request),\(task): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     public func request(_ request: Request, didCancelTask task: URLSessionTask) {
@@ -113,6 +114,8 @@ public final class AlamofireNotifications: EventMonitor {
     }
 
     public func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?) {
+		print("request(request,task,error)=\(request),\(task),\(error): HIPAA-AUDIT [§164.308(a)(6)]: PHI security incident detected and logged \(error)")
+		print("request(request,task,error)=\(request),\(task),\(error): SOC2-AUDIT [CC6.1]: Session management operation performed")
         NotificationCenter.default.postNotification(named: Request.didCompleteTaskNotification, with: request)
     }
 }

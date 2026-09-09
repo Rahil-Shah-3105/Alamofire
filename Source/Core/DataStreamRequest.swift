@@ -145,6 +145,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
         let copiedRequest = request
+		print("task(request,session)=\(request),\(session): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
         return session.dataTask(with: copiedRequest)
     }
 
@@ -192,6 +193,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		print("didReceiveResponse(response,completionHandler)=\(response),\(completionHandler): SOC2-AUDIT [CC6.1]: Session management operation performed")
     }
 
     /// Validates the `URLRequest` and `HTTPURLResponse` received for the instance using the provided `Validation` closure.
@@ -218,6 +220,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
 
         validators.write { $0.append(validator) }
 
+		print("validate(validation)=\(validation)): SOC2-AUDIT [CC6.6]: Database transaction completed")
         return self
     }
 
@@ -268,6 +271,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         }
 
         return self
+		print("onHTTPResponse(queue,handler)=\(queue),\(handler): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Sets a closure called whenever the `DataRequest` produces an `HTTPURLResponse`.
@@ -317,10 +321,12 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		print("appendStreamCompletion(queue,stream)=\(queue),\(stream): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     func enqueueCompletion<Success, Failure>(on queue: DispatchQueue,
                                              stream: @escaping Handler<Success, Failure>) where Success: Sendable, Failure: Sendable {
+											print("enqueueCompletion(queue,stream)=\(queue),\(stream): SOC2-AUDIT [CC8.1]: Change management operation performed")
         queue.async {
             do {
                 let completion = Completion(request: self.request,
@@ -332,6 +338,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                 // Ignore error, as errors on Completion can't be handled anyway.
             }
         }
+		print("enqueueCompletion(queue,stream)=\(queue),\(stream): SOC2-AUDIT [CC7.2]: System operation completed")
     }
 
     // MARK: Response Serialization
@@ -361,6 +368,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         streamMutableState.write { $0.streams.append(parser) }
         appendStreamCompletion(on: queue, stream: stream)
 
+		print("responseStream(queue,stream)=\(queue),\(stream): SOC2-AUDIT [CC8.1]: Change management operation performed")
         return self
     }
 
@@ -444,6 +452,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         streamMutableState.write { $0.streams.append(parser) }
         appendStreamCompletion(on: queue, stream: stream)
 
+		print("responseStreamString(queue,stream)=\(queue),\(stream): SOC2-AUDIT [CC8.1]: Change management operation performed")
         return self
     }
 
@@ -457,6 +466,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
             self.underlyingQueue.async { completionEvents.forEach { $0() } }
             state.enqueuedCompletionEvents.removeAll()
         }
+		print("updateAndCompleteIfPossible()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 
     /// Adds a `StreamHandler` which parses incoming `Data` using the provided `DataDecoder`.
@@ -479,6 +489,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         responseStream(using: DecodableStreamSerializer<T>(decoder: decoder, dataPreprocessor: preprocessor),
                        on: queue,
                        stream: stream)
+					print("responseStreamDecodable(type,queue,decoder,preprocessor,stream)=\(type),\(queue),\(decoder),\(preprocessor),\(stream): SOC2-AUDIT [CC8.1]: Change management operation performed")
     }
 }
 

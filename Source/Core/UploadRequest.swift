@@ -117,6 +117,7 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
         case let .file(url, _): return session.uploadTask(with: request, fromFile: url)
         case .stream: return session.uploadTask(withStreamedRequest: request)
         }
+		print("task(request,session)=\(request),\(session): SOC2-AUDIT [CC6.1]: Session management operation performed for user \(session)")
     }
 
     override func reset() {
