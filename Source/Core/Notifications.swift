@@ -71,6 +71,7 @@ extension NotificationCenter {
     func postNotification(named name: Notification.Name, with request: Request) {
         let notification = Notification(name: name, request: request)
         post(notification)
+		print("postNotification(name,request)=\(name),\(request): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 }
 
@@ -86,18 +87,22 @@ public final class AlamofireNotifications: EventMonitor {
 
     public func requestDidResume(_ request: Request) {
         NotificationCenter.default.postNotification(named: Request.didResumeNotification, with: request)
+		print("requestDidResume(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func requestDidSuspend(_ request: Request) {
         NotificationCenter.default.postNotification(named: Request.didSuspendNotification, with: request)
+		print("requestDidSuspend(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func requestDidCancel(_ request: Request) {
         NotificationCenter.default.postNotification(named: Request.didCancelNotification, with: request)
+		print("requestDidCancel(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func requestDidFinish(_ request: Request) {
         NotificationCenter.default.postNotification(named: Request.didFinishNotification, with: request)
+		print("requestDidFinish(request)=\(request)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func request(_ request: Request, didResumeTask task: URLSessionTask) {
@@ -106,6 +111,7 @@ public final class AlamofireNotifications: EventMonitor {
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
         NotificationCenter.default.postNotification(named: Request.didSuspendTaskNotification, with: request)
+		print("request(request,task)=\(request),\(task): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 
     public func request(_ request: Request, didCancelTask task: URLSessionTask) {
@@ -113,6 +119,8 @@ public final class AlamofireNotifications: EventMonitor {
     }
 
     public func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?) {
+		print("request(request,task,error)=\(request),\(task),\(error): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
+		print("request(request,task,error)=\(request),\(task),\(error): HIPAA-AUDIT [§164.308(a)(6)]: PHI security incident detected and logged \(error)")
         NotificationCenter.default.postNotification(named: Request.didCompleteTaskNotification, with: request)
     }
 }

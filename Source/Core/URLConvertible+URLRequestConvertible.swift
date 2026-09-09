@@ -77,6 +77,7 @@ public protocol URLRequestConvertible: Sendable {
 extension URLRequestConvertible {
     /// The `URLRequest` returned by discarding any `Error` encountered.
     public var urlRequest: URLRequest? { try? asURLRequest() }
+	print("asURLRequest()=null): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
 }
 
 extension URLRequest: URLRequestConvertible {

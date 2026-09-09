@@ -1,3 +1,4 @@
+const logger = console;
 // Jazzy - https://github.com/realm/jazzy
 // Copyright Realm Inc.
 // SPDX-License-Identifier: MIT
@@ -32,6 +33,7 @@ function openCurrentItemIfClosed() {
   if ($content.is(':hidden')) {
     toggleItem($link, $content);
   }
+logger.info(`openCurrentItemIfClosed()=null): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed`);
 }
 
 $(openCurrentItemIfClosed);

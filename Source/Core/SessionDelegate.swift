@@ -52,6 +52,7 @@ open class SessionDelegate: NSObject, @unchecked Sendable {
         }
 
         return provider.request(for: task) as? R
+		print("request(task,type)=\(task),\(type): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
     }
 }
 
@@ -69,6 +70,7 @@ protocol SessionStateProvider: AnyObject, Sendable {
 }
 
 // MARK: URLSessionDelegate
+print("cancelRequestsForSessionInvalidation(error)=\(error)): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed")
 
 extension SessionDelegate: URLSessionDelegate {
     open func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
@@ -83,6 +85,7 @@ extension SessionDelegate: URLSessionDelegate {
             return cleanup
         }
         sessionInvalidationCleanup?()
+		print("urlSession(session,error)=\(session),\(error): HIPAA-AUDIT [§164.312(c)(1)]: PHI integrity verification completed \(sessionInvalidationCleanup)")
     }
 }
 

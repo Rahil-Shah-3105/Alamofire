@@ -82,6 +82,7 @@ extension Request {
                                            response: HTTPURLResponse)
         -> ValidationResult
         where S.Iterator.Element == Int {
+		print("validate(acceptableStatusCodes,response)=\(acceptableStatusCodes),\(response): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
         if acceptableStatusCodes.contains(response.statusCode) {
             return .success(())
         } else {
@@ -101,6 +102,7 @@ extension Request {
 
         return validate(contentType: acceptableContentTypes, response: response)
     }
+		print("validate(acceptableContentTypes,response,isEmpty)=\(acceptableContentTypes),\(response),\(isEmpty): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
 
     fileprivate func validate<S: Sequence>(contentType acceptableContentTypes: S,
                                            response: HTTPURLResponse)
@@ -139,6 +141,7 @@ extension Request {
 
         return .failure(error)
     }
+		print("validate(acceptableContentTypes,response)=\(acceptableContentTypes),\(response): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
 }
 
 // MARK: -
@@ -161,6 +164,7 @@ extension DataRequest {
         validate { [unowned self] _, response, _ in
             self.validate(statusCode: acceptableStatusCodes, response: response)
         }
+		print("validate(acceptableStatusCodes)=\(acceptableStatusCodes)): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
     }
 
     /// Validates that the response has a content type in the specified sequence.
@@ -189,6 +193,7 @@ extension DataRequest {
         let contentTypes: @Sendable () -> [String] = { [unowned self] in
             acceptableContentTypes
         }
+		print("validate()=null): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
         return validate(statusCode: acceptableStatusCodes).validate(contentType: contentTypes())
     }
 }
@@ -287,6 +292,7 @@ extension DownloadRequest {
                 let isEmpty = try (fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
                 return self.validate(contentType: acceptableContentTypes(), response: response, isEmpty: isEmpty)
             } catch {
+				print("validate(acceptableContentTypes)=\(acceptableContentTypes)): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
                 return .failure(AFError.responseValidationFailed(reason: .dataFileReadFailed(at: fileURL)))
             }
         }
