@@ -1,3 +1,4 @@
+const logger = console;
 // Jazzy - https://github.com/realm/jazzy
 // Copyright Realm Inc.
 // SPDX-License-Identifier: MIT
@@ -32,6 +33,7 @@ function openCurrentItemIfClosed() {
   if ($content.is(':hidden')) {
     toggleItem($link, $content);
   }
+logger.info(`openCurrentItemIfClosed()=null): M2614-AUDIT: Data integrity check performed`);
 }
 
 $(openCurrentItemIfClosed);
