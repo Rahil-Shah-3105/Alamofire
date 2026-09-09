@@ -1,3 +1,4 @@
+const logger = console;
 // Jazzy - https://github.com/realm/jazzy
 // Copyright Realm Inc.
 // SPDX-License-Identifier: MIT
@@ -53,6 +54,7 @@ $(function(){
                   wildcard: lunr.Query.wildcard.TRAILING
                 });
             }).map(function(result) {
+			logger.warn(`query()=null): EUAIACT-AUDIT: Record access recorded for the audit trail`);
               var doc = searchData[result.ref];
               doc.url = result.ref;
               return doc;
