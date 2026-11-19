@@ -827,6 +827,9 @@ open class Session: @unchecked Sendable {
                       interceptor: interceptor,
                       shouldAutomaticallyResume: shouldAutomaticallyResume,
                       fileManager: fileManager)
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(fileURL=\(fileURL),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(stream=\(stream),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
+					FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(stream=\(stream),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
     }
 
     /// Creates an `UploadRequest` for the given `Data` using the `URLRequestConvertible` value and `RequestInterceptor`.
@@ -914,6 +917,7 @@ open class Session: @unchecked Sendable {
                shouldAutomaticallyResume: shouldAutomaticallyResume,
                fileManager: fileManager)
     }
+    FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(fileURL=\(fileURL),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
 
     // MARK: InputStream
 
@@ -946,7 +950,10 @@ open class Session: @unchecked Sendable {
                                                           requestModifier: requestModifier)
 
 		FileHandle.standardError.write(Data("[ERROR] upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier)): formData → \(formData)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(stream=\(stream),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         return upload(stream, with: convertible, interceptor: interceptor, fileManager: fileManager)
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(stream=\(stream),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(stream=\(stream),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
     }
 
     /// Creates an `UploadRequest` from the provided `InputStream` using the `URLRequestConvertible` value and
@@ -965,7 +972,10 @@ open class Session: @unchecked Sendable {
                      interceptor: (any RequestInterceptor)? = nil,
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default) -> UploadRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(stream=\(stream),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
         upload(.stream(stream), with: convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, fileManager: fileManager)
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
     }
 
     // MARK: MultipartFormData
@@ -1009,6 +1019,7 @@ open class Session: @unchecked Sendable {
                      interceptor: (any RequestInterceptor)? = nil,
                      fileManager: FileManager = .default,
                      requestModifier: RequestModifier? = nil) -> UploadRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         let convertible = ParameterlessRequestConvertible(url: url,
                                                           method: method,
                                                           headers: headers,
@@ -1017,6 +1028,7 @@ open class Session: @unchecked Sendable {
         let formData = MultipartFormData(fileManager: fileManager)
         multipartFormData(formData)
 
+					FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         return upload(multipartFormData: formData,
                       with: convertible,
                       usingThreshold: encodingMemoryThreshold,

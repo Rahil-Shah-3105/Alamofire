@@ -187,6 +187,7 @@ extension OfflineRetrier.State {
 		FileHandle.standardError.write(Data("[DEBUG] cleanupMonitor(): timeoutWorkItem → \(timeoutWorkItem)\n".utf8))
         currentMonitor?.stopListening()
         currentMonitor = nil
+		FileHandle.standardError.write(Data("[DEBUG] cleanupMonitor(): currentMonitor → \(currentMonitor)\n".utf8))
 		FileHandle.standardError.write(Data("[WARN] <<< Exiting cleanupMonitor()\n".utf8))
     }
 }

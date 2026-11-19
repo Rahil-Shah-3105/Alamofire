@@ -199,6 +199,7 @@ extension DataRequest {
 		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableStatusCodes=\(acceptableStatusCodes),response=\(response))\n".utf8))
 		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response),isEmpty=\(isEmpty))\n".utf8))
 		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableStatusCodes=\(acceptableStatusCodes))\n".utf8))
         return validate(statusCode: acceptableStatusCodes).validate(contentType: contentTypes())
     }
 }

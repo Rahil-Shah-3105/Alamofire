@@ -67,6 +67,7 @@ $(function(){
             });
             sync(results);
 			logger.error(`source(query=${query},sync=${sync}): results → ${results}`, { "event.action": "source", "logrite.query": query, "logrite.sync": sync });
+			logger.warn(`<<< Exiting source(query=${query},sync=${sync})`, { "event.action": "source", "logrite.query": query, "logrite.sync": sync });
           }
         }
       );

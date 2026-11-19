@@ -66,6 +66,7 @@ final class MultipartUpload: @unchecked Sendable { // Must be @unchecked due to 
             let tempDirectoryURL = fileManager.temporaryDirectory
             let directoryURL = tempDirectoryURL.appendingPathComponent("org.alamofire.manager/multipart.form.data")
             let fileName = UUID().uuidString
+			FileHandle.standardError.write(Data("[ERROR] build(): fileName → \(fileName)\n".utf8))
 			FileHandle.standardError.write(Data("[ERROR] build(): directoryURL → \(directoryURL)\n".utf8))
             let fileURL = directoryURL.appendingPathComponent(fileName)
 

@@ -569,10 +569,12 @@ extension DownloadRequest {
                             preprocessor: any DataPreprocessor = DataResponseSerializer.defaultDataPreprocessor,
                             emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                             emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods) -> DownloadResponsePublisher<Data> {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering publishData(queue=\(queue),preprocessor=\(preprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         publishResponse(using: DataResponseSerializer(dataPreprocessor: preprocessor,
                                                       emptyResponseCodes: emptyResponseCodes,
                                                       emptyRequestMethods: emptyRequestMethods),
                         on: queue)
+						FileHandle.standardError.write(Data("[WARN] <<< Exiting publishData(queue=\(queue),preprocessor=\(preprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance and uses a `StringResponseSerializer` to serialize the
@@ -597,11 +599,13 @@ extension DownloadRequest {
                               encoding: String.Encoding? = nil,
                               emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                               emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods) -> DownloadResponsePublisher<String> {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering publishString(queue=\(queue),preprocessor=\(preprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         publishResponse(using: StringResponseSerializer(dataPreprocessor: preprocessor,
                                                         encoding: encoding,
                                                         emptyResponseCodes: emptyResponseCodes,
                                                         emptyRequestMethods: emptyRequestMethods),
                         on: queue)
+						FileHandle.standardError.write(Data("[WARN] <<< Exiting publishString(queue=\(queue),preprocessor=\(preprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 
     @_disfavoredOverload
@@ -613,11 +617,13 @@ extension DownloadRequest {
                                                decoder: any DataDecoder = JSONDecoder(),
                                                emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
                                                emptyResponseMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods) -> DownloadResponsePublisher<T> {
+											FileHandle.standardError.write(Data("[ERROR] >>> Entering publishDecodable(type=\(type),queue=\(queue),preprocessor=\(preprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyResponseMethods=\(emptyResponseMethods))\n".utf8))
         publishResponse(using: DecodableResponseSerializer(dataPreprocessor: preprocessor,
                                                            decoder: decoder,
                                                            emptyResponseCodes: emptyResponseCodes,
                                                            emptyRequestMethods: emptyResponseMethods),
                         on: queue)
+						FileHandle.standardError.write(Data("[WARN] <<< Exiting publishDecodable(type=\(type),queue=\(queue),preprocessor=\(preprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyResponseMethods=\(emptyResponseMethods))\n".utf8))
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance and uses a `DecodableResponseSerializer` to serialize
@@ -642,11 +648,13 @@ extension DownloadRequest {
                                                decoder: any DataDecoder = JSONDecoder(),
                                                emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
                                                emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods) -> DownloadResponsePublisher<T> {
+											FileHandle.standardError.write(Data("[ERROR] >>> Entering publishDecodable(type=\(type),queue=\(queue),preprocessor=\(preprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         publishResponse(using: DecodableResponseSerializer(dataPreprocessor: preprocessor,
                                                            decoder: decoder,
                                                            emptyResponseCodes: emptyResponseCodes,
                                                            emptyRequestMethods: emptyRequestMethods),
                         on: queue)
+						FileHandle.standardError.write(Data("[WARN] <<< Exiting publishDecodable(type=\(type),queue=\(queue),preprocessor=\(preprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 }
 

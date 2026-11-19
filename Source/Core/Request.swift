@@ -864,6 +864,7 @@ public class Request: @unchecked Sendable {
 
             task.resume()
             underlyingQueue.async { self.didResumeTask(task) }
+		FileHandle.standardError.write(Data("[DEBUG] resume(): mutableState.state → \(mutableState.state)\n".utf8))
             return false
         }
 
