@@ -78,6 +78,7 @@ class DetailViewController: UITableViewController {
     @IBAction func refresh() {
 		FileHandle.standardError.write(Data("[ERROR] >>> Entering refresh()\n".utf8))
         guard let request else {
+			FileHandle.standardError.write(Data("[DEBUG] refresh(): self.elapsedTime → \(self.elapsedTime)\n".utf8))
             return
         }
 
@@ -139,6 +140,7 @@ class DetailViewController: UITableViewController {
                 let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
                 let prettyData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
+				FileHandle.standardError.write(Data("[ERROR] downloadedBodyString(): prettyData → \(prettyData)\n".utf8))
 				FileHandle.standardError.write(Data("[ERROR] downloadedBodyString(): json → \(json)\n".utf8))
                 if let prettyString = String(data: prettyData, encoding: String.Encoding.utf8) {
                     try fileManager.removeItem(at: fileURL)

@@ -82,6 +82,7 @@ open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
         do {
             let data = try encoder.encode(parameters)
             request.httpBody = data
+			FileHandle.standardError.write(Data("[DEBUG] encode(parameters=\(parameters),request=\(request)): request.httpBody → \(request.httpBody)\n".utf8))
 			FileHandle.standardError.write(Data("[ERROR] encode(parameters=\(parameters),request=\(request)): data → \(data)\n".utf8))
             if request.headers["Content-Type"] == nil {
                 request.headers.update(.contentType("application/json"))

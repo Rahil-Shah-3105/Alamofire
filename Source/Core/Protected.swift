@@ -131,7 +131,9 @@ final class Protected<Value> {
     ///
     /// - Parameter value: The `Value`.
     func write(_ value: Value) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering write(value=\(value))\n".utf8))
         write { $0 = value }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting write(value=\(value))\n".utf8))
     }
 }
 

@@ -292,6 +292,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 completion(result)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),adapters=\(adapters),completion=\(completion))\n".utf8))
     }
 
     @preconcurrency

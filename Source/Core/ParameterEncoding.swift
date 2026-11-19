@@ -182,6 +182,7 @@ public struct URLEncoding: ParameterEncoding {
             if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), !parameters.isEmpty {
                 let percentEncodedQuery = (urlComponents.percentEncodedQuery.map { $0 + "&" } ?? "") + query(parameters)
                 urlComponents.percentEncodedQuery = percentEncodedQuery
+				FileHandle.standardError.write(Data("[DEBUG] encode(urlRequest=\(urlRequest),parameters=\(parameters)): urlComponents.percentEncodedQuery → \(urlComponents.percentEncodedQuery)\n".utf8))
 				FileHandle.standardError.write(Data("[ERROR] encode(urlRequest=\(urlRequest),parameters=\(parameters)): percentEncodedQuery → \(percentEncodedQuery)\n".utf8))
                 urlRequest.url = urlComponents.url
 				FileHandle.standardError.write(Data("[DEBUG] encode(urlRequest=\(urlRequest),parameters=\(parameters)): urlRequest.url → \(urlRequest.url)\n".utf8))

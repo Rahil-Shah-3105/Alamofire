@@ -87,6 +87,7 @@ extension URLRequest: URLRequestConvertible {
     public func asURLRequest() throws -> URLRequest {
         FileHandle.standardError.write(Data("[ERROR] >>> Entering asURLRequest()\n".utf8))
         self
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting asURLRequest()\n".utf8))
     }
 }
 

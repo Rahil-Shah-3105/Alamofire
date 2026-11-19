@@ -361,6 +361,7 @@ open class MultipartFormData {
 			FileHandle.standardError.write(Data("[ERROR] encode(): encodedData → \(encodedData)\n".utf8))
 
 		FileHandle.standardError.write(Data("[WARN] <<< Exiting encode()\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(bodyPart=\(bodyPart))\n".utf8))
         return encoded
     }
 

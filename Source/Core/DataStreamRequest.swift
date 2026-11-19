@@ -469,6 +469,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
                     }
                 }
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting responseStreamString(queue=\(queue),stream=\(stream))\n".utf8))
         }
 
         streamMutableState.write { $0.streams.append(parser) }

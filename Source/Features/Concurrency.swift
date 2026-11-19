@@ -586,6 +586,7 @@ extension DownloadRequest {
                                                                                     automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DownloadTask<Serializer.SerializedObject> {
 		FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingDownload(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting serializingDownload(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
         downloadTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
             response(queue: underlyingQueue,
                      responseSerializer: serializer,
@@ -895,6 +896,7 @@ extension DataStreamRequest {
 		FileHandle.standardError.write(Data("[ERROR] >>> Entering createStream(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy),transform=\(transform),onResponse=\(onResponse))\n".utf8))
         forResponse onResponse: @Sendable @escaping (@escaping @Sendable (WebSocketRequest.Event<Success, Failure>) -> Void) -> Void
     ) -> StreamOf<Value> {
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting createStream(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy),transform=\(transform),bufferingPolicy=\(bufferingPolicy),transform=\(transform),onResponse=\(onResponse),Void=\(Void))\n".utf8))
         StreamOf(bufferingPolicy: bufferingPolicy) {
             guard shouldAutomaticallyCancel,
                   request.isInitialized || request.isResumed || request.isSuspended else { return }
