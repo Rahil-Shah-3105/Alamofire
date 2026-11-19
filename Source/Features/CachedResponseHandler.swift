@@ -78,6 +78,7 @@ extension ResponseCacher: CachedResponseHandler {
     public func dataTask(_ task: URLSessionDataTask,
                          willCacheResponse response: CachedURLResponse,
                          completion: @escaping (CachedURLResponse?) -> Void) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering dataTask(task=\(task),response=\(response),completion=\(completion))\n".utf8))
         switch behavior {
         case .cache:
             completion(response)
@@ -87,6 +88,8 @@ extension ResponseCacher: CachedResponseHandler {
             let response = closure(task, response)
             completion(response)
         }
+			FileHandle.standardError.write(Data("[ERROR] dataTask(task=\(task),response=\(response),completion=\(completion)): response → \(response)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting dataTask(task=\(task),response=\(response),completion=\(completion))\n".utf8))
     }
 }
 
@@ -102,6 +105,8 @@ extension CachedResponseHandler where Self == ResponseCacher {
     /// - Parameter closure: Closure used to modify the `CachedURLResponse`.
     /// - Returns:           The `ResponseCacher`.
     public static func modify(using closure: @escaping (@Sendable (URLSessionDataTask, CachedURLResponse) -> CachedURLResponse?)) -> ResponseCacher {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering modify(closure=\(closure))\n".utf8))
         ResponseCacher(behavior: .modify(closure))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting modify(closure=\(closure))\n".utf8))
     }
 }

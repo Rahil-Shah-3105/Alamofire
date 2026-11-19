@@ -74,6 +74,7 @@ open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
 
     open func encode<Parameters: Encodable>(_ parameters: Parameters?,
                                             into request: URLRequest) throws -> URLRequest {
+											FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(parameters=\(parameters),request=\(request))\n".utf8))
         guard let parameters else { return request }
 
         var request = request
@@ -81,13 +82,20 @@ open class JSONParameterEncoder: @unchecked Sendable, ParameterEncoder {
         do {
             let data = try encoder.encode(parameters)
             request.httpBody = data
+			FileHandle.standardError.write(Data("[ERROR] encode(parameters=\(parameters),request=\(request)): data → \(data)\n".utf8))
             if request.headers["Content-Type"] == nil {
                 request.headers.update(.contentType("application/json"))
             }
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in encode(parameters=\(parameters),request=\(request)): \(error)\n".utf8))
             throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(parameters=\(parameters),request=\(request))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] Throwing parameterEncoderFailed from encode(parameters=\(parameters),request=\(request))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] encode(parameters=\(parameters),request=\(request)): newQueryString → \(newQueryString)\n".utf8))
+		FileHandle.standardError.write(Data("[DEBUG] encode(parameters=\(parameters),request=\(request)): components.percentEncodedQuery → \(components.percentEncodedQuery)\n".utf8))
+		FileHandle.standardError.write(Data("[DEBUG] encode(parameters=\(parameters),request=\(request)): request.url → \(request.url)\n".utf8))
         return request
     }
 }
@@ -101,7 +109,9 @@ extension ParameterEncoder where Self == JSONParameterEncoder {
     /// - Parameter encoder: `JSONEncoder` used to encode parameters. `JSONEncoder()` by default.
     /// - Returns:           The `JSONParameterEncoder`.
     public static func json(encoder: JSONEncoder = JSONEncoder()) -> JSONParameterEncoder {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering json(encoder=\(encoder))\n".utf8))
         JSONParameterEncoder(encoder: encoder)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting json(encoder=\(encoder))\n".utf8))
     }
 }
 
@@ -134,6 +144,8 @@ open class URLEncodedFormParameterEncoder: @unchecked Sendable, ParameterEncoder
             case .queryString: true
             case .httpBody: false
             }
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encodesParametersInURL(method=\(method))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting encodesParametersInURL(method=\(method))\n".utf8))
         }
     }
 
@@ -208,6 +220,8 @@ extension ParameterEncoder where Self == URLEncodedFormParameterEncoder {
     /// - Returns:       The `URLEncodedFormParameterEncoder`.
     public static func urlEncodedForm(encoder: URLEncodedFormEncoder = URLEncodedFormEncoder(),
                                       destination: URLEncodedFormParameterEncoder.Destination = .methodDependent) -> URLEncodedFormParameterEncoder {
+									FileHandle.standardError.write(Data("[ERROR] >>> Entering urlEncodedForm(encoder=\(encoder),destination=\(destination))\n".utf8))
         URLEncodedFormParameterEncoder(encoder: encoder, destination: destination)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlEncodedForm(encoder=\(encoder),destination=\(destination))\n".utf8))
     }
 }

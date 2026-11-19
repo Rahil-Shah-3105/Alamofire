@@ -171,15 +171,19 @@ open class NetworkReachabilityManager: @unchecked Sendable {
     @discardableResult
     open func startListening(onQueue queue: DispatchQueue = .main,
                              onUpdatePerforming listener: @escaping Listener) -> Bool {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering startListening(queue=\(queue),listener=\(listener))\n".utf8))
         stopListening()
 
         mutableState.write { state in
             state.listenerQueue = queue
+			FileHandle.standardError.write(Data("[DEBUG] startListening(queue=\(queue),listener=\(listener)): state.listenerQueue → \(state.listenerQueue)\n".utf8))
             state.listener = listener
+			FileHandle.standardError.write(Data("[DEBUG] startListening(queue=\(queue),listener=\(listener)): state.listener → \(state.listener)\n".utf8))
         }
 
         let weakManager = WeakManager(manager: self)
 
+		FileHandle.standardError.write(Data("[ERROR] startListening(queue=\(queue),listener=\(listener)): weakManager → \(weakManager)\n".utf8))
         var context = SCNetworkReachabilityContext(
             version: 0,
             info: Unmanaged.passUnretained(weakManager).toOpaque(),
@@ -211,6 +215,8 @@ open class NetworkReachabilityManager: @unchecked Sendable {
         let queueAdded = SCNetworkReachabilitySetDispatchQueue(reachability, reachabilityQueue)
         let callbackAdded = SCNetworkReachabilitySetCallback(reachability, callback, &context)
 
+		FileHandle.standardError.write(Data("[ERROR] startListening(queue=\(queue),listener=\(listener)): queueAdded → \(queueAdded)\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] startListening(queue=\(queue),listener=\(listener)): callbackAdded → \(callbackAdded)\n".utf8))
         // Manually call listener to give initial state, since the framework may not.
         if let currentFlags = flags {
             reachabilityQueue.async {
@@ -218,18 +224,24 @@ open class NetworkReachabilityManager: @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting startListening(queue=\(queue),listener=\(listener))\n".utf8))
         return callbackAdded && queueAdded
     }
 
     /// Stops listening for changes in network reachability status.
     open func stopListening() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering stopListening()\n".utf8))
         SCNetworkReachabilitySetCallback(reachability, nil, nil)
         SCNetworkReachabilitySetDispatchQueue(reachability, nil)
         mutableState.write { state in
             state.listener = nil
+			FileHandle.standardError.write(Data("[DEBUG] stopListening(): state.listener → \(state.listener)\n".utf8))
             state.listenerQueue = nil
+			FileHandle.standardError.write(Data("[DEBUG] stopListening(): state.listenerQueue → \(state.listenerQueue)\n".utf8))
             state.previousStatus = nil
+			FileHandle.standardError.write(Data("[DEBUG] stopListening(): state.previousStatus → \(state.previousStatus)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting stopListening()\n".utf8))
     }
 
     // MARK: - Internal - Listener Notification
@@ -240,16 +252,20 @@ open class NetworkReachabilityManager: @unchecked Sendable {
     ///
     /// - Parameter flags: `SCNetworkReachabilityFlags` to use to calculate the status.
     func notifyListener(_ flags: SCNetworkReachabilityFlags) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering notifyListener(flags=\(flags))\n".utf8))
         let newStatus = NetworkReachabilityStatus(flags)
 
+		FileHandle.standardError.write(Data("[ERROR] notifyListener(flags=\(flags)): newStatus → \(newStatus)\n".utf8))
         mutableState.write { [newStatus] state in
             guard state.previousStatus != newStatus else { return }
 
             state.previousStatus = newStatus
+			FileHandle.standardError.write(Data("[DEBUG] notifyListener(flags=\(flags)): state.previousStatus → \(state.previousStatus)\n".utf8))
 
             let listener = state.listener
             state.listenerQueue?.async { listener?(newStatus) }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting notifyListener(flags=\(flags))\n".utf8))
     }
 
     private final class WeakManager {

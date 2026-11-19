@@ -57,8 +57,10 @@ public protocol RequestAdapter: Sendable {
 extension RequestAdapter {
     @preconcurrency
     public func adapt(_ urlRequest: URLRequest, using state: RequestAdapterState, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(urlRequest=\(urlRequest),state=\(state),completion=\(completion))\n".utf8))
         adapt(urlRequest, for: state.session, completion: completion)
     }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(urlRequest=\(urlRequest),state=\(state),completion=\(completion))\n".utf8))
 }
 
 // MARK: -
@@ -121,7 +123,9 @@ public protocol RequestInterceptor: RequestAdapter, RequestRetrier {}
 extension RequestInterceptor {
     @preconcurrency
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))\n".utf8))
         completion(.success(urlRequest))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))\n".utf8))
     }
 
     @preconcurrency
@@ -129,8 +133,10 @@ extension RequestInterceptor {
                       for session: Session,
                       dueTo error: any Error,
                       completion: @escaping @Sendable (RetryResult) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
         completion(.doNotRetry)
     }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
 }
 
 /// `RequestAdapter` closure definition.
@@ -177,7 +183,9 @@ extension RequestAdapter where Self == Adapter {
     /// - Returns:           The `Adapter`.
     @preconcurrency
     public static func adapter(using closure: @escaping AdaptHandler) -> Adapter {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adapter(closure=\(closure))\n".utf8))
         Adapter(closure)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapter(closure=\(closure))\n".utf8))
     }
 }
 
@@ -211,7 +219,9 @@ extension RequestRetrier where Self == Retrier {
     /// - Returns:           The `Retrier`.
     @preconcurrency
     public static func retrier(using closure: @escaping RetryHandler) -> Retrier {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retrier(closure=\(closure))\n".utf8))
         Retrier(closure)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retrier(closure=\(closure))\n".utf8))
     }
 }
 
@@ -266,12 +276,14 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                        for session: Session,
                        using adapters: [any RequestAdapter],
                        completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(urlRequest=\(urlRequest),session=\(session),adapters=\(adapters),completion=\(completion))\n".utf8))
         var pendingAdapters = adapters
 
         guard !pendingAdapters.isEmpty else { completion(.success(urlRequest)); return }
 
         let adapter = pendingAdapters.removeFirst()
 
+		FileHandle.standardError.write(Data("[ERROR] adapt(urlRequest=\(urlRequest),session=\(session),adapters=\(adapters),completion=\(completion)): adapter → \(adapter)\n".utf8))
         adapter.adapt(urlRequest, for: session) { [pendingAdapters] result in
             switch result {
             case let .success(urlRequest):
@@ -291,12 +303,14 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                        using state: RequestAdapterState,
                        adapters: [any RequestAdapter],
                        completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(urlRequest=\(urlRequest),state=\(state),adapters=\(adapters),completion=\(completion))\n".utf8))
         var pendingAdapters = adapters
 
         guard !pendingAdapters.isEmpty else { completion(.success(urlRequest)); return }
 
         let adapter = pendingAdapters.removeFirst()
 
+		FileHandle.standardError.write(Data("[ERROR] adapt(urlRequest=\(urlRequest),state=\(state),adapters=\(adapters),completion=\(completion)): adapter → \(adapter)\n".utf8))
         adapter.adapt(urlRequest, using: state) { [pendingAdapters] result in
             switch result {
             case let .success(urlRequest):
@@ -305,6 +319,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 completion(result)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(urlRequest=\(urlRequest),state=\(state),adapters=\(adapters),completion=\(completion))\n".utf8))
     }
 
     @preconcurrency
@@ -320,12 +335,14 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                        dueTo error: any Error,
                        using retriers: [any RequestRetrier],
                        completion: @escaping @Sendable (RetryResult) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion))\n".utf8))
         var pendingRetriers = retriers
 
         guard !pendingRetriers.isEmpty else { completion(.doNotRetry); return }
 
         let retrier = pendingRetriers.removeFirst()
 
+		FileHandle.standardError.write(Data("[ERROR] retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion)): retrier → \(retrier)\n".utf8))
         retrier.retry(request, for: session, dueTo: error) { [pendingRetriers] result in
             switch result {
             case .retry, .retryWithDelay, .doNotRetryWithError:
@@ -335,6 +352,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
                 self.retry(request, for: session, dueTo: error, using: pendingRetriers, completion: completion)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retry(request=\(request),session=\(session),error=\(error),retriers=\(retriers),completion=\(completion))\n".utf8))
     }
 }
 
@@ -347,7 +365,9 @@ extension RequestInterceptor where Self == Interceptor {
     /// - Returns:   The `Interceptor`.
     @preconcurrency
     public static func interceptor(adapter: @escaping AdaptHandler, retrier: @escaping RetryHandler) -> Interceptor {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering interceptor(adapter=\(adapter),retrier=\(retrier))\n".utf8))
         Interceptor(adaptHandler: adapter, retryHandler: retrier)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting interceptor(adapter=\(adapter),retrier=\(retrier))\n".utf8))
     }
 
     /// Creates an `Interceptor` using the provided `RequestAdapter` and `RequestRetrier` instances.
@@ -371,6 +391,8 @@ extension RequestInterceptor where Self == Interceptor {
     public static func interceptor(adapters: [any RequestAdapter] = [],
                                    retriers: [any RequestRetrier] = [],
                                    interceptors: [any RequestInterceptor] = []) -> Interceptor {
+								FileHandle.standardError.write(Data("[ERROR] >>> Entering interceptor(adapters=\(adapters),retriers=\(retriers),interceptors=\(interceptors))\n".utf8))
         Interceptor(adapters: adapters, retriers: retriers, interceptors: interceptors)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting interceptor(adapters=\(adapters),retriers=\(retriers),interceptors=\(interceptors))\n".utf8))
     }
 }

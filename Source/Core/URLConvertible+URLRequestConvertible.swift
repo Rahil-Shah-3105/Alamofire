@@ -40,8 +40,11 @@ extension String: URLConvertible {
     /// - Returns: The `URL` initialized with `self`.
     /// - Throws:  An `AFError.invalidURL` instance.
     public func asURL() throws -> URL {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering asURL()\n".utf8))
         guard let url = URL(string: self) else { throw AFError.invalidURL(url: self) }
 
+		FileHandle.standardError.write(Data("[ERROR] asURL(): url → \(url)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting asURL()\n".utf8))
         return url
     }
 }
@@ -81,7 +84,10 @@ extension URLRequestConvertible {
 
 extension URLRequest: URLRequestConvertible {
     /// Returns `self`.
-    public func asURLRequest() throws -> URLRequest { self }
+    public func asURLRequest() throws -> URLRequest {
+        FileHandle.standardError.write(Data("[ERROR] >>> Entering asURLRequest()\n".utf8))
+        self
+    }
 }
 
 // MARK: -

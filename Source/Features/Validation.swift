@@ -55,12 +55,14 @@ extension Request {
         }
 
         func matches(_ mime: MIMEType) -> Bool {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering matches(mime=\(mime))\n".utf8))
             switch (type, subtype) {
             case (mime.type, mime.subtype), (mime.type, "*"), ("*", mime.subtype), ("*", "*"):
                 true
             default:
                 false
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting matches(mime=\(mime))\n".utf8))
         }
     }
 
@@ -82,6 +84,7 @@ extension Request {
                                            response: HTTPURLResponse)
         -> ValidationResult
         where S.Iterator.Element == Int {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate(acceptableStatusCodes=\(acceptableStatusCodes),response=\(response))\n".utf8))
         if acceptableStatusCodes.contains(response.statusCode) {
             return .success(())
         } else {
@@ -97,6 +100,7 @@ extension Request {
                                            isEmpty: Bool)
         -> ValidationResult
         where S.Iterator.Element == String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response),isEmpty=\(isEmpty))\n".utf8))
         guard !isEmpty else { return .success(()) }
 
         return validate(contentType: acceptableContentTypes, response: response)
@@ -106,12 +110,15 @@ extension Request {
                                            response: HTTPURLResponse)
         -> ValidationResult
         where S.Iterator.Element == String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response))\n".utf8))
         guard
             let responseContentType = response.mimeType,
             let responseMIMEType = MIMEType(responseContentType)
         else {
+			FileHandle.standardError.write(Data("[ERROR] validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response)): responseContentType → \(responseContentType)\n".utf8))
             for contentType in acceptableContentTypes {
                 if let mimeType = MIMEType(contentType), mimeType.isWildcard {
+					FileHandle.standardError.write(Data("[ERROR] validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response)): responseMIMEType → \(responseMIMEType)\n".utf8))
                     return .success(())
                 }
             }
@@ -189,6 +196,9 @@ extension DataRequest {
         let contentTypes: @Sendable () -> [String] = { [unowned self] in
             acceptableContentTypes
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableStatusCodes=\(acceptableStatusCodes),response=\(response))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response),isEmpty=\(isEmpty))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(acceptableContentTypes=\(acceptableContentTypes),response=\(response))\n".utf8))
         return validate(statusCode: acceptableStatusCodes).validate(contentType: contentTypes())
     }
 }

@@ -71,11 +71,14 @@ public class DataRequest: Request, @unchecked Sendable {
     }
 
     override func reset() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering reset()\n".utf8))
         super.reset()
 
         dataMutableState.write { mutableState in
             mutableState.data = nil
+			FileHandle.standardError.write(Data("[DEBUG] reset(): mutableState.data → \(mutableState.data)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting reset()\n".utf8))
     }
 
     /// Called when `Data` is received by this instance.
@@ -84,6 +87,7 @@ public class DataRequest: Request, @unchecked Sendable {
     ///
     /// - Parameter data: The `Data` received.
     func didReceive(data: Data) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didReceive(data=\(data))\n".utf8))
         dataMutableState.write { mutableState in
             if mutableState.data == nil {
                 mutableState.data = data
@@ -93,9 +97,11 @@ public class DataRequest: Request, @unchecked Sendable {
         }
 
         updateDownloadProgress()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didReceive(data=\(data))\n".utf8))
     }
 
     func didReceiveResponse(_ response: HTTPURLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didReceiveResponse(response=\(response),completionHandler=\(completionHandler))\n".utf8))
         dataMutableState.read { dataMutableState in
             guard let httpResponseHandler = dataMutableState.httpResponseHandler else {
                 underlyingQueue.async { completionHandler(.allow) }
@@ -114,22 +120,30 @@ public class DataRequest: Request, @unchecked Sendable {
                 }
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didReceiveResponse(response=\(response),completionHandler=\(completionHandler))\n".utf8))
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering task(request=\(request),session=\(session))\n".utf8))
         let copiedRequest = request
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting task(request=\(request),session=\(session))\n".utf8))
         return session.dataTask(with: copiedRequest)
     }
 
     /// Called to update the `downloadProgress` of the instance.
     func updateDownloadProgress() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering updateDownloadProgress()\n".utf8))
         let totalBytesReceived = Int64(data?.count ?? 0)
         let totalBytesExpected = task?.response?.expectedContentLength ?? NSURLSessionTransferSizeUnknown
+		FileHandle.standardError.write(Data("[ERROR] updateDownloadProgress(): totalBytesReceived → \(totalBytesReceived)\n".utf8))
 
         downloadProgress.totalUnitCount = totalBytesExpected
+		FileHandle.standardError.write(Data("[DEBUG] updateDownloadProgress(): downloadProgress.totalUnitCount → \(downloadProgress.totalUnitCount)\n".utf8))
         downloadProgress.completedUnitCount = totalBytesReceived
+		FileHandle.standardError.write(Data("[DEBUG] updateDownloadProgress(): downloadProgress.completedUnitCount → \(downloadProgress.completedUnitCount)\n".utf8))
 
         downloadProgressHandler?.queue.async { self.downloadProgressHandler?.handler(self.downloadProgress) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting updateDownloadProgress()\n".utf8))
     }
 
     /// Validates the request, using the specified closure.
@@ -142,11 +156,13 @@ public class DataRequest: Request, @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func validate(_ validation: @escaping Validation) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate(validation=\(validation))\n".utf8))
         let validator: @Sendable () -> Void = { [unowned self] in
             guard error == nil, let response else { return }
 
             let result = validation(request, response, data)
 
+			FileHandle.standardError.write(Data("[ERROR] validate(validation=\(validation)): result → \(result)\n".utf8))
             if case let .failure(error) = result {
                 self.error = error.asAFError(or: .responseValidationFailed(reason: .customValidationFailed(error: error)))
             }
@@ -160,6 +176,7 @@ public class DataRequest: Request, @unchecked Sendable {
 
         validators.write { $0.append(validator) }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(validation=\(validation))\n".utf8))
         return self
     }
 
@@ -180,10 +197,12 @@ public class DataRequest: Request, @unchecked Sendable {
         perform handler: @escaping @Sendable (_ response: HTTPURLResponse,
                                               _ completionHandler: @escaping @Sendable (ResponseDisposition) -> Void) -> Void
     ) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering onHTTPResponse(queue=\(queue),handler=\(handler))\n".utf8))
         dataMutableState.write { mutableState in
             mutableState.httpResponseHandler = (queue, handler)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting onHTTPResponse(queue=\(queue),handler=\(handler))\n".utf8))
         return self
     }
 
@@ -218,10 +237,12 @@ public class DataRequest: Request, @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func response(queue: DispatchQueue = .main, completionHandler: @escaping @Sendable (AFDataResponse<Data?>) -> Void) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering response(queue=\(queue),completionHandler=\(completionHandler))\n".utf8))
         appendResponseSerializer {
             // Start work that should be on the serialization queue.
             let result = AFResult<Data?>(value: self.data, error: self.error)
             // End work that should be on the serialization queue.
+			FileHandle.standardError.write(Data("[ERROR] response(queue=\(queue),completionHandler=\(completionHandler)): result → \(result)\n".utf8))
 
             self.underlyingQueue.async {
                 let response = DataResponse(request: self.request,
@@ -231,12 +252,14 @@ public class DataRequest: Request, @unchecked Sendable {
                                             serializationDuration: 0,
                                             result: result)
 
+											FileHandle.standardError.write(Data("[ERROR] response(queue=\(queue),completionHandler=\(completionHandler)): response → \(response)\n".utf8))
                 self.eventMonitor?.request(self, didParseResponse: response)
 
                 self.responseSerializerDidComplete { queue.async { completionHandler(response) } }
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting response(queue=\(queue),completionHandler=\(completionHandler))\n".utf8))
         return self
     }
 
@@ -244,6 +267,7 @@ public class DataRequest: Request, @unchecked Sendable {
                                                                        responseSerializer: Serializer,
                                                                        completionHandler: @escaping @Sendable (AFDataResponse<Serializer.SerializedObject>) -> Void)
         -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering _response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler))\n".utf8))
         appendResponseSerializer {
             // Start work that should be on the serialization queue.
             let start = ProcessInfo.processInfo.systemUptime
@@ -267,6 +291,7 @@ public class DataRequest: Request, @unchecked Sendable {
                                             serializationDuration: end - start,
                                             result: result)
 
+											FileHandle.standardError.write(Data("[ERROR] _response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler)): response → \(response)\n".utf8))
                 self.eventMonitor?.request(self, didParseResponse: response)
 
                 guard !self.isCancelled, let serializerError = result.failure, let delegate = self.delegate else {
@@ -306,6 +331,7 @@ public class DataRequest: Request, @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting _response(queue=\(queue),responseSerializer=\(responseSerializer),completionHandler=\(completionHandler))\n".utf8))
         return self
     }
 
@@ -361,11 +387,13 @@ public class DataRequest: Request, @unchecked Sendable {
                              emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                              emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods,
                              completionHandler: @escaping @Sendable (AFDataResponse<Data>) -> Void) -> Self {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering responseData(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))\n".utf8))
         response(queue: queue,
                  responseSerializer: DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				FileHandle.standardError.write(Data("[WARN] <<< Exiting responseData(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))\n".utf8))
     }
 
     /// Adds a handler using a `StringResponseSerializer` to be called once the request has finished.
@@ -389,12 +417,14 @@ public class DataRequest: Request, @unchecked Sendable {
                                emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                                emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods,
                                completionHandler: @escaping @Sendable (AFDataResponse<String>) -> Void) -> Self {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering responseString(queue=\(queue),dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))\n".utf8))
         response(queue: queue,
                  responseSerializer: StringResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                               encoding: encoding,
                                                               emptyResponseCodes: emptyResponseCodes,
                                                               emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				FileHandle.standardError.write(Data("[WARN] <<< Exiting responseString(queue=\(queue),dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))\n".utf8))
     }
 
     /// Adds a handler using a `JSONResponseSerializer` to be called once the request has finished.
@@ -419,12 +449,14 @@ public class DataRequest: Request, @unchecked Sendable {
                              emptyRequestMethods: Set<HTTPMethod> = JSONResponseSerializer.defaultEmptyRequestMethods,
                              options: JSONSerialization.ReadingOptions = .allowFragments,
                              completionHandler: @escaping @Sendable (AFDataResponse<Any>) -> Void) -> Self {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering responseJSON(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),options=\(options),completionHandler=\(completionHandler))\n".utf8))
         response(queue: queue,
                  responseSerializer: JSONResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods,
                                                             options: options),
                  completionHandler: completionHandler)
+				FileHandle.standardError.write(Data("[WARN] <<< Exiting responseJSON(queue=\(queue),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),options=\(options),completionHandler=\(completionHandler))\n".utf8))
     }
 
     /// Adds a handler using a `DecodableResponseSerializer` to be called once the request has finished.
@@ -449,11 +481,13 @@ public class DataRequest: Request, @unchecked Sendable {
                                          emptyResponseCodes: Set<Int> = DecodableResponseSerializer<Value>.defaultEmptyResponseCodes,
                                          emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<Value>.defaultEmptyRequestMethods,
                                          completionHandler: @escaping @Sendable (AFDataResponse<Value>) -> Void) -> Self where Value: Decodable, Value: Sendable {
+										FileHandle.standardError.write(Data("[ERROR] >>> Entering responseDecodable(type=\(type),queue=\(queue),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))\n".utf8))
         response(queue: queue,
                  responseSerializer: DecodableResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                                  decoder: decoder,
                                                                  emptyResponseCodes: emptyResponseCodes,
                                                                  emptyRequestMethods: emptyRequestMethods),
                  completionHandler: completionHandler)
+				FileHandle.standardError.write(Data("[WARN] <<< Exiting responseDecodable(type=\(type),queue=\(queue),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods),completionHandler=\(completionHandler))\n".utf8))
     }
 }

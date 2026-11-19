@@ -63,14 +63,17 @@ open class ServerTrustManager: @unchecked Sendable {
     /// - Throws:         `AFError.serverTrustEvaluationFailed` if `allHostsMustBeEvaluated` is `true` and no matching
     ///                   evaluators are found.
     open func serverTrustEvaluator(forHost host: String) throws -> (any ServerTrustEvaluating)? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serverTrustEvaluator(host=\(host))\n".utf8))
         guard let evaluator = evaluators[host] else {
             if allHostsMustBeEvaluated {
+				FileHandle.standardError.write(Data("[ERROR] Throwing serverTrustEvaluationFailed from serverTrustEvaluator(host=\(host))\n".utf8))
                 throw AFError.serverTrustEvaluationFailed(reason: .noRequiredEvaluator(host: host))
             }
 
             return nil
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting serverTrustEvaluator(host=\(host))\n".utf8))
         return evaluator
     }
     #endif
@@ -109,10 +112,12 @@ public final class DefaultTrustEvaluator: ServerTrustEvaluating {
     }
 
     public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering evaluate(trust=\(trust),host=\(host))\n".utf8))
         if validateHost {
             try trust.af.performValidation(forHost: host)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting evaluate(trust=\(trust),host=\(host))\n".utf8))
         try trust.af.performDefaultValidation(forHost: host)
     }
 }
@@ -215,9 +220,11 @@ extension ServerTrustEvaluating where Self == RevocationTrustEvaluator {
     public static func revocationChecking(performDefaultValidation: Bool = true,
                                           validateHost: Bool = true,
                                           options: RevocationTrustEvaluator.Options = .any) -> RevocationTrustEvaluator {
+										FileHandle.standardError.write(Data("[ERROR] >>> Entering revocationChecking(performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost),options=\(options))\n".utf8))
         RevocationTrustEvaluator(performDefaultValidation: performDefaultValidation,
                                  validateHost: validateHost,
                                  options: options)
+								FileHandle.standardError.write(Data("[WARN] <<< Exiting revocationChecking(performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost),options=\(options))\n".utf8))
     }
 }
 
@@ -257,11 +264,13 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
 
     public func evaluate(_ trust: SecTrust, forHost host: String) throws {
         guard !certificates.isEmpty else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing serverTrustEvaluationFailed from evaluate(trust=\(trust),host=\(host))\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .noCertificatesFound)
         }
 
         if acceptSelfSignedCertificates {
             try trust.af.setAnchorCertificates(certificates)
+			FileHandle.standardError.write(Data("[DEBUG] evaluate(trust=\(trust),host=\(host)): af → \(af)\n".utf8))
         }
 
         if performDefaultValidation {
@@ -276,6 +285,7 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
         let pinnedCertificatesData = Set(certificates.af.data)
         let pinnedCertificatesInServerData = !serverCertificatesData.isDisjoint(with: pinnedCertificatesData)
         if !pinnedCertificatesInServerData {
+		FileHandle.standardError.write(Data("[ERROR] evaluate(trust=\(trust),host=\(host)): serverCertificatesData → \(serverCertificatesData)\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .certificatePinningFailed(host: host,
                                                                                         trust: trust,
                                                                                         pinnedCertificates: certificates,
@@ -305,10 +315,12 @@ extension ServerTrustEvaluating where Self == PinnedCertificatesTrustEvaluator {
                                           acceptSelfSignedCertificates: Bool = false,
                                           performDefaultValidation: Bool = true,
                                           validateHost: Bool = true) -> PinnedCertificatesTrustEvaluator {
+										FileHandle.standardError.write(Data("[ERROR] >>> Entering pinnedCertificates(certificates=\(certificates),acceptSelfSignedCertificates=\(acceptSelfSignedCertificates),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))\n".utf8))
         PinnedCertificatesTrustEvaluator(certificates: certificates,
                                          acceptSelfSignedCertificates: acceptSelfSignedCertificates,
                                          performDefaultValidation: performDefaultValidation,
                                          validateHost: validateHost)
+										FileHandle.standardError.write(Data("[WARN] <<< Exiting pinnedCertificates(certificates=\(certificates),acceptSelfSignedCertificates=\(acceptSelfSignedCertificates),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))\n".utf8))
     }
 }
 
@@ -394,7 +406,9 @@ extension ServerTrustEvaluating where Self == PublicKeysTrustEvaluator {
     public static func publicKeys(keys: [SecKey] = Bundle.main.af.publicKeys,
                                   performDefaultValidation: Bool = true,
                                   validateHost: Bool = true) -> PublicKeysTrustEvaluator {
+								FileHandle.standardError.write(Data("[ERROR] >>> Entering publicKeys(keys=\(keys),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))\n".utf8))
         PublicKeysTrustEvaluator(keys: keys, performDefaultValidation: performDefaultValidation, validateHost: validateHost)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publicKeys(keys=\(keys),performDefaultValidation=\(performDefaultValidation),validateHost=\(validateHost))\n".utf8))
     }
 }
 
@@ -420,7 +434,9 @@ extension ServerTrustEvaluating where Self == CompositeTrustEvaluator {
     ///
     /// - Parameter evaluators: The `ServerTrustEvaluating` values used to evaluate the server trust.
     public static func composite(evaluators: [any ServerTrustEvaluating]) -> CompositeTrustEvaluator {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering composite(evaluators=\(evaluators))\n".utf8))
         CompositeTrustEvaluator(evaluators: evaluators)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting composite(evaluators=\(evaluators))\n".utf8))
     }
 }
 
@@ -492,7 +508,9 @@ extension AlamofireExtension where ExtendedType: Bundle {
     ///
     /// - Returns:         All pathnames for the given filename extensions.
     public func paths(forResourcesOfTypes types: [String]) -> [String] {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering paths(types=\(types))\n".utf8))
         Array(Set(types.flatMap { type.paths(forResourcesOfType: $0, inDirectory: nil) }))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting paths(types=\(types))\n".utf8))
     }
 }
 
@@ -505,7 +523,9 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Throws:           Any `Error` from applying the `SecPolicy` or from evaluation.
     @available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *)
     public func evaluate(afterApplying policy: SecPolicy) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering evaluate(policy=\(policy))\n".utf8))
         try apply(policy: policy).af.evaluate()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting evaluate(policy=\(policy))\n".utf8))
     }
 
     /// Attempts to validate `self` using the `SecPolicy` provided and transforming any error produced using the closure passed.
@@ -519,7 +539,9 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     @available(tvOS, introduced: 10, deprecated: 12, renamed: "evaluate(afterApplying:)")
     @available(watchOS, introduced: 3, deprecated: 5, renamed: "evaluate(afterApplying:)")
     public func validate(policy: SecPolicy, errorProducer: (_ status: OSStatus, _ result: SecTrustResultType) -> any Error) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate(policy=\(policy),errorProducer=\(errorProducer))\n".utf8))
         try apply(policy: policy).af.validate(errorProducer: errorProducer)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(policy=\(policy),errorProducer=\(errorProducer))\n".utf8))
     }
 
     /// Applies a `SecPolicy` to `self`, throwing if it fails.
@@ -529,14 +551,18 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Returns: `self`, with the policy applied.
     /// - Throws: An `AFError.serverTrustEvaluationFailed` instance with a `.policyApplicationFailed` reason.
     public func apply(policy: SecPolicy) throws -> SecTrust {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering apply(policy=\(policy))\n".utf8))
         let status = SecTrustSetPolicies(type, policy)
 
+		FileHandle.standardError.write(Data("[ERROR] apply(policy=\(policy)): status → \(status)\n".utf8))
         guard status.af.isSuccess else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing serverTrustEvaluationFailed from apply(policy=\(policy))\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .policyApplicationFailed(trust: type,
                                                                                        policy: policy,
                                                                                        status: status))
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting apply(policy=\(policy))\n".utf8))
         return type
     }
 
@@ -546,12 +572,16 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     ///           the underlying evaluation.
     @available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *)
     public func evaluate() throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering evaluate()\n".utf8))
         var error: CFError?
         let evaluationSucceeded = SecTrustEvaluateWithError(type, &error)
 
+		FileHandle.standardError.write(Data("[ERROR] evaluate(): evaluationSucceeded → \(evaluationSucceeded)\n".utf8))
         if !evaluationSucceeded {
+			FileHandle.standardError.write(Data("[ERROR] Throwing serverTrustEvaluationFailed from evaluate()\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .trustEvaluationFailed(error: error))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting evaluate()\n".utf8))
     }
 
     /// Validate `self`, passing any failure values through `errorProducer`.
@@ -564,12 +594,17 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     @available(tvOS, introduced: 10, deprecated: 12, renamed: "evaluate()")
     @available(watchOS, introduced: 3, deprecated: 5, renamed: "evaluate()")
     public func validate(errorProducer: (_ status: OSStatus, _ result: SecTrustResultType) -> any Error) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate(errorProducer=\(errorProducer))\n".utf8))
         var result = SecTrustResultType.invalid
         let status = SecTrustEvaluate(type, &result)
 
+		FileHandle.standardError.write(Data("[ERROR] validate(errorProducer=\(errorProducer)): status → \(status)\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] validate(errorProducer=\(errorProducer)): result → \(result)\n".utf8))
         guard status.af.isSuccess && result.af.isSuccess else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing errorProducer from validate(errorProducer=\(errorProducer))\n".utf8))
             throw errorProducer(status, result)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate(errorProducer=\(errorProducer))\n".utf8))
     }
 
     /// Sets a custom certificate chain on `self`, allowing full validation of a self-signed certificate and its chain.
@@ -577,9 +612,11 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter certificates: The `SecCertificate`s to add to the chain.
     /// - Throws:                 Any error produced when applying the new certificate chain.
     public func setAnchorCertificates(_ certificates: [SecCertificate]) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering setAnchorCertificates(certificates=\(certificates))\n".utf8))
         // Add additional anchor certificates.
         let status = SecTrustSetAnchorCertificates(type, certificates as CFArray)
         guard status.af.isSuccess else {
+		FileHandle.standardError.write(Data("[ERROR] setAnchorCertificates(certificates=\(certificates)): status → \(status)\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .settingAnchorCertificatesFailed(status: status,
                                                                                                certificates: certificates))
         }
@@ -587,9 +624,11 @@ extension AlamofireExtension where ExtendedType == SecTrust {
         // Trust only the set anchor certs.
         let onlyStatus = SecTrustSetAnchorCertificatesOnly(type, true)
         guard onlyStatus.af.isSuccess else {
+		FileHandle.standardError.write(Data("[ERROR] setAnchorCertificates(certificates=\(certificates)): onlyStatus → \(onlyStatus)\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .settingAnchorCertificatesFailed(status: onlyStatus,
                                                                                                certificates: certificates))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting setAnchorCertificates(certificates=\(certificates))\n".utf8))
     }
 
     /// The public keys contained in `self`.
@@ -618,6 +657,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter host: The hostname, used only in the error output if validation fails.
     /// - Throws: An `AFError.serverTrustEvaluationFailed` instance with a `.defaultEvaluationFailed` reason.
     public func performDefaultValidation(forHost host: String) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performDefaultValidation(host=\(host))\n".utf8))
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
             try evaluate(afterApplying: SecPolicy.af.default)
         } else {
@@ -633,6 +673,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter host: The hostname to use in the validation.
     /// - Throws:         An `AFError.serverTrustEvaluationFailed` instance with a `.defaultEvaluationFailed` reason.
     public func performValidation(forHost host: String) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performValidation(host=\(host))\n".utf8))
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
             try evaluate(afterApplying: SecPolicy.af.hostname(host))
         } else {
@@ -640,6 +681,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
                 AFError.serverTrustEvaluationFailed(reason: .hostValidationFailed(output: .init(host, type, status, result)))
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performValidation(host=\(host))\n".utf8))
     }
 }
 
@@ -654,7 +696,9 @@ extension AlamofireExtension where ExtendedType == SecPolicy {
     ///
     /// - Returns:            The `SecPolicy`.
     public static func hostname(_ hostname: String) -> SecPolicy {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering hostname(hostname=\(hostname))\n".utf8))
         SecPolicyCreateSSL(true, hostname as CFString)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting hostname(hostname=\(hostname))\n".utf8))
     }
 
     /// Creates a `SecPolicy` which checks the revocation of certificates.
@@ -665,10 +709,13 @@ extension AlamofireExtension where ExtendedType == SecPolicy {
     /// - Throws:            An `AFError.serverTrustEvaluationFailed` error with reason `.revocationPolicyCreationFailed`
     ///                      if the policy cannot be created.
     public static func revocation(options: RevocationTrustEvaluator.Options) throws -> SecPolicy {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering revocation(options=\(options))\n".utf8))
         guard let policy = SecPolicyCreateRevocation(options.rawValue) else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing serverTrustEvaluationFailed from revocation(options=\(options))\n".utf8))
             throw AFError.serverTrustEvaluationFailed(reason: .revocationPolicyCreationFailed)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting revocation(options=\(options))\n".utf8))
         return policy
     }
 }

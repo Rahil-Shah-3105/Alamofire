@@ -80,14 +80,17 @@ extension Result {
     /// - returns: A `Result` containing the result of the given closure. If this instance is a failure, returns the
     ///            same failure.
     func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> Result<NewSuccess, any Error> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering tryMap(transform=\(transform))\n".utf8))
         switch self {
         case let .success(value):
             do {
                 return try .success(transform(value))
             } catch {
+				FileHandle.standardError.write(Data("[ERROR] Exception in tryMap(transform=\(transform)): \(error)\n".utf8))
                 return .failure(error)
             }
         case let .failure(error):
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting tryMap(transform=\(transform))\n".utf8))
             return .failure(error)
         }
     }
@@ -106,14 +109,17 @@ extension Result {
     /// - Returns: A `Result` instance containing the result of the transform. If this instance is a success, returns
     ///            the same success.
     func tryMapError<NewFailure: Error>(_ transform: (Failure) throws -> NewFailure) -> Result<Success, any Error> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering tryMapError(transform=\(transform))\n".utf8))
         switch self {
         case let .failure(error):
             do {
                 return try .failure(transform(error))
             } catch {
+				FileHandle.standardError.write(Data("[ERROR] Exception in tryMapError(transform=\(transform)): \(error)\n".utf8))
                 return .failure(error)
             }
         case let .success(value):
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting tryMapError(transform=\(transform))\n".utf8))
             return .success(value)
         }
     }

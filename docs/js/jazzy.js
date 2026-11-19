@@ -1,3 +1,4 @@
+var logger = (typeof logger !== 'undefined' && logger) || console;
 // Jazzy - https://github.com/realm/jazzy
 // Copyright Realm Inc.
 // SPDX-License-Identifier: MIT
@@ -13,17 +14,22 @@ if (navigator.userAgent.match(/xcode/i)) {
 }
 
 function toggleItem($link, $content) {
+logger.error(`>>> Entering toggleItem($link=${$link},$content=${$content})`, { "event.action": "toggleItem", "logrite.$link": $link, "logrite.$content": $content });
   var animationDuration = 300;
   $link.toggleClass('token-open');
   $content.slideToggle(animationDuration);
+logger.warn(`<<< Exiting toggleItem($link=${$link},$content=${$content})`, { "event.action": "toggleItem", "logrite.$link": $link, "logrite.$content": $content });
 }
 
 function itemLinkToContent($link) {
+logger.error(`>>> Entering itemLinkToContent($link=${$link})`, { "event.action": "itemLinkToContent", "logrite.$link": $link });
+logger.warn(`<<< Exiting itemLinkToContent($link=${$link})`, { "event.action": "itemLinkToContent", "logrite.$link": $link });
   return $link.parent().parent().next();
 }
 
 // On doc load + hash-change, open any targeted item
 function openCurrentItemIfClosed() {
+logger.error('>>> Entering openCurrentItemIfClosed()', { "event.action": "openCurrentItemIfClosed" });
   if (window.jazzy.docset) {
     return;
   }
@@ -32,6 +38,7 @@ function openCurrentItemIfClosed() {
   if ($content.is(':hidden')) {
     toggleItem($link, $content);
   }
+logger.warn('<<< Exiting openCurrentItemIfClosed()', { "event.action": "openCurrentItemIfClosed" });
 }
 
 $(openCurrentItemIfClosed);

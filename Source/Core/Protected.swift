@@ -36,7 +36,9 @@ extension Lock {
     ///
     /// - Returns:           The value the closure generated.
     func around<T>(_ closure: () throws -> T) rethrows -> T {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering around(closure=\(closure))\n".utf8))
         lock(); defer { unlock() }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting around(closure=\(closure))\n".utf8))
         return try closure()
     }
 
@@ -47,6 +49,8 @@ extension Lock {
         lock(); defer { unlock() }
         try closure()
     }
+	FileHandle.standardError.write(Data("[ERROR] >>> Entering unlock()\n".utf8))
+	FileHandle.standardError.write(Data("[WARN] <<< Exiting unlock()\n".utf8))
 }
 
 #if canImport(Darwin)
@@ -66,11 +70,15 @@ final class UnfairLock: Lock, @unchecked Sendable {
     }
 
     fileprivate func lock() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering lock()\n".utf8))
         os_unfair_lock_lock(unfairLock)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting lock()\n".utf8))
     }
 
     fileprivate func unlock() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering unlock()\n".utf8))
         os_unfair_lock_unlock(unfairLock)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting unlock()\n".utf8))
     }
 }
 
@@ -102,7 +110,9 @@ final class Protected<Value> {
     ///
     /// - Returns:           The return value of the closure passed.
     func read<U>(_ closure: (Value) throws -> U) rethrows -> U {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering read(closure=\(closure))\n".utf8))
         try lock.around { try closure(self.value) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting read(closure=\(closure))\n".utf8))
     }
 
     /// Synchronously modify the protected value.
@@ -112,7 +122,9 @@ final class Protected<Value> {
     /// - Returns:           The modified value.
     @discardableResult
     func write<U>(_ closure: (inout Value) throws -> U) rethrows -> U {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering write(closure=\(closure))\n".utf8))
         try lock.around { try closure(&self.value) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting write(closure=\(closure))\n".utf8))
     }
 
     /// Synchronously update the protected value.
@@ -134,11 +146,14 @@ extension Protected where Value == Request.MutableState {
     ///
     /// - Returns:         Whether the transition occurred.
     func attemptToTransitionTo(_ state: Request.State) -> Bool {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering attemptToTransitionTo(state=\(state))\n".utf8))
         lock.around {
             guard value.state.canTransitionTo(state) else { return false }
 
             value.state = state
+			FileHandle.standardError.write(Data("[DEBUG] attemptToTransitionTo(state=\(state)): value.state → \(value.state)\n".utf8))
 
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting attemptToTransitionTo(state=\(state))\n".utf8))
             return true
         }
     }
@@ -147,7 +162,9 @@ extension Protected where Value == Request.MutableState {
     ///
     /// - Parameter perform: The closure to perform while locked.
     func withState(perform: (Request.State) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering withState(perform=\(perform))\n".utf8))
         lock.around { perform(value.state) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting withState(perform=\(perform))\n".utf8))
     }
 }
 
@@ -159,6 +176,8 @@ extension Protected: Equatable where Value: Equatable {
 
 extension Protected: Hashable where Value: Hashable {
     func hash(into hasher: inout Hasher) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering hash(hasher=<redacted>)\n".utf8))
         read { hasher.combine($0) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting hash(hasher=<redacted>)\n".utf8))
     }
 }

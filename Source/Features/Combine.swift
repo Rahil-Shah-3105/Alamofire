@@ -71,20 +71,26 @@ public struct DataResponsePublisher<Value: Sendable>: Publisher {
     ///
     /// - Returns: The `AnyPublisher` publishing the `Result<Value, AFError>` value.
     public func result() -> AnyPublisher<Result<Value, AFError>, Never> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering result()\n".utf8))
         map(\.result).eraseToAnyPublisher()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting result()\n".utf8))
     }
 
     /// Publishes the `Result` of the `DataResponse` as a single `Value` or fail with the `AFError` instance.
     ///
     /// - Returns: The `AnyPublisher<Value, AFError>` publishing the stream.
     public func value() -> AnyPublisher<Value, AFError> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering value()\n".utf8))
         setFailureType(to: AFError.self).flatMap(\.result.publisher).eraseToAnyPublisher()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting value()\n".utf8))
     }
 
     public func receive<S>(subscriber: S) where S: Subscriber & Sendable, DataResponsePublisher.Failure == S.Failure, DataResponsePublisher.Output == S.Input {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering receive(subscriber=\(subscriber))\n".utf8))
         subscriber.receive(subscription: Inner(request: request,
                                                responseHandler: responseHandler,
                                                downstream: subscriber))
+											FileHandle.standardError.write(Data("[WARN] <<< Exiting receive(subscriber=\(subscriber))\n".utf8))
     }
 
     private final class Inner<Downstream: Subscriber & Sendable>: Subscription
@@ -114,8 +120,10 @@ public struct DataResponsePublisher<Value: Sendable>: Publisher {
         }
 
         func cancel() {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering cancel()\n".utf8))
             request.cancel()
             downstream.write(nil)
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting cancel()\n".utf8))
         }
     }
 }
@@ -322,9 +330,11 @@ public struct DataStreamPublisher<Value: Sendable>: Publisher {
         }
 
         func request(_ demand: Subscribers.Demand) {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering request(demand=\(demand))\n".utf8))
             assert(demand > 0)
 
             guard let downstream = downstream.read({ $0 }) else { return }
+			FileHandle.standardError.write(Data("[ERROR] request(demand=\(demand)): downstream → \(downstream)\n".utf8))
 
             self.downstream.write(nil)
             streamHandler { stream in
@@ -333,6 +343,7 @@ public struct DataStreamPublisher<Value: Sendable>: Publisher {
                     downstream.receive(completion: .finished)
                 }
             }.resume()
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting request(demand=\(demand))\n".utf8))
         }
 
         func cancel() {
@@ -352,7 +363,9 @@ extension DataStreamRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishStream<Serializer: DataStreamSerializer>(using serializer: Serializer,
                                                                 on queue: DispatchQueue = .main) -> DataStreamPublisher<Serializer.SerializedObject> {
+																FileHandle.standardError.write(Data("[ERROR] >>> Entering publishStream(serializer=\(serializer),queue=\(queue))\n".utf8))
         DataStreamPublisher(self, queue: queue, serializer: serializer)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publishStream(serializer=\(serializer),queue=\(queue))\n".utf8))
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `PassthroughStreamSerializer` to stream `Data`
@@ -363,7 +376,9 @@ extension DataStreamRequest {
     /// - Returns:      The `DataStreamPublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishData(queue: DispatchQueue = .main) -> DataStreamPublisher<Data> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering publishData(queue=\(queue))\n".utf8))
         publishStream(using: PassthroughStreamSerializer(), on: queue)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publishData(queue=\(queue))\n".utf8))
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `StringStreamSerializer` to serialize stream
@@ -374,7 +389,9 @@ extension DataStreamRequest {
     /// - Returns:      The `DataStreamPublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishString(queue: DispatchQueue = .main) -> DataStreamPublisher<String> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering publishString(queue=\(queue))\n".utf8))
         publishStream(using: StringStreamSerializer(), on: queue)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publishString(queue=\(queue))\n".utf8))
     }
 
     /// Creates a `DataStreamPublisher` for this instance which uses a `DecodableStreamSerializer` with the provided
@@ -392,9 +409,11 @@ extension DataStreamRequest {
                                                queue: DispatchQueue = .main,
                                                decoder: any DataDecoder = JSONDecoder(),
                                                preprocessor: any DataPreprocessor = PassthroughPreprocessor()) -> DataStreamPublisher<T> {
+											FileHandle.standardError.write(Data("[ERROR] >>> Entering publishDecodable(type=\(type),queue=\(queue),decoder=\(decoder),preprocessor=\(preprocessor))\n".utf8))
         publishStream(using: DecodableStreamSerializer(decoder: decoder,
                                                        dataPreprocessor: preprocessor),
                       on: queue)
+					FileHandle.standardError.write(Data("[WARN] <<< Exiting publishDecodable(type=\(type),queue=\(queue),decoder=\(decoder),preprocessor=\(preprocessor))\n".utf8))
     }
 }
 
@@ -514,7 +533,9 @@ extension DownloadRequest {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishResponse<Serializer: DownloadResponseSerializerProtocol, T>(using serializer: Serializer, on queue: DispatchQueue = .main) -> DownloadResponsePublisher<T>
         where Serializer.SerializedObject == T {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering publishResponse(serializer=\(serializer),queue=\(queue))\n".utf8))
         DownloadResponsePublisher(self, queue: queue, serializer: serializer)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publishResponse(serializer=\(serializer),queue=\(queue))\n".utf8))
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance and uses a `URLResponseSerializer` to serialize the
@@ -525,7 +546,9 @@ extension DownloadRequest {
     /// - Returns:         The `DownloadResponsePublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishURL(queue: DispatchQueue = .main) -> DownloadResponsePublisher<URL> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering publishURL(queue=\(queue))\n".utf8))
         publishResponse(using: URLResponseSerializer(), on: queue)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publishURL(queue=\(queue))\n".utf8))
     }
 
     /// Creates a `DownloadResponsePublisher` for this instance and uses a `DataResponseSerializer` to serialize the
@@ -645,7 +668,9 @@ extension DownloadRequest {
     /// - Returns:         The `DownloadResponsePublisher`.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func publishUnserialized(on queue: DispatchQueue = .main) -> DownloadResponsePublisher<URL?> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering publishUnserialized(queue=\(queue))\n".utf8))
         DownloadResponsePublisher(self, queue: queue)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting publishUnserialized(queue=\(queue))\n".utf8))
     }
 }
 

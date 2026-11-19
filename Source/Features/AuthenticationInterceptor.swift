@@ -225,9 +225,13 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         }
 
         mutating func updateCredential(_ credential: Credential?) {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering updateCredential(credential=<redacted>)\n".utf8))
             self.credential = credential
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting updateCredential(credential=<redacted>)\n".utf8))
+			FileHandle.standardError.write(Data("[DEBUG] updateCredential(credential=<redacted>): self.credential → \(self.credential)\n".utf8))
             credentialVersion += 1
             refreshState = .idle
+			FileHandle.standardError.write(Data("[DEBUG] updateCredential(credential=<redacted>): refreshState → \(refreshState)\n".utf8))
         }
     }
 
@@ -265,6 +269,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
     // MARK: Adapt
 
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))\n".utf8))
         let adaptResult: AdaptResult = mutableState.write { mutableState in
             // Defer only when a proactive (requiresRefresh-driven) refresh is in progress. The triggering request
             // always appends itself to adaptOperations before isRefreshing is set, so any concurrent adapt that
@@ -278,6 +283,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
                 // Refresh from requiresRefresh is running, adaptation has been deferred.
                 let operation = AdaptOperation(urlRequest: urlRequest, session: session, completion: completion)
                 mutableState.adaptOperations.append(operation)
+				FileHandle.standardError.write(Data("[ERROR] adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion)): operation → \(operation)\n".utf8))
                 return .adaptDeferred
             }
 
@@ -300,6 +306,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             // stale with respect to this request. Clear it so a subsequent failure can trigger a new refresh.
             if case .failed = mutableState.refreshState {
                 mutableState.refreshState = .idle
+				FileHandle.standardError.write(Data("[DEBUG] adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion)): mutableState.refreshState → \(mutableState.refreshState)\n".utf8))
             }
 
             return .adapt(credential)
@@ -318,11 +325,13 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             // No-op: adapt operation captured during refresh.
             break
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))\n".utf8))
     }
 
     // MARK: Retry
 
     public func retry(_ request: Request, for session: Session, dueTo error: any Error, completion: @escaping @Sendable (RetryResult) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
         // Do not attempt retry if there was not an original request and response from the server.
         guard let urlRequest = request.request, let response = request.response else {
             completion(.doNotRetry)
@@ -377,22 +386,29 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
         }
 
         if let result = retryResult { completion(result) }
+		FileHandle.standardError.write(Data("[ERROR] retry(request=\(request),session=\(session),error=\(error),completion=\(completion)): result → \(result)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
     }
 
     // MARK: Refresh
 
     private func refresh(_ credential: Credential, for session: Session, insideLock mutableState: inout MutableState) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering refresh(credential=<redacted>,session=\(session),mutableState=\(mutableState))\n".utf8))
         guard !isRefreshExcessive(insideLock: &mutableState) else {
             let error = AuthenticationError.excessiveRefresh
             handleRefreshFailure(error, insideLock: &mutableState)
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering isRefreshExcessive(mutableState=\(mutableState))\n".utf8))
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting isRefreshExcessive(mutableState=\(mutableState))\n".utf8))
             return
         }
 
         mutableState.refreshTimestamps.append(ProcessInfo.processInfo.systemUptime)
         mutableState.refreshState = .refreshing
+		FileHandle.standardError.write(Data("[DEBUG] refresh(credential=<redacted>,session=\(session),mutableState=\(mutableState)): mutableState.refreshState → \(mutableState.refreshState)\n".utf8))
 
         // Dispatch to queue to hop out of the lock in case authenticator.refresh is implemented synchronously.
         queue.async {
+			let __logStart = ContinuousClock.now
             self.authenticator.refresh(credential, for: session) { result in
                 self.mutableState.write { mutableState in
                     switch result {
@@ -403,7 +419,9 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
                     }
                 }
             }
+			FileHandle.standardError.write(Data("[ERROR] refresh(credential,session,mutableState)=<redacted>,\(session),\(mutableState): database query executed in \(Int((ContinuousClock.now - __logStart) / .milliseconds(1))) ms\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting refresh(credential=<redacted>,session=\(session),mutableState=\(mutableState))\n".utf8))
     }
 
     private func isRefreshExcessive(insideLock mutableState: inout MutableState) -> Bool {
@@ -420,6 +438,7 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
     }
 
     private func handleRefreshSuccess(_ credential: Credential, insideLock mutableState: inout MutableState) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering handleRefreshSuccess(credential=<redacted>,mutableState=\(mutableState))\n".utf8))
         mutableState.updateCredential(credential)
 
         let adaptOperations = mutableState.adaptOperations
@@ -433,9 +452,11 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             adaptOperations.forEach { self.adapt($0.urlRequest, for: $0.session, completion: $0.completion) }
             requestsToRetry.forEach { $0(.retry) }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting handleRefreshSuccess(credential=<redacted>,mutableState=\(mutableState))\n".utf8))
     }
 
     private func handleRefreshFailure(_ error: any Error, insideLock mutableState: inout MutableState) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering handleRefreshFailure(error=\(error),mutableState=\(mutableState))\n".utf8))
         let adaptOperations = mutableState.adaptOperations
         let requestsToRetry = mutableState.requestsToRetry
 
@@ -449,5 +470,6 @@ public final class AuthenticationInterceptor<AuthenticatorType>: RequestIntercep
             adaptOperations.forEach { $0.completion(.failure(error)) }
             requestsToRetry.forEach { $0(.doNotRetryWithError(error)) }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting handleRefreshFailure(error=\(error),mutableState=\(mutableState))\n".utf8))
     }
 }

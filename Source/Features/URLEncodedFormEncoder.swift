@@ -71,12 +71,14 @@ public final class URLEncodedFormEncoder {
         ///
         /// - Returns:   The encoded key.
         func encode(_ key: String, atIndex index: Int) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(key=\(key),index=\(index))\n".utf8))
             switch self {
             case .brackets: "\(key)[]"
             case .noBrackets: key
             case .indexInBrackets: "\(key)[\(index)]"
             case let .custom(encoding): encoding(key, index)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(key=\(key),index=\(index))\n".utf8))
         }
     }
 
@@ -116,11 +118,13 @@ public final class URLEncodedFormEncoder {
         /// - Returns:        The encoded `String`, or `nil` if the `Data` should be encoded according to its
         ///                   `Encodable` implementation.
         func encode(_ data: Data) throws -> String? {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(data=\(data))\n".utf8))
             switch self {
             case .deferredToData: nil
             case .base64: data.base64EncodedString()
             case let .custom(encoding): try encoding(data)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(data=\(data))\n".utf8))
         }
     }
 
@@ -153,6 +157,7 @@ public final class URLEncodedFormEncoder {
         /// - Returns:        The encoded `String`, or `nil` if the `Date` should be encoded according to its
         ///                   `Encodable` implementation.
         func encode(_ date: Date) throws -> String? {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(date=\(date))\n".utf8))
             switch self {
             case .deferredToDate:
                 nil
@@ -167,6 +172,7 @@ public final class URLEncodedFormEncoder {
             case let .custom(closure):
                 try closure(date)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(date=\(date))\n".utf8))
         }
     }
 
@@ -212,6 +218,7 @@ public final class URLEncodedFormEncoder {
         case custom((String) -> String)
 
         func encode(_ key: String) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(key=\(key))\n".utf8))
             switch self {
             case .useDefaultKeys: key
             case .convertToSnakeCase: convertToSnakeCase(key)
@@ -221,17 +228,23 @@ public final class URLEncodedFormEncoder {
             case .lowercased: key.lowercased()
             case let .custom(encoding): encoding(key)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(key=\(key))\n".utf8))
         }
 
         private func convertToSnakeCase(_ key: String) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering convertToSnakeCase(key=\(key))\n".utf8))
             convert(key, usingSeparator: "_")
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting convertToSnakeCase(key=\(key))\n".utf8))
         }
 
         private func convertToKebabCase(_ key: String) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering convertToKebabCase(key=\(key))\n".utf8))
             convert(key, usingSeparator: "-")
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting convertToKebabCase(key=\(key))\n".utf8))
         }
 
         private func convert(_ key: String, usingSeparator separator: String) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering convert(key=\(key),separator=\(separator))\n".utf8))
             guard !key.isEmpty else { return key }
 
             var words: [Range<String.Index>] = []
@@ -245,6 +258,7 @@ public final class URLEncodedFormEncoder {
             // It is assumed, per Swift naming conventions, that the first character of the key is lowercase.
             var wordStart = key.startIndex
             var searchRange = key.index(after: wordStart)..<key.endIndex
+			FileHandle.standardError.write(Data("[ERROR] convert(key=\(key),separator=\(separator)): searchRange → \(searchRange)\n".utf8))
 
             // Find next uppercase character
             while let upperCaseRange = key.rangeOfCharacter(from: .uppercaseLetters, options: [], range: searchRange) {
@@ -264,6 +278,7 @@ public final class URLEncodedFormEncoder {
                 // should treat as its own word
                 let nextCharacterAfterCapital = key.index(after: upperCaseRange.lowerBound)
                 if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
+				FileHandle.standardError.write(Data("[ERROR] convert(key=\(key),separator=\(separator)): nextCharacterAfterCapital → \(nextCharacterAfterCapital)\n".utf8))
                     // The next character after capital is a lower case character and therefore not a word boundary.
                     // Continue searching for the next upper case for the boundary.
                     wordStart = upperCaseRange.lowerBound
@@ -273,6 +288,7 @@ public final class URLEncodedFormEncoder {
                     let beforeLowerIndex = key.index(before: lowerCaseRange.lowerBound)
                     words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
 
+					FileHandle.standardError.write(Data("[ERROR] convert(key=\(key),separator=\(separator)): beforeLowerIndex → \(beforeLowerIndex)\n".utf8))
                     // Next word starts at the capital before the lowercase we just found
                     wordStart = beforeLowerIndex
                 }
@@ -309,7 +325,9 @@ public final class URLEncodedFormEncoder {
         }
 
         func encodeKeyPath(_ keyPath: String) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encodeKeyPath(keyPath=\(keyPath))\n".utf8))
             encoding(keyPath)
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encodeKeyPath(keyPath=\(keyPath))\n".utf8))
         }
     }
 
@@ -332,7 +350,9 @@ public final class URLEncodedFormEncoder {
         }
 
         func encodeNil() -> String? {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encodeNil()\n".utf8))
             encoding()
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encodeNil()\n".utf8))
         }
     }
 
@@ -353,6 +373,8 @@ public final class URLEncodedFormEncoder {
             case .percentEscaped: string.replacingOccurrences(of: " ", with: "%20")
             case .plusReplaced: string.replacingOccurrences(of: " ", with: "+")
             }
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(string=\(string))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(string=\(string))\n".utf8))
         }
     }
 
@@ -448,9 +470,11 @@ public final class URLEncodedFormEncoder {
     /// - Returns:         The encoded `String`.
     /// - Throws:          An `Error` or `EncodingError` instance if encoding fails.
     public func encode(_ value: any Encodable) throws -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(value=\(value))\n".utf8))
         let component: URLEncodedFormComponent = try encode(value)
 
         guard case let .object(object) = component else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing invalidRootObject from encode(value=\(value))\n".utf8))
             throw Error.invalidRootObject("\(component)")
         }
 
@@ -460,6 +484,7 @@ public final class URLEncodedFormEncoder {
                                                   keyPathEncoding: keyPathEncoding,
                                                   spaceEncoding: spaceEncoding,
                                                   allowedCharacters: allowedCharacters)
+												FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(value=\(value))\n".utf8))
         return serializer.serialize(object)
     }
 
@@ -507,31 +532,37 @@ final class _URLEncodedFormEncoder {
 
 extension _URLEncodedFormEncoder: Encoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering container(type=\(type))\n".utf8))
         let container = _URLEncodedFormEncoder.KeyedContainer<Key>(context: context,
                                                                    codingPath: codingPath,
                                                                    boolEncoding: boolEncoding,
                                                                    dataEncoding: dataEncoding,
                                                                    dateEncoding: dateEncoding,
                                                                    nilEncoding: nilEncoding)
+																FileHandle.standardError.write(Data("[WARN] <<< Exiting container(type=\(type))\n".utf8))
         return KeyedEncodingContainer(container)
     }
 
     func unkeyedContainer() -> any UnkeyedEncodingContainer {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering unkeyedContainer()\n".utf8))
         _URLEncodedFormEncoder.UnkeyedContainer(context: context,
                                                 codingPath: codingPath,
                                                 boolEncoding: boolEncoding,
                                                 dataEncoding: dataEncoding,
                                                 dateEncoding: dateEncoding,
                                                 nilEncoding: nilEncoding)
+												FileHandle.standardError.write(Data("[WARN] <<< Exiting unkeyedContainer()\n".utf8))
     }
 
     func singleValueContainer() -> any SingleValueEncodingContainer {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering singleValueContainer()\n".utf8))
         _URLEncodedFormEncoder.SingleValueContainer(context: context,
                                                     codingPath: codingPath,
                                                     boolEncoding: boolEncoding,
                                                     dataEncoding: dataEncoding,
                                                     dateEncoding: dateEncoding,
                                                     nilEncoding: nilEncoding)
+													FileHandle.standardError.write(Data("[WARN] <<< Exiting singleValueContainer()\n".utf8))
     }
 }
 
@@ -574,12 +605,15 @@ enum URLEncodedFormComponent {
     ///     - value: Value of `Self` to set at the supplied path.
     ///     - path: `CodingKey` path to update with the supplied value.
     mutating func set(to value: URLEncodedFormComponent, at path: [any CodingKey]) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering set(value=\(value),path=\(path))\n".utf8))
         set(&self, to: value, at: path)
     }
 
     /// Recursive backing method to `set(to:at:)`.
     private func set(_ context: inout URLEncodedFormComponent, to value: URLEncodedFormComponent, at path: [any CodingKey]) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering set(context=\(context),value=\(value),path=\(path))\n".utf8))
         guard !path.isEmpty else {
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting set(value=\(value),path=\(path))\n".utf8))
             context = value
             return
         }
@@ -589,6 +623,7 @@ enum URLEncodedFormComponent {
         switch path.count {
         case 1:
             child = value
+			FileHandle.standardError.write(Data("[DEBUG] set(context=\(context),value=\(value),path=\(path)): child → \(child)\n".utf8))
         case 2...:
             if let index = end.intValue {
                 let array = context.array ?? []
@@ -628,6 +663,7 @@ enum URLEncodedFormComponent {
                 context = .object([(key: end.stringValue, value: child)])
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting set(context=\(context),value=\(value),path=\(path))\n".utf8))
     }
 }
 
@@ -679,16 +715,21 @@ extension _URLEncodedFormEncoder {
         }
 
         private func nestedCodingPath(for key: any CodingKey) -> [any CodingKey] {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedCodingPath(key=\(key))\n".utf8))
             codingPath + [key]
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedCodingPath(key=\(key))\n".utf8))
         }
     }
 }
 
 extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     func encodeNil(forKey key: Key) throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering encodeNil(key=\(key))\n".utf8))
         guard let nilValue = nilEncoding.encodeNil() else { return }
 
+		FileHandle.standardError.write(Data("[ERROR] encodeNil(key=\(key)): nilValue → \(nilValue)\n".utf8))
         try encode(nilValue, forKey: key)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encodeNil(key=\(key))\n".utf8))
     }
 
     func encodeIfPresent(_ value: Bool?, forKey key: Key) throws {
@@ -748,41 +789,53 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
     }
 
     func encodeIfPresent<Value>(_ value: Value?, forKey key: Key) throws where Value: Encodable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering encodeIfPresent(value=\(value),key=\(key))\n".utf8))
         try _encodeIfPresent(value, forKey: key)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encodeIfPresent(value=\(value),key=\(key))\n".utf8))
     }
 
     func _encodeIfPresent<Value>(_ value: Value?, forKey key: Key) throws where Value: Encodable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering _encodeIfPresent(value=\(value),key=\(key))\n".utf8))
         if let value {
             try encode(value, forKey: key)
         } else {
             try encodeNil(forKey: key)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting _encodeIfPresent(value=\(value),key=\(key))\n".utf8))
     }
 
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(value=\(value),key=\(key))\n".utf8))
         var container = nestedSingleValueEncoder(for: key)
         try container.encode(value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(value=\(value),key=\(key))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] encode(value=\(value),key=\(key)): container → \(container)\n".utf8))
     }
 
     func nestedSingleValueEncoder(for key: Key) -> any SingleValueEncodingContainer {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedSingleValueEncoder(key=\(key))\n".utf8))
         _URLEncodedFormEncoder.SingleValueContainer(context: context,
                                                     codingPath: nestedCodingPath(for: key),
                                                     boolEncoding: boolEncoding,
                                                     dataEncoding: dataEncoding,
                                                     dateEncoding: dateEncoding,
                                                     nilEncoding: nilEncoding)
+													FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedSingleValueEncoder(key=\(key))\n".utf8))
     }
 
     func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedUnkeyedContainer(key=\(key))\n".utf8))
         _URLEncodedFormEncoder.UnkeyedContainer(context: context,
                                                 codingPath: nestedCodingPath(for: key),
                                                 boolEncoding: boolEncoding,
                                                 dataEncoding: dataEncoding,
                                                 dateEncoding: dateEncoding,
                                                 nilEncoding: nilEncoding)
+												FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedUnkeyedContainer(key=\(key))\n".utf8))
     }
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedContainer(keyType=\(keyType),key=\(key))\n".utf8))
         let container = _URLEncodedFormEncoder.KeyedContainer<NestedKey>(context: context,
                                                                          codingPath: nestedCodingPath(for: key),
                                                                          boolEncoding: boolEncoding,
@@ -790,6 +843,7 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
                                                                          dateEncoding: dateEncoding,
                                                                          nilEncoding: nilEncoding)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedContainer(keyType=\(keyType),key=\(key))\n".utf8))
         return KeyedEncodingContainer(container)
     }
 
@@ -803,12 +857,14 @@ extension _URLEncodedFormEncoder.KeyedContainer: KeyedEncodingContainerProtocol 
     }
 
     func superEncoder(forKey key: Key) -> any Encoder {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering superEncoder(key=\(key))\n".utf8))
         _URLEncodedFormEncoder(context: context,
                                codingPath: nestedCodingPath(for: key),
                                boolEncoding: boolEncoding,
                                dataEncoding: dataEncoding,
                                dateEncoding: dateEncoding,
                                nilEncoding: nilEncoding)
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting superEncoder(key=\(key))\n".utf8))
     }
 }
 
@@ -839,11 +895,14 @@ extension _URLEncodedFormEncoder {
         }
 
         private func checkCanEncode(value: Any?) throws {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering checkCanEncode(value=\(value))\n".utf8))
             guard canEncodeNewValue else {
                 let context = EncodingError.Context(codingPath: codingPath,
                                                     debugDescription: "Attempt to encode value through single value container when previously value already encoded.")
+													FileHandle.standardError.write(Data("[ERROR] Throwing invalidValue from checkCanEncode(value=\(value))\n".utf8))
                 throw EncodingError.invalidValue(value as Any, context)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting checkCanEncode(value=\(value))\n".utf8))
         }
     }
 }
@@ -852,6 +911,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
     func encodeNil() throws {
         guard let nilValue = nilEncoding.encodeNil() else { return }
 
+		FileHandle.standardError.write(Data("[ERROR] encodeNil(): nilValue → \(nilValue)\n".utf8))
         try encode(nilValue)
     }
 
@@ -912,10 +972,12 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
     }
 
     private func encode<T>(_ value: T, as string: String) throws where T: Encodable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(value=\(value),string=\(string))\n".utf8))
         try checkCanEncode(value: value)
         defer { canEncodeNewValue = false }
 
         context.component.set(to: .string(string), at: codingPath)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(value=\(value),string=\(string))\n".utf8))
     }
 
     func encode<T>(_ value: T) throws where T: Encodable {
@@ -943,6 +1005,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
     }
 
     private func attemptToEncode<T>(_ value: T) throws where T: Encodable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering attemptToEncode(value=\(value))\n".utf8))
         try checkCanEncode(value: value)
         defer { canEncodeNewValue = false }
 
@@ -953,6 +1016,7 @@ extension _URLEncodedFormEncoder.SingleValueContainer: SingleValueEncodingContai
                                              dateEncoding: dateEncoding,
                                              nilEncoding: nilEncoding)
         try value.encode(to: encoder)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting attemptToEncode(value=\(value))\n".utf8))
     }
 }
 
@@ -1000,8 +1064,10 @@ extension _URLEncodedFormEncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     }
 
     func nestedSingleValueContainer() -> any SingleValueEncodingContainer {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedSingleValueContainer()\n".utf8))
         defer { count += 1 }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedSingleValueContainer()\n".utf8))
         return _URLEncodedFormEncoder.SingleValueContainer(context: context,
                                                            codingPath: nestedCodingPath,
                                                            boolEncoding: boolEncoding,
@@ -1011,6 +1077,7 @@ extension _URLEncodedFormEncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     }
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedContainer(keyType=\(keyType))\n".utf8))
         defer { count += 1 }
         let container = _URLEncodedFormEncoder.KeyedContainer<NestedKey>(context: context,
                                                                          codingPath: nestedCodingPath,
@@ -1019,12 +1086,15 @@ extension _URLEncodedFormEncoder.UnkeyedContainer: UnkeyedEncodingContainer {
                                                                          dateEncoding: dateEncoding,
                                                                          nilEncoding: nilEncoding)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedContainer(keyType=\(keyType))\n".utf8))
         return KeyedEncodingContainer(container)
     }
 
     func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering nestedUnkeyedContainer()\n".utf8))
         defer { count += 1 }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting nestedUnkeyedContainer()\n".utf8))
         return _URLEncodedFormEncoder.UnkeyedContainer(context: context,
                                                        codingPath: nestedCodingPath,
                                                        boolEncoding: boolEncoding,
@@ -1034,8 +1104,10 @@ extension _URLEncodedFormEncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     }
 
     func superEncoder() -> any Encoder {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering superEncoder()\n".utf8))
         defer { count += 1 }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting superEncoder()\n".utf8))
         return _URLEncodedFormEncoder(context: context,
                                       codingPath: codingPath,
                                       boolEncoding: boolEncoding,
@@ -1068,13 +1140,16 @@ final class URLEncodedFormSerializer {
     }
 
     func serialize(_ object: URLEncodedFormComponent.Object) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serialize(object=\(object))\n".utf8))
         var output: [String] = []
         for (key, component) in object {
             let value = serialize(component, forKey: key)
             output.append(value)
         }
+			FileHandle.standardError.write(Data("[ERROR] serialize(object=\(object)): value → \(value)\n".utf8))
         output = alphabetizeKeyValuePairs ? output.sorted() : output
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting serialize(object=\(object))\n".utf8))
         return output.joinedWithAmpersands()
     }
 
@@ -1107,16 +1182,21 @@ final class URLEncodedFormSerializer {
     }
 
     func escape(_ query: String) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering escape(query=\(query))\n".utf8))
         var allowedCharactersWithSpace = allowedCharacters
         allowedCharactersWithSpace.insert(charactersIn: " ")
         let escapedQuery = query.addingPercentEncoding(withAllowedCharacters: allowedCharactersWithSpace) ?? query
+		FileHandle.standardError.write(Data("[ERROR] escape(query=\(query)): escapedQuery → \(escapedQuery)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting escape(query=\(query))\n".utf8))
         return spaceEncoding.encode(escapedQuery)
     }
 }
 
 extension [String] {
     func joinedWithAmpersands() -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering joinedWithAmpersands()\n".utf8))
         joined(separator: "&")
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting joinedWithAmpersands()\n".utf8))
     }
 }
 

@@ -82,6 +82,7 @@ extension Redirector: RedirectHandler {
                      willBeRedirectedTo request: URLRequest,
                      for response: HTTPURLResponse,
                      completion: @escaping (URLRequest?) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering task(task=\(task),request=\(request),response=\(response),completion=\(completion))\n".utf8))
         switch behavior {
         case .follow:
             completion(request)
@@ -91,6 +92,8 @@ extension Redirector: RedirectHandler {
             let request = closure(task, request, response)
             completion(request)
         }
+			FileHandle.standardError.write(Data("[ERROR] task(task=\(task),request=\(request),response=\(response),completion=\(completion)): request → \(request)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting task(task=\(task),request=\(request),response=\(response),completion=\(completion))\n".utf8))
     }
 }
 
@@ -106,6 +109,8 @@ extension RedirectHandler where Self == Redirector {
     /// - Parameter closure: Closure used to modify the redirect.
     /// - Returns:           The `Redirector`.
     public static func modify(using closure: @escaping @Sendable (URLSessionTask, URLRequest, HTTPURLResponse) -> URLRequest?) -> Redirector {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering modify(closure=\(closure))\n".utf8))
         Redirector(behavior: .modify(closure))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting modify(closure=\(closure))\n".utf8))
     }
 }

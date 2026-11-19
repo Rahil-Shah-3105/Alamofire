@@ -65,15 +65,21 @@ import Foundation
         }
 
         public func close(sending closeCode: URLSessionWebSocketTask.CloseCode, reason: Data? = nil) {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering close(closeCode=\(closeCode),reason=\(reason))\n".utf8))
             socket?.close(sending: closeCode, reason: reason)
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting close(closeCode=\(closeCode),reason=\(reason))\n".utf8))
         }
 
         public func cancel() {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering cancel()\n".utf8))
             socket?.cancel()
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting cancel()\n".utf8))
         }
 
         public func sendPing(respondingOn queue: DispatchQueue = .main, onResponse: @escaping @Sendable (PingResponse) -> Void) {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering sendPing(queue=\(queue),onResponse=\(onResponse))\n".utf8))
             socket?.sendPing(respondingOn: queue, onResponse: onResponse)
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting sendPing(queue=\(queue),onResponse=\(onResponse))\n".utf8))
         }
     }
 
@@ -96,11 +102,15 @@ import Foundation
         }
 
         public static func maximumMessageSize(_ maximumMessageSize: Int) -> Self {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering maximumMessageSize(maximumMessageSize=\(maximumMessageSize))\n".utf8))
             Self(maximumMessageSize: maximumMessageSize)
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting maximumMessageSize(maximumMessageSize=\(maximumMessageSize))\n".utf8))
         }
 
         public static func pingInterval(_ pingInterval: TimeInterval) -> Self {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering pingInterval(pingInterval=\(pingInterval))\n".utf8))
             Self(pingInterval: pingInterval)
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting pingInterval(pingInterval=\(pingInterval))\n".utf8))
         }
 
         public let `protocol`: String?
@@ -169,6 +179,7 @@ import Foundation
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering task(request=\(request),session=\(session))\n".utf8))
         var copiedRequest = request
         let task: URLSessionWebSocketTask
         if let `protocol` = configuration.protocol {
@@ -176,13 +187,17 @@ import Foundation
             task = session.webSocketTask(with: copiedRequest)
         } else {
             task = session.webSocketTask(with: copiedRequest)
+			FileHandle.standardError.write(Data("[DEBUG] task(request=\(request),session=\(session)): task → \(task)\n".utf8))
         }
         task.maximumMessageSize = configuration.maximumMessageSize
+		FileHandle.standardError.write(Data("[DEBUG] task(request=\(request),session=\(session)): task.maximumMessageSize → \(task.maximumMessageSize)\n".utf8))
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting task(request=\(request),session=\(session))\n".utf8))
         return task
     }
 
     override func didCreateTask(_ task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCreateTask(task=\(task))\n".utf8))
         super.didCreateTask(task)
 
         guard let webSocketTask = task as? URLSessionWebSocketTask else {
@@ -207,10 +222,13 @@ import Foundation
             }
 
             state.enqueuedSends = []
+			FileHandle.standardError.write(Data("[DEBUG] didCreateTask(task=\(task)): state.enqueuedSends → \(state.enqueuedSends)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCreateTask(task=\(task))\n".utf8))
     }
 
     func didClose() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didClose()\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
@@ -219,11 +237,13 @@ import Foundation
             // Otherwise keep it.
             if case let .sessionTaskFailed(error) = mutableState.error, (error as? URLError)?.code == .cancelled {
                 mutableState.error = nil
+				FileHandle.standardError.write(Data("[DEBUG] didClose(): mutableState.error → \(mutableState.error)\n".utf8))
             }
         }
 
         // TODO: Still issue this event?
         eventMonitor?.requestDidCancel(self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didClose()\n".utf8))
     }
 
     @discardableResult
@@ -234,6 +254,7 @@ import Foundation
             guard mutableState.state.canTransitionTo(.cancelled) else { return }
 
             mutableState.state = .cancelled
+			FileHandle.standardError.write(Data("[DEBUG] close(closeCode=\(closeCode),reason=\(reason)): mutableState.state → \(mutableState.state)\n".utf8))
 
             underlyingQueue.async { self.didClose() }
 
@@ -260,6 +281,7 @@ import Foundation
     }
 
     func didConnect(protocol: String?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didConnect(protocol=\(protocol))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         socketMutableState.read { state in
@@ -273,6 +295,7 @@ import Foundation
         if let pingInterval = configuration.pingInterval {
             startAutomaticPing(every: pingInterval)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didConnect(protocol=\(protocol))\n".utf8))
     }
 
     @preconcurrency
@@ -294,8 +317,10 @@ import Foundation
             } else {
                 let end = Date()
                 let endTimestamp = ProcessInfo.processInfo.systemUptime
+				FileHandle.standardError.write(Data("[ERROR] sendPing(queue=\(queue),onResponse=\(onResponse)): end → \(end)\n".utf8))
                 let pong = PingResponse.Pong(start: start, end: end, latency: endTimestamp - startTimestamp)
 
+				FileHandle.standardError.write(Data("[ERROR] sendPing(queue=\(queue),onResponse=\(onResponse)): pong → \(pong)\n".utf8))
                 queue.async {
                     onResponse(.pong(pong))
                 }
@@ -304,6 +329,7 @@ import Foundation
     }
 
     func startAutomaticPing(every pingInterval: TimeInterval) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering startAutomaticPing(pingInterval=\(pingInterval))\n".utf8))
         socketMutableState.write { mutableState in
             guard isResumed else {
                 // Defer out of lock.
@@ -328,18 +354,25 @@ import Foundation
 
     @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
     func startAutomaticPing(every duration: Duration) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering startAutomaticPing(duration=\(duration))\n".utf8))
         let interval = TimeInterval(duration.components.seconds) + (Double(duration.components.attoseconds) / 1e18)
         startAutomaticPing(every: interval)
+		FileHandle.standardError.write(Data("[ERROR] startAutomaticPing(duration=\(duration)): interval → \(interval)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting startAutomaticPing(duration=\(duration))\n".utf8))
     }
 
     func cancelAutomaticPing() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cancelAutomaticPing()\n".utf8))
         socketMutableState.write { mutableState in
             mutableState.pingTimerItem?.cancel()
             mutableState.pingTimerItem = nil
+			FileHandle.standardError.write(Data("[DEBUG] cancelAutomaticPing(): mutableState.pingTimerItem → \(mutableState.pingTimerItem)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cancelAutomaticPing()\n".utf8))
     }
 
     func didDisconnect(closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didDisconnect(closeCode=\(closeCode),reason=\(reason))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         cancelAutomaticPing()
@@ -349,9 +382,11 @@ import Foundation
                 handler.handler(.disconnected(closeCode: closeCode, reason: reason))
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didDisconnect(closeCode=\(closeCode),reason=\(reason))\n".utf8))
     }
 
     private func listen(to task: URLSessionWebSocketTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering listen(task=\(task))\n".utf8))
         // TODO: Do we care about the cycle while receiving?
         task.receive { result in
             switch result {
@@ -370,6 +405,7 @@ import Foundation
                 break
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting listen(task=\(task))\n".utf8))
     }
 
     @preconcurrency
@@ -379,6 +415,8 @@ import Foundation
         on queue: DispatchQueue = .main,
         handler: @escaping @Sendable (_ event: Event<Serializer.Output, Serializer.Failure>) -> Void
     ) -> Self where Serializer: WebSocketMessageSerializer, Serializer.Failure == any Error {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamSerializer(serializer=\(serializer),queue=\(queue),handler=\(handler))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting streamSerializer(serializer=\(serializer),queue=\(queue),handler=\(handler))\n".utf8))
         forIncomingEvent(on: queue) { [unowned self] incomingEvent in
             let event: Event<Serializer.Output, Serializer.Failure>
             switch incomingEvent {
@@ -407,6 +445,8 @@ import Foundation
         _ type: Value.Type = Value.self,
         on queue: DispatchQueue = .main,
         using decoder: any DataDecoder = JSONDecoder(),
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamDecodableEvents(type=\(type),queue=\(queue),decoder=\(decoder),handler=\(handler))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamDecodableEvents(type=\(type),queue=\(queue),decoder=\(decoder),handler=\(handler))\n".utf8))
         handler: @escaping @Sendable (_ event: Event<Value, any Error>) -> Void
     ) -> Self where Value: Decodable {
         streamSerializer(DecodableWebSocketMessageDecoder<Value>(decoder: decoder), on: queue, handler: handler)
@@ -418,6 +458,8 @@ import Foundation
         _ type: Value.Type = Value.self,
         on queue: DispatchQueue = .main,
         using decoder: any DataDecoder = JSONDecoder(),
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamDecodable(type=\(type),queue=\(queue),decoder=\(decoder),handler=\(handler))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting streamDecodable(type=\(type),queue=\(queue),decoder=\(decoder),handler=\(handler))\n".utf8))
         handler: @escaping @Sendable (_ value: Value) -> Void
     ) -> Self where Value: Decodable & Sendable {
         streamDecodableEvents(Value.self, on: queue) { event in
@@ -431,6 +473,8 @@ import Foundation
         on queue: DispatchQueue = .main,
         handler: @escaping @Sendable (_ event: Event<URLSessionWebSocketTask.Message, Never>) -> Void
     ) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamMessageEvents(queue=\(queue),handler=\(handler))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting streamMessageEvents(queue=\(queue),handler=\(handler))\n".utf8))
         forIncomingEvent(on: queue) { [unowned self] incomingEvent in
             let event: Event<URLSessionWebSocketTask.Message, Never> = switch incomingEvent {
             case let .connected(`protocol`):
@@ -453,12 +497,15 @@ import Foundation
         on queue: DispatchQueue = .main,
         handler: @escaping @Sendable (_ message: URLSessionWebSocketTask.Message) -> Void
     ) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamMessages(queue=\(queue),handler=\(handler))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting streamMessages(queue=\(queue),handler=\(handler))\n".utf8))
         streamMessageEvents(on: queue) { event in
             event.message.map(handler)
         }
     }
 
     func forIncomingEvent(on queue: DispatchQueue, handler: @escaping @Sendable (IncomingEvent) -> Void) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering forIncomingEvent(queue=\(queue),handler=\(handler))\n".utf8))
         socketMutableState.write { state in
             state.handlers.append((queue: queue, handler: { [unowned self] incomingEvent in
                 serializationQueue.async {
@@ -478,6 +525,7 @@ import Foundation
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting forIncomingEvent(queue=\(queue),handler=\(handler))\n".utf8))
         return self
     }
 
@@ -485,6 +533,7 @@ import Foundation
     public func send(_ message: URLSessionWebSocketTask.Message,
                      queue: DispatchQueue = .main,
                      completionHandler: @escaping @Sendable (Result<Void, any Error>) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering send(message=\(message),queue=\(queue),completionHandler=\(completionHandler))\n".utf8))
         guard !(isCancelled || isFinished) else { return }
 
         guard let socket else {
@@ -501,6 +550,7 @@ import Foundation
                 completionHandler(Result(value: (), error: error))
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting send(message=\(message),queue=\(queue),completionHandler=\(completionHandler))\n".utf8))
     }
 }
 
@@ -516,6 +566,8 @@ public protocol WebSocketMessageSerializer<Output, Failure>: Sendable {
 extension WebSocketMessageSerializer {
     public static func json<Value>(
         decoding _: Value.Type = Value.self,
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering json(decoder=\(decoder))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting json(decoder=\(decoder))\n".utf8))
         using decoder: JSONDecoder = JSONDecoder()
     ) -> DecodableWebSocketMessageDecoder<Value> where Self == DecodableWebSocketMessageDecoder<Value> {
         Self(decoder: decoder)
@@ -531,7 +583,10 @@ struct PassthroughWebSocketMessageDecoder: WebSocketMessageSerializer {
     typealias Failure = Never
 
     func decode(_ message: URLSessionWebSocketTask.Message) -> URLSessionWebSocketTask.Message {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering decode(message=\(message))\n".utf8))
         message
+		FileHandle.standardError.write(Data("[ERROR] Exception in decode(message=\(message)): \(error)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting decode(message=\(message))\n".utf8))
     }
 }
 
@@ -556,6 +611,7 @@ public struct DecodableWebSocketMessageDecoder<Value: Decodable & Sendable>: Web
         case let .string(string):
             data = Data(string.utf8)
         @unknown default:
+			FileHandle.standardError.write(Data("[ERROR] Throwing unknownMessage from decode(message=\(message))\n".utf8))
             throw Error.unknownMessage(description: String(describing: message))
         }
 

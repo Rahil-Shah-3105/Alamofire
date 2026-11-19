@@ -46,6 +46,7 @@ open class SessionDelegate: NSObject, @unchecked Sendable {
     ///   - task: The `URLSessionTask` for which to find the associated `Request`.
     ///   - type: The `Request` subclass type to cast any `Request` associate with `task`.
     func request<R: Request>(for task: URLSessionTask, as type: R.Type) -> R? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(task=\(task),type=\(type))\n".utf8))
         guard let provider = stateProvider else {
             assertionFailure("StateProvider is nil for task \(task.taskIdentifier).")
             return nil
@@ -72,6 +73,7 @@ protocol SessionStateProvider: AnyObject, Sendable {
 
 extension SessionDelegate: URLSessionDelegate {
     open func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),error=\(error))\n".utf8))
         eventMonitor?.urlSession(session, didBecomeInvalidWithError: error)
 
         // When invalidated due to Session.deinit, stateProvider will already have dropped to nil.
@@ -83,6 +85,7 @@ extension SessionDelegate: URLSessionDelegate {
             return cleanup
         }
         sessionInvalidationCleanup?()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),error=\(error))\n".utf8))
     }
 }
 
@@ -96,6 +99,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
                          task: URLSessionTask,
                          didReceive challenge: URLAuthenticationChallenge,
                          completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),challenge=\(challenge),completionHandler=\(completionHandler))\n".utf8))
         eventMonitor?.urlSession(session, task: task, didReceive: challenge)
 
         let evaluation: ChallengeEvaluation = switch challenge.protectionSpace.authenticationMethod {
@@ -126,6 +130,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     ///
     /// - Returns:             The `ChallengeEvaluation`.
     func attemptServerTrustAuthentication(with challenge: URLAuthenticationChallenge) -> ChallengeEvaluation {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering attemptServerTrustAuthentication(challenge=\(challenge))\n".utf8))
         let host = challenge.protectionSpace.host
 
         guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
@@ -143,6 +148,8 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
             return (.useCredential, URLCredential(trust: trust), nil)
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in attemptServerTrustAuthentication(challenge=\(challenge)): \(error)\n".utf8))
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting attemptServerTrustAuthentication(challenge=\(challenge))\n".utf8))
             return (.cancelAuthenticationChallenge, nil, error.asAFError(or: .serverTrustEvaluationFailed(reason: .customEvaluationFailed(error: error))))
         }
     }
@@ -157,6 +164,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     /// - Returns:     The `ChallengeEvaluation`.
     func attemptCredentialAuthentication(for challenge: URLAuthenticationChallenge,
                                          belongingTo task: URLSessionTask) -> ChallengeEvaluation {
+										FileHandle.standardError.write(Data("[ERROR] >>> Entering attemptCredentialAuthentication(challenge=\(challenge),task=\(task))\n".utf8))
         guard challenge.previousFailureCount == 0 else {
             return (.rejectProtectionSpace, nil, nil)
         }
@@ -173,6 +181,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
                          didSendBodyData bytesSent: Int64,
                          totalBytesSent: Int64,
                          totalBytesExpectedToSend: Int64) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),bytesSent=\(bytesSent),totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))\n".utf8))
         eventMonitor?.urlSession(session,
                                  task: task,
                                  didSendBodyData: bytesSent,
@@ -186,6 +195,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     open func urlSession(_ session: URLSession,
                          task: URLSessionTask,
                          needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),completionHandler=\(completionHandler))\n".utf8))
         eventMonitor?.urlSession(session, taskNeedsNewBodyStream: task)
 
         guard let request = request(for: task, as: UploadRequest.self) else {
@@ -202,6 +212,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
                          willPerformHTTPRedirection response: HTTPURLResponse,
                          newRequest request: URLRequest,
                          completionHandler: @escaping (URLRequest?) -> Void) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),response=\(response),request=\(request),completionHandler=\(completionHandler))\n".utf8))
         eventMonitor?.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request)
 
         if let redirectHandler = stateProvider?.request(for: task)?.redirectHandler ?? stateProvider?.redirectHandler {
@@ -212,6 +223,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     }
 
     open func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),metrics=\(metrics))\n".utf8))
         eventMonitor?.urlSession(session, task: task, didFinishCollecting: metrics)
 
         stateProvider?.request(for: task)?.didGatherMetrics(metrics)
@@ -220,13 +232,16 @@ extension SessionDelegate: URLSessionTaskDelegate {
     }
 
     open func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),error=\(error))\n".utf8))
         eventMonitor?.urlSession(session, task: task, didCompleteWithError: error)
 
         let request = stateProvider?.request(for: task)
 
+		FileHandle.standardError.write(Data("[ERROR] urlSession(session=\(session),task=\(task),error=\(error)): request → \(request)\n".utf8))
         stateProvider?.didCompleteTask(task) {
             request?.didCompleteTask(task, with: error.map { $0.asAFError(or: .sessionTaskFailed(error: $0)) })
         }
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task))\n".utf8))
     }
 
     @available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
@@ -242,13 +257,16 @@ extension SessionDelegate: URLSessionDataDelegate {
                          dataTask: URLSessionDataTask,
                          didReceive response: URLResponse,
                          completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),response=\(response),completionHandler=\(completionHandler))\n".utf8))
         eventMonitor?.urlSession(session, dataTask: dataTask, didReceive: response)
 
         guard let response = response as? HTTPURLResponse else { completionHandler(.allow); return }
+		FileHandle.standardError.write(Data("[ERROR] urlSession(session=\(session),dataTask=\(dataTask),response=\(response),completionHandler=\(completionHandler)): response → \(response)\n".utf8))
 
         if let request = request(for: dataTask, as: DataRequest.self) {
             request.didReceiveResponse(response, completionHandler: completionHandler)
         } else if let request = request(for: dataTask, as: DataStreamRequest.self) {
+			FileHandle.standardError.write(Data("[ERROR] urlSession(session=\(session),dataTask=\(dataTask),response=\(response),completionHandler=\(completionHandler)): request → \(request)\n".utf8))
             request.didReceiveResponse(response, completionHandler: completionHandler)
         } else {
             assertionFailure("dataTask did not find DataRequest or DataStreamRequest in didReceive response")
@@ -258,22 +276,26 @@ extension SessionDelegate: URLSessionDataDelegate {
     }
 
     open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),data=\(data))\n".utf8))
         eventMonitor?.urlSession(session, dataTask: dataTask, didReceive: data)
 
         if let request = request(for: dataTask, as: DataRequest.self) {
             request.didReceive(data: data)
         } else if let request = request(for: dataTask, as: DataStreamRequest.self) {
+			FileHandle.standardError.write(Data("[ERROR] urlSession(session=\(session),dataTask=\(dataTask),data=\(data)): request → \(request)\n".utf8))
             request.didReceive(data: data)
         } else {
             assertionFailure("dataTask did not find DataRequest or DataStreamRequest in didReceive data")
             return
         }
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),proposedResponse=\(proposedResponse),completionHandler=\(completionHandler))\n".utf8))
     }
 
     open func urlSession(_ session: URLSession,
                          dataTask: URLSessionDataTask,
                          willCacheResponse proposedResponse: CachedURLResponse,
                          completionHandler: @escaping (CachedURLResponse?) -> Void) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),proposedResponse=\(proposedResponse),completionHandler=\(completionHandler))\n".utf8))
         eventMonitor?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse)
 
         if let handler = stateProvider?.request(for: dataTask)?.cachedResponseHandler ?? stateProvider?.cachedResponseHandler {
@@ -281,6 +303,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         } else {
             completionHandler(proposedResponse)
         }
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),webSocketTask=\(webSocketTask),protocol=\(protocol))\n".utf8))
     }
 }
 
@@ -298,6 +321,7 @@ extension SessionDelegate: URLSessionWebSocketDelegate {
         }
 
         request.didConnect(protocol: `protocol`)
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),webSocketTask=\(webSocketTask),closeCode=\(closeCode),reason=\(reason))\n".utf8))
     }
 
     open func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
@@ -310,6 +334,7 @@ extension SessionDelegate: URLSessionWebSocketDelegate {
         // On 2021 OSes and above, empty reason is returned as empty Data rather than nil, so make it nil always.
         let reason = (reason?.isEmpty == true) ? nil : reason
         request.didDisconnect(closeCode: closeCode, reason: reason)
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),fileOffset=\(fileOffset),expectedTotalBytes=\(expectedTotalBytes))\n".utf8))
     }
 }
 
@@ -322,6 +347,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
                          downloadTask: URLSessionDownloadTask,
                          didResumeAtOffset fileOffset: Int64,
                          expectedTotalBytes: Int64) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),fileOffset=\(fileOffset),expectedTotalBytes=\(expectedTotalBytes))\n".utf8))
         eventMonitor?.urlSession(session,
                                  downloadTask: downloadTask,
                                  didResumeAtOffset: fileOffset,
@@ -352,6 +378,8 @@ extension SessionDelegate: URLSessionDownloadDelegate {
 
         downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
                                                totalBytesExpectedToWrite: totalBytesExpectedToWrite)
+											FileHandle.standardError.write(Data("[ERROR] urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): directory → \(directory)\n".utf8))
+											FileHandle.standardError.write(Data("[ERROR] Exception in urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): \(error)\n".utf8))
     }
 
     open func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
@@ -386,6 +414,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
 
             request.didFinishDownloading(using: downloadTask, with: .success(destination))
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location)): \(error)\n".utf8))
             request.didFinishDownloading(using: downloadTask, with: .failure(.downloadedFileMoveFailed(error: error,
                                                                                                        source: location,
                                                                                                        destination: destination)))

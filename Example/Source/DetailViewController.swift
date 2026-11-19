@@ -60,18 +60,23 @@ class DetailViewController: UITableViewController {
     // MARK: View Lifecycle
 
     override func awakeFromNib() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering awakeFromNib()\n".utf8))
         super.awakeFromNib()
         refreshControl?.addTarget(self, action: #selector(DetailViewController.refresh), for: .valueChanged)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting awakeFromNib()\n".utf8))
     }
 
     override func viewDidAppear(_ animated: Bool) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering viewDidAppear(animated=\(animated))\n".utf8))
         super.viewDidAppear(animated)
         refresh()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting viewDidAppear(animated=\(animated))\n".utf8))
     }
 
     // MARK: IBActions
 
     @IBAction func refresh() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering refresh()\n".utf8))
         guard let request else {
             return
         }
@@ -84,6 +89,7 @@ class DetailViewController: UITableViewController {
         let requestComplete: (HTTPURLResponse?, Result<String, AFError>) -> Void = { response, result in
             let end = CACurrentMediaTime()
             self.elapsedTime = end - start
+			FileHandle.standardError.write(Data("[ERROR] refresh(): end → \(end)\n".utf8))
 
             if let response {
                 for (field, value) in response.allHeaderFields {
@@ -115,11 +121,14 @@ class DetailViewController: UITableViewController {
                 requestComplete(response.response, response.result)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting refresh()\n".utf8))
     }
 
     private func downloadedBodyString() -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering downloadedBodyString()\n".utf8))
         let fileManager = FileManager.default
         let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+		FileHandle.standardError.write(Data("[ERROR] downloadedBodyString(): cachesDirectory → \(cachesDirectory)\n".utf8))
 
         do {
             let contents = try fileManager.contentsOfDirectory(at: cachesDirectory,
@@ -130,15 +139,18 @@ class DetailViewController: UITableViewController {
                 let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
                 let prettyData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
+				FileHandle.standardError.write(Data("[ERROR] downloadedBodyString(): json → \(json)\n".utf8))
                 if let prettyString = String(data: prettyData, encoding: String.Encoding.utf8) {
                     try fileManager.removeItem(at: fileURL)
                     return prettyString
                 }
             }
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in downloadedBodyString(): \(error)\n".utf8))
             // No-op
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting downloadedBodyString()\n".utf8))
         return ""
     }
 }
@@ -153,6 +165,10 @@ extension DetailViewController {
         case .body:
             body == nil ? 0 : 1
         }
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering tableView(tableView=\(tableView),indexPath=\(indexPath))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] tableView(tableView=\(tableView),indexPath=\(indexPath)): cell → \(cell)\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] tableView(tableView=\(tableView),indexPath=\(indexPath)): field → \(field)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting tableView(tableView=\(tableView),indexPath=\(indexPath))\n".utf8))
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -179,7 +195,9 @@ extension DetailViewController {
 
 extension DetailViewController {
     override func numberOfSections(in tableView: UITableView) -> Int {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering numberOfSections(tableView=\(tableView))\n".utf8))
         2
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting numberOfSections(tableView=\(tableView))\n".utf8))
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -202,6 +220,9 @@ extension DetailViewController {
         default:
             tableView.rowHeight
         }
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering tableView(tableView=\(tableView),section=\(section))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] tableView(tableView=\(tableView),section=\(section)): elapsedTimeText → \(elapsedTimeText)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting tableView(tableView=\(tableView),section=\(section))\n".utf8))
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {

@@ -91,23 +91,30 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
     ///
     /// - Parameter uploadable: The `Uploadable` that was created.
     func didCreateUploadable(_ uploadable: Uploadable) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCreateUploadable(uploadable=\(uploadable))\n".utf8))
         self.uploadable = uploadable
 
+		FileHandle.standardError.write(Data("[DEBUG] didCreateUploadable(uploadable=\(uploadable)): self.uploadable → \(self.uploadable)\n".utf8))
         eventMonitor?.request(self, didCreateUploadable: uploadable)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCreateUploadable(uploadable=\(uploadable))\n".utf8))
     }
 
     /// Called when the `Uploadable` value could not be created.
     ///
     /// - Parameter error: `AFError` produced by the failure.
     func didFailToCreateUploadable(with error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didFailToCreateUploadable(error=\(error))\n".utf8))
         self.error = error
 
+		FileHandle.standardError.write(Data("[DEBUG] didFailToCreateUploadable(error=\(error)): self.error → \(self.error)\n".utf8))
         eventMonitor?.request(self, didFailToCreateUploadableWithError: error)
 
         retryOrFinish(error: error)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didFailToCreateUploadable(error=\(error))\n".utf8))
     }
 
     override func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering task(request=\(request),session=\(session))\n".utf8))
         guard let uploadable else {
             fatalError("Attempting to create a URLSessionUploadTask when Uploadable value doesn't exist.")
         }
@@ -117,13 +124,17 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
         case let .file(url, _): return session.uploadTask(with: request, fromFile: url)
         case .stream: return session.uploadTask(withStreamedRequest: request)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting task(request=\(request),session=\(session))\n".utf8))
     }
 
     override func reset() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering reset()\n".utf8))
         // Uploadable must be recreated on every retry.
         uploadable = nil
+		FileHandle.standardError.write(Data("[DEBUG] reset(): uploadable → \(uploadable)\n".utf8))
 
         super.reset()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting reset()\n".utf8))
     }
 
     /// Produces the `InputStream` from `uploadable`, if it can.
@@ -132,6 +143,7 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
     ///
     /// - Returns: The `InputStream`.
     func inputStream() -> InputStream {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering inputStream()\n".utf8))
         guard let uploadable else {
             fatalError("Attempting to access the input stream but the uploadable doesn't exist.")
         }
@@ -142,10 +154,12 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
 
         eventMonitor?.request(self, didProvideInputStream: stream)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting inputStream()\n".utf8))
         return stream
     }
 
     override public func cleanup() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cleanup()\n".utf8))
         defer { super.cleanup() }
 
         guard
@@ -155,6 +169,7 @@ public final class UploadRequest: DataRequest, @unchecked Sendable {
         else { return }
 
         try? fileManager.removeItem(at: url)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cleanup()\n".utf8))
     }
 }
 
@@ -169,7 +184,9 @@ public protocol UploadableConvertible: Sendable {
 
 extension UploadRequest.Uploadable: UploadableConvertible {
     public func createUploadable() throws -> UploadRequest.Uploadable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering createUploadable()\n".utf8))
         self
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting createUploadable()\n".utf8))
     }
 }
 

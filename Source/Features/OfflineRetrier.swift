@@ -122,6 +122,7 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                       for session: Session,
                       dueTo error: any Error,
                       completion: @escaping @Sendable (RetryResult) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
         state.write { state in
             guard state.isOfflineError(error) else { completion(.doNotRetry); return }
 
@@ -143,9 +144,11 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                 performResult(retryResult)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
     }
 
     private func performResult(_ result: RetryResult) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performResult(result=\(result))\n".utf8))
         state.write { state in
             let completions = state.pendingCompletions
             state.cleanupMonitor()
@@ -155,28 +158,36 @@ public final class OfflineRetrier: RequestAdapter, RequestRetrier, RequestInterc
                 }
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performResult(result=\(result))\n".utf8))
     }
 }
 
 @available(macOS 10.14, iOS 12, tvOS 12, watchOS 5, visionOS 1, *)
 extension OfflineRetrier.State {
     fileprivate mutating func startListening(onResult: @escaping @Sendable (_ result: PathMonitor.Result) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering startListening(onResult=\(onResult))\n".utf8))
         let timeout = DispatchWorkItem {
             onResult(.timeout)
         }
         timeoutWorkItem = timeout
+		FileHandle.standardError.write(Data("[DEBUG] startListening(onResult=\(onResult)): timeoutWorkItem → \(timeoutWorkItem)\n".utf8))
         OfflineRetrier.monitorQueue.asyncAfter(deadline: .now() + maximumWait, execute: timeout)
 
         currentMonitor = monitorCreator()
         currentMonitor?.startListening(on: OfflineRetrier.monitorQueue, onResult: onResult)
+		FileHandle.standardError.write(Data("[DEBUG] startListening(onResult=\(onResult)): currentMonitor → \(currentMonitor)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting startListening(onResult=\(onResult))\n".utf8))
     }
 
     fileprivate mutating func cleanupMonitor() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cleanupMonitor()\n".utf8))
         pendingCompletions.removeAll()
         timeoutWorkItem?.cancel()
         timeoutWorkItem = nil
+		FileHandle.standardError.write(Data("[DEBUG] cleanupMonitor(): timeoutWorkItem → \(timeoutWorkItem)\n".utf8))
         currentMonitor?.stopListening()
         currentMonitor = nil
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cleanupMonitor()\n".utf8))
     }
 }
 
@@ -196,8 +207,10 @@ extension RequestInterceptor where Self == OfflineRetrier {
         maximumWait: DispatchTimeInterval = OfflineRetrier.defaultWait,
         isOfflineError: @escaping @Sendable (_ error: any Error) -> Bool = OfflineRetrier.defaultIsOfflineError
     ) -> OfflineRetrier {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering offlineRetrier(monitor=\(monitor),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))\n".utf8))
         OfflineRetrier(monitor: monitor(), maximumWait: maximumWait, isOfflineError: isOfflineError)
     }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting offlineRetrier(monitor=\(monitor),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))\n".utf8))
 
     /// Creates an instance using an `NWPathMonitor` configured with the provided `InterfaceType`, maximum wait for
     /// connectivity, and offline error predicate.
@@ -213,7 +226,9 @@ extension RequestInterceptor where Self == OfflineRetrier {
         maximumWait: DispatchTimeInterval = OfflineRetrier.defaultWait,
         isOfflineError: @escaping @Sendable (_ error: any Error) -> Bool = OfflineRetrier.defaultIsOfflineError
     ) -> OfflineRetrier {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering offlineRetrier(requiredInterfaceType=\(requiredInterfaceType),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))\n".utf8))
         OfflineRetrier(requiredInterfaceType: requiredInterfaceType, maximumWait: maximumWait, isOfflineError: isOfflineError)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting offlineRetrier(requiredInterfaceType=\(requiredInterfaceType),maximumWait=\(maximumWait),isOfflineError=\(isOfflineError))\n".utf8))
     }
 
     /// Creates an instance using an `NWPathMonitor` configured with the provided `InterfaceType`s, maximum wait for
@@ -255,11 +270,15 @@ struct PathMonitor {
     var stop: () -> Void
 
     func startListening(on queue: DispatchQueue, onResult: @escaping @Sendable (_ result: Result) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering startListening(queue=\(queue),onResult=\(onResult))\n".utf8))
         start(queue, onResult)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting startListening(queue=\(queue),onResult=\(onResult))\n".utf8))
     }
 
     func stopListening() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering stopListening()\n".utf8))
         stop()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting stopListening()\n".utf8))
     }
 }
 

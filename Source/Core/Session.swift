@@ -255,9 +255,11 @@ open class Session: @unchecked Sendable {
     /// - Parameters:
     ///   - action:     Closure to perform with all `Request`s.
     public func withAllRequests(perform action: @escaping @Sendable (Set<Request>) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering withAllRequests(action=\(action))\n".utf8))
         rootQueue.async {
             action(self.mutableState.read(\.activeRequests))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting withAllRequests(action=\(action))\n".utf8))
     }
 
     /// Cancel all active `Request`s, optionally calling a completion handler when complete.
@@ -270,12 +272,14 @@ open class Session: @unchecked Sendable {
     ///   - queue:      `DispatchQueue` on which the completion handler is run. `.main` by default.
     ///   - completion: Closure to be called when all `Request`s have been cancelled.
     public func cancelAllRequests(completingOnQueue queue: DispatchQueue = .main, completion: (@Sendable () -> Void)? = nil) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cancelAllRequests(queue=\(queue),completion=\(completion))\n".utf8))
         withAllRequests { requests in
             requests.forEach { $0.cancel() }
             queue.async {
                 completion?()
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cancelAllRequests(queue=\(queue),completion=\(completion))\n".utf8))
     }
 
     // MARK: - DataRequest
@@ -292,9 +296,12 @@ open class Session: @unchecked Sendable {
         let requestModifier: RequestModifier?
 
         func asURLRequest() throws -> URLRequest {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering asURLRequest()\n".utf8))
             var request = try URLRequest(url: url, method: method, headers: headers)
             try requestModifier?(&request)
+			FileHandle.standardError.write(Data("[ERROR] asURLRequest(): request → \(request)\n".utf8))
 
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting asURLRequest()\n".utf8))
             return try encoding.encode(request, with: parameters)
         }
     }
@@ -323,6 +330,7 @@ open class Session: @unchecked Sendable {
                       interceptor: (any RequestInterceptor)? = nil,
                       shouldAutomaticallyResume: Bool? = nil,
                       requestModifier: RequestModifier? = nil) -> DataRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
         let convertible = RequestConvertible(url: convertible,
                                              method: method,
                                              parameters: parameters,
@@ -372,6 +380,7 @@ open class Session: @unchecked Sendable {
                                                         interceptor: (any RequestInterceptor)? = nil,
                                                         shouldAutomaticallyResume: Bool? = nil,
                                                         requestModifier: RequestModifier? = nil) -> DataRequest {
+														FileHandle.standardError.write(Data("[ERROR] >>> Entering request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
         let convertible = RequestEncodableConvertible(url: convertible,
                                                       method: method,
                                                       parameters: parameters,
@@ -393,6 +402,7 @@ open class Session: @unchecked Sendable {
     open func request(_ convertible: any URLRequestConvertible,
                       interceptor: (any RequestInterceptor)? = nil,
                       shouldAutomaticallyResume: Bool? = nil) -> DataRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering request(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume))\n".utf8))
         let request = DataRequest(convertible: convertible,
                                   underlyingQueue: rootQueue,
                                   serializationQueue: serializationQueue,
@@ -403,6 +413,9 @@ open class Session: @unchecked Sendable {
 
         performEagerlyIfNecessary(request)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume))\n".utf8))
         return request
     }
 
@@ -437,6 +450,7 @@ open class Session: @unchecked Sendable {
                                                               interceptor: (any RequestInterceptor)? = nil,
                                                               shouldAutomaticallyResume: Bool? = nil,
                                                               requestModifier: RequestModifier? = nil) -> DataStreamRequest {
+															FileHandle.standardError.write(Data("[ERROR] >>> Entering streamRequest(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
         let convertible = RequestEncodableConvertible(url: convertible,
                                                       method: method,
                                                       parameters: parameters,
@@ -444,10 +458,13 @@ open class Session: @unchecked Sendable {
                                                       headers: headers,
                                                       requestModifier: requestModifier)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamRequest(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
         return streamRequest(convertible,
                              automaticallyCancelOnStreamError: automaticallyCancelOnStreamError,
                              interceptor: interceptor,
                              shouldAutomaticallyResume: shouldAutomaticallyResume)
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering streamRequest(convertible=\(convertible),method=\(method),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting streamRequest(convertible=\(convertible),method=\(method),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
     }
 
     /// Creates a `DataStreamRequest` from the passed components and `RequestInterceptor`.
@@ -480,10 +497,12 @@ open class Session: @unchecked Sendable {
                                                       headers: headers,
                                                       requestModifier: requestModifier)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamRequest(convertible=\(convertible),method=\(method),headers=\(headers),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier))\n".utf8))
         return streamRequest(convertible,
                              automaticallyCancelOnStreamError: automaticallyCancelOnStreamError,
                              interceptor: interceptor,
                              shouldAutomaticallyResume: shouldAutomaticallyResume)
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering streamRequest(convertible=\(convertible),automaticallyCancelOnStreamError=\(automaticallyCancelOnStreamError),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume))\n".utf8))
     }
 
     /// Creates a `DataStreamRequest` from the passed `URLRequestConvertible` value and `RequestInterceptor`.
@@ -618,6 +637,7 @@ open class Session: @unchecked Sendable {
                        shouldAutomaticallyResume: Bool? = nil,
                        requestModifier: RequestModifier? = nil,
                        to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))\n".utf8))
         let convertible = RequestConvertible(url: convertible,
                                              method: method,
                                              parameters: parameters,
@@ -625,7 +645,10 @@ open class Session: @unchecked Sendable {
                                              headers: headers,
                                              requestModifier: requestModifier)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoding=\(encoding),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))\n".utf8))
         return download(convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, to: destination)
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))\n".utf8))
     }
 
     /// Creates a `DownloadRequest` from a `URLRequest` created using the passed components, `Encodable` parameters, and
@@ -655,6 +678,7 @@ open class Session: @unchecked Sendable {
                                                          shouldAutomaticallyResume: Bool? = nil,
                                                          requestModifier: RequestModifier? = nil,
                                                          to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
+														FileHandle.standardError.write(Data("[ERROR] >>> Entering download(convertible=\(convertible),method=\(method),parameters=\(parameters),encoder=\(encoder),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),requestModifier=\(requestModifier),destination=\(destination))\n".utf8))
         let convertible = RequestEncodableConvertible(url: convertible,
                                                       method: method,
                                                       parameters: parameters,
@@ -663,6 +687,9 @@ open class Session: @unchecked Sendable {
                                                       requestModifier: requestModifier)
 
         return download(convertible, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, to: destination)
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering download(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] download(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination)): request → \(request)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting download(convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination))\n".utf8))
     }
 
     /// Creates a `DownloadRequest` from a `URLRequestConvertible` value, a `RequestInterceptor`, and a `Destination`.
@@ -725,8 +752,10 @@ open class Session: @unchecked Sendable {
                                       delegate: self,
                                       destination: destination ?? DownloadRequest.defaultDestination)
 
+									FileHandle.standardError.write(Data("[ERROR] download(data=\(data),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination)): request → \(request)\n".utf8))
         performEagerlyIfNecessary(request)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting download(data=\(data),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),destination=\(destination))\n".utf8))
         return request
     }
 
@@ -751,7 +780,9 @@ open class Session: @unchecked Sendable {
         let uploadable: any UploadableConvertible
 
         func createUploadable() throws -> UploadRequest.Uploadable {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering createUploadable()\n".utf8))
             try uploadable.createUploadable()
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting createUploadable()\n".utf8))
         }
 
         func asURLRequest() throws -> URLRequest {
@@ -784,11 +815,13 @@ open class Session: @unchecked Sendable {
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default,
                      requestModifier: RequestModifier? = nil) -> UploadRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(data=\(data),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         let convertible = ParameterlessRequestConvertible(url: convertible,
                                                           method: method,
                                                           headers: headers,
                                                           requestModifier: requestModifier)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(data=\(data),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         return upload(data,
                       with: convertible,
                       interceptor: interceptor,
@@ -811,12 +844,14 @@ open class Session: @unchecked Sendable {
                      interceptor: (any RequestInterceptor)? = nil,
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default) -> UploadRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(data=\(data),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
         upload(.data(data),
                with: convertible,
                interceptor: interceptor,
                shouldAutomaticallyResume: shouldAutomaticallyResume,
                fileManager: fileManager)
     }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(data=\(data),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager))\n".utf8))
 
     // MARK: File
 
@@ -842,11 +877,13 @@ open class Session: @unchecked Sendable {
                      shouldAutomaticallyResume: Bool? = nil,
                      fileManager: FileManager = .default,
                      requestModifier: RequestModifier? = nil) -> UploadRequest {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering upload(fileURL=\(fileURL),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         let convertible = ParameterlessRequestConvertible(url: convertible,
                                                           method: method,
                                                           headers: headers,
                                                           requestModifier: requestModifier)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting upload(fileURL=\(fileURL),convertible=\(convertible),method=\(method),headers=\(headers),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager),requestModifier=\(requestModifier))\n".utf8))
         return upload(fileURL,
                       with: convertible,
                       interceptor: interceptor,
@@ -908,6 +945,7 @@ open class Session: @unchecked Sendable {
                                                           headers: headers,
                                                           requestModifier: requestModifier)
 
+		FileHandle.standardError.write(Data("[ERROR] upload(multipartFormData=\(multipartFormData),url=\(url),encodingMemoryThreshold=\(encodingMemoryThreshold),method=\(method),headers=\(headers),interceptor=\(interceptor),fileManager=\(fileManager),requestModifier=\(requestModifier)): formData → \(formData)\n".utf8))
         return upload(stream, with: convertible, interceptor: interceptor, fileManager: fileManager)
     }
 
@@ -1021,6 +1059,7 @@ open class Session: @unchecked Sendable {
         let formData = MultipartFormData(fileManager: fileManager)
         multipartFormData(formData)
 
+		FileHandle.standardError.write(Data("[ERROR] upload(multipartFormData=\(multipartFormData),request=\(request),encodingMemoryThreshold=\(encodingMemoryThreshold),interceptor=\(interceptor),fileManager=\(fileManager)): formData → \(formData)\n".utf8))
         return upload(multipartFormData: formData,
                       with: request,
                       usingThreshold: encodingMemoryThreshold,
@@ -1131,6 +1170,7 @@ open class Session: @unchecked Sendable {
                 fileManager: FileManager) -> UploadRequest {
         let uploadable = Upload(request: convertible, uploadable: uploadable)
 
+		FileHandle.standardError.write(Data("[ERROR] upload(uploadable=\(uploadable),convertible=\(convertible),interceptor=\(interceptor),shouldAutomaticallyResume=\(shouldAutomaticallyResume),fileManager=\(fileManager)): uploadable → \(uploadable)\n".utf8))
         return upload(uploadable, interceptor: interceptor, shouldAutomaticallyResume: shouldAutomaticallyResume, fileManager: fileManager)
     }
 
@@ -1155,15 +1195,18 @@ open class Session: @unchecked Sendable {
     // MARK: Perform
 
     func performEagerlyIfNecessary(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performEagerlyIfNecessary(request=\(request))\n".utf8))
         guard requestSetup == .eager else { return }
 
         perform(request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performEagerlyIfNecessary(request=\(request))\n".utf8))
     }
 
     /// Starts performing the provided `Request`.
     ///
     /// - Parameter request: The `Request` to perform.
     func perform(_ request: Request, forRetry isRetrying: Bool = false) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering perform(request=\(request),isRetrying=\(isRetrying))\n".utf8))
         rootQueue.async {
             self.mutableState.write { mutableState in
                 guard !request.isCancelled else { return }
@@ -1194,45 +1237,62 @@ open class Session: @unchecked Sendable {
                 }
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting perform(request=\(request),isRetrying=\(isRetrying))\n".utf8))
     }
 
     func performDataRequest(_ request: DataRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performDataRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performDataRequest(request=\(request))\n".utf8))
     }
 
     func performDataStreamRequest(_ request: DataStreamRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performDataStreamRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performDataStreamRequest(request=\(request))\n".utf8))
     }
 
     #if canImport(Darwin) && !canImport(FoundationNetworking)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func performWebSocketRequest(_ request: WebSocketRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performWebSocketRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performWebSocketRequest(request=\(request))\n".utf8))
     }
     #endif
 
     func performUploadRequest(_ request: UploadRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performUploadRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible) {
             do {
                 let uploadable = try request.upload.createUploadable()
                 self.rootQueue.async { request.didCreateUploadable(uploadable) }
+				FileHandle.standardError.write(Data("[ERROR] performUploadRequest(request=\(request)): uploadable → \(uploadable)\n".utf8))
                 return true
             } catch {
+				FileHandle.standardError.write(Data("[ERROR] Exception in performUploadRequest(request=\(request)): \(error)\n".utf8))
                 self.rootQueue.async { request.didFailToCreateUploadable(with: error.asAFError(or: .createUploadableFailed(error: error))) }
+				FileHandle.standardError.write(Data("[ERROR] >>> Entering performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask))\n".utf8))
+				FileHandle.standardError.write(Data("[DEBUG] performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): initialRequest → \(initialRequest)\n".utf8))
+				FileHandle.standardError.write(Data("[ERROR] performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): adapterState → \(adapterState)\n".utf8))
+				FileHandle.standardError.write(Data("[ERROR] performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask)): adaptedRequest → \(adaptedRequest)\n".utf8))
+				FileHandle.standardError.write(Data("[WARN] <<< Exiting performSetupOperations(request=\(request),convertible=\(convertible),shouldCreateTask=\(shouldCreateTask))\n".utf8))
                 return false
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performUploadRequest(request=\(request))\n".utf8))
     }
 
     func performDownloadRequest(_ request: DownloadRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performDownloadRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         switch request.downloadable {
@@ -1241,6 +1301,7 @@ open class Session: @unchecked Sendable {
         case let .resumeData(resumeData):
             rootQueue.async { self.didReceiveResumeData(resumeData, for: request) }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performDownloadRequest(request=\(request))\n".utf8))
     }
 
     func performSetupOperations(for request: Request,
@@ -1289,6 +1350,7 @@ open class Session: @unchecked Sendable {
     // MARK: - Task Handling
 
     func didCreateURLRequest(_ urlRequest: URLRequest, for request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCreateURLRequest(urlRequest=\(urlRequest),request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         request.didCreateURLRequest(urlRequest)
@@ -1297,17 +1359,22 @@ open class Session: @unchecked Sendable {
 
         let task = request.task(for: urlRequest, using: session)
         mutableState.write { $0.requestTaskMap[request] = task }
+		FileHandle.standardError.write(Data("[ERROR] didCreateURLRequest(urlRequest=\(urlRequest),request=\(request)): task → \(task)\n".utf8))
         request.didCreateTask(task)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCreateURLRequest(urlRequest=\(urlRequest),request=\(request))\n".utf8))
     }
 
     func didReceiveResumeData(_ data: Data, for request: DownloadRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didReceiveResumeData(data=\(data),request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         guard !request.isCancelled else { return }
 
         let task = request.task(forResumeData: data, using: session)
         mutableState.write { $0.requestTaskMap[request] = task }
+		FileHandle.standardError.write(Data("[ERROR] didReceiveResumeData(data=\(data),request=\(request)): task → \(task)\n".utf8))
         request.didCreateTask(task)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didReceiveResumeData(data=\(data),request=\(request))\n".utf8))
     }
 
     // MARK: - Adapters and Retriers
@@ -1318,14 +1385,17 @@ open class Session: @unchecked Sendable {
         } else {
             request.interceptor ?? interceptor
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapter(request=\(request))\n".utf8))
     }
 
     func retrier(for request: Request) -> (any RequestRetrier)? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retrier(request=\(request))\n".utf8))
         if let requestInterceptor = request.interceptor, let sessionInterceptor = interceptor {
             Interceptor(retriers: [sessionInterceptor, requestInterceptor])
         } else {
             request.interceptor ?? interceptor
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retrier(request=\(request))\n".utf8))
     }
 }
 
@@ -1339,14 +1409,19 @@ extension Session: RequestDelegate {
     public var startImmediately: Bool { startRequestsImmediately }
 
     public func readyToPerform(request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering readyToPerform(request=\(request))\n".utf8))
         perform(request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting readyToPerform(request=\(request))\n".utf8))
     }
 
     public func cleanup(after request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cleanup(request=\(request))\n".utf8))
         mutableState.write { $0.activeRequests.remove(request) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cleanup(request=\(request))\n".utf8))
     }
 
     public func retryResult(for request: Request, dueTo error: AFError, completion: @escaping @Sendable (RetryResult) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retryResult(request=\(request),error=\(error),completion=\(completion))\n".utf8))
         guard let retrier = retrier(for: request) else {
             rootQueue.async { completion(.doNotRetry) }
             return
@@ -1355,14 +1430,18 @@ extension Session: RequestDelegate {
         retrier.retry(request, for: self, dueTo: error) { retryResult in
             self.rootQueue.async {
                 guard let retryResultError = retryResult.error else { completion(retryResult); return }
+				FileHandle.standardError.write(Data("[ERROR] retryResult(request=\(request),error=\(error),completion=\(completion)): retryResultError → \(retryResultError)\n".utf8))
 
                 let retryError = AFError.requestRetryFailed(retryError: retryResultError, originalError: error)
                 completion(.doNotRetryWithError(retryError))
             }
+				FileHandle.standardError.write(Data("[ERROR] retryResult(request=\(request),error=\(error),completion=\(completion)): retryError → \(retryError)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retryResult(request=\(request),error=\(error),completion=\(completion))\n".utf8))
     }
 
     public func retryRequest(_ request: Request, withDelay timeDelay: TimeInterval?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retryRequest(request=\(request),timeDelay=\(timeDelay))\n".utf8))
         rootQueue.async {
             let retry: @Sendable () -> Void = {
                 guard !request.isCancelled else { return }
@@ -1377,6 +1456,7 @@ extension Session: RequestDelegate {
                 retry()
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retryRequest(request=\(request),timeDelay=\(timeDelay))\n".utf8))
     }
 }
 
@@ -1390,11 +1470,13 @@ extension Session: SessionStateProvider {
     }
 
     func didGatherMetricsForTask(_ task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didGatherMetricsForTask(task=\(task))\n".utf8))
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         let completion: (() -> Void)? = mutableState.write { mutableState in
             let didDisassociate = mutableState.requestTaskMap.disassociateIfNecessaryAfterGatheringMetricsForTask(task)
 
+			FileHandle.standardError.write(Data("[ERROR] didGatherMetricsForTask(task=\(task)): didDisassociate → \(didDisassociate)\n".utf8))
             if didDisassociate {
                 let completion = mutableState.waitingCompletions[task]
                 mutableState.waitingCompletions[task] = nil
@@ -1404,15 +1486,18 @@ extension Session: SessionStateProvider {
             }
         }
         completion?()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didGatherMetricsForTask(task=\(task))\n".utf8))
     }
 
     func didCompleteTask(_ task: URLSessionTask, completion: @escaping () -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCompleteTask(task=\(task),completion=\(completion))\n".utf8))
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         let immediatelyPerformCompletion = mutableState.write { mutableState in
             let didDisassociate = mutableState.requestTaskMap.disassociateIfNecessaryAfterCompletingTask(task)
 
             if didDisassociate {
+				FileHandle.standardError.write(Data("[ERROR] didCompleteTask(task=\(task),completion=\(completion)): didDisassociate → \(didDisassociate)\n".utf8))
                 return true
             } else {
                 mutableState.waitingCompletions[task] = completion
@@ -1421,21 +1506,27 @@ extension Session: SessionStateProvider {
         }
 
         if immediatelyPerformCompletion { completion() }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCompleteTask(task=\(task),completion=\(completion))\n".utf8))
     }
 
     func credential(for task: URLSessionTask, in protectionSpace: URLProtectionSpace) -> URLCredential? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering credential(task=\(task),protectionSpace=\(protectionSpace))\n".utf8))
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting credential(task=\(task),protectionSpace=\(protectionSpace))\n".utf8))
         return mutableState.read { $0.requestTaskMap[task]?.credential } ??
             session.configuration.urlCredentialStorage?.defaultCredential(for: protectionSpace)
     }
 
     func cancelRequestsForSessionInvalidation(with error: (any Error)?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cancelRequestsForSessionInvalidation(error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(rootQueue))
 
         let requests = mutableState.read(\.activeRequests)
         for request in requests where !request.isFinished {
+		FileHandle.standardError.write(Data("[ERROR] cancelRequestsForSessionInvalidation(error=\(error)): requests → \(requests)\n".utf8))
             request.finish(error: .sessionInvalidated(error: error))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cancelRequestsForSessionInvalidation(error=\(error))\n".utf8))
     }
 }

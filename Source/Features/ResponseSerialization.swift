@@ -82,7 +82,10 @@ public struct PassthroughPreprocessor: DataPreprocessor {
     /// Creates an instance.
     public init() {}
 
-    public func preprocess(_ data: Data) throws -> Data { data }
+    public func preprocess(_ data: Data) throws -> Data {
+        FileHandle.standardError.write(Data("[ERROR] >>> Entering preprocess(data=\(data))\n".utf8))
+        data
+    }
 }
 
 /// `DataPreprocessor` that trims Google's typical `)]}',\n` XSSI JSON header.
@@ -91,7 +94,9 @@ public struct GoogleXSSIPreprocessor: DataPreprocessor {
     public init() {}
 
     public func preprocess(_ data: Data) throws -> Data {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering preprocess(data=\(data))\n".utf8))
         (data.prefix(6) == Data(")]}',\n".utf8)) ? data.dropFirst(6) : data
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting preprocess(data=\(data))\n".utf8))
     }
 }
 
@@ -123,9 +128,11 @@ extension ResponseSerializer {
     ///
     /// - Returns:           `Bool` representing the outcome of the evaluation, or `nil` if `request` was `nil`.
     public func requestAllowsEmptyResponseData(_ request: URLRequest?) -> Bool? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestAllowsEmptyResponseData(request=\(request))\n".utf8))
         request.flatMap(\.httpMethod)
             .flatMap(HTTPMethod.init)
             .map { emptyRequestMethods.contains($0) }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting requestAllowsEmptyResponseData(request=\(request))\n".utf8))
     }
 
     /// Determines whether the `response` allows empty response bodies, if `response` exists.
@@ -134,8 +141,10 @@ extension ResponseSerializer {
     ///
     /// - Returns:            `Bool` representing the outcome of the evaluation, or `nil` if `response` was `nil`.
     public func responseAllowsEmptyResponseData(_ response: HTTPURLResponse?) -> Bool? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering responseAllowsEmptyResponseData(response=\(response))\n".utf8))
         response.map(\.statusCode)
             .map { emptyResponseCodes.contains($0) }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting responseAllowsEmptyResponseData(response=\(response))\n".utf8))
     }
 
     /// Determines whether `request` and `response` allow empty response bodies.
@@ -146,7 +155,9 @@ extension ResponseSerializer {
     ///
     /// - Returns:    `true` if `request` or `response` allow empty bodies, `false` otherwise.
     public func emptyResponseAllowed(forRequest request: URLRequest?, response: HTTPURLResponse?) -> Bool {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering emptyResponseAllowed(request=\(request),response=\(response))\n".utf8))
         (requestAllowsEmptyResponseData(request) == true) || (responseAllowsEmptyResponseData(response) == true)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting emptyResponseAllowed(request=\(request),response=\(response))\n".utf8))
     }
 }
 
@@ -154,9 +165,11 @@ extension ResponseSerializer {
 /// the data read from disk into the data response serializer.
 extension DownloadResponseSerializerProtocol where Self: DataResponseSerializerProtocol {
     public func serializeDownload(request: URLRequest?, response: HTTPURLResponse?, fileURL: URL?, error: (any Error)?) throws -> Self.SerializedObject {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serializeDownload(request=\(request),response=\(response),fileURL=\(fileURL),error=\(error))\n".utf8))
         guard error == nil else { throw error! }
 
         guard let fileURL else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing responseSerializationFailed from serializeDownload(request=\(request),response=\(response),fileURL=\(fileURL),error=\(error))\n".utf8))
             throw AFError.responseSerializationFailed(reason: .inputFileNil)
         }
 
@@ -164,10 +177,12 @@ extension DownloadResponseSerializerProtocol where Self: DataResponseSerializerP
         do {
             data = try Data(contentsOf: fileURL)
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in serializeDownload(request=\(request),response=\(response),fileURL=\(fileURL),error=\(error)): \(error)\n".utf8))
             throw AFError.responseSerializationFailed(reason: .inputFileReadFailed(at: fileURL))
         }
 
         do {
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting serializeDownload(request=\(request),response=\(response),fileURL=\(fileURL),error=\(error))\n".utf8))
             return try serialize(request: request, response: response, data: data, error: error)
         } catch {
             throw error
@@ -227,10 +242,12 @@ public final class DataResponseSerializer: ResponseSerializer {
     }
 
     public func serialize(request: URLRequest?, response: HTTPURLResponse?, data: Data?, error: (any Error)?) throws -> Data {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serialize(request=\(request),response=\(response),data=\(data),error=\(error))\n".utf8))
         guard error == nil else { throw error! }
 
         guard var data, !data.isEmpty else {
             guard emptyResponseAllowed(forRequest: request, response: response) else {
+				FileHandle.standardError.write(Data("[ERROR] Throwing responseSerializationFailed from serialize(request=\(request),response=\(response),data=\(data),error=\(error))\n".utf8))
                 throw AFError.responseSerializationFailed(reason: .inputDataNilOrZeroLength)
             }
 
@@ -239,6 +256,8 @@ public final class DataResponseSerializer: ResponseSerializer {
 
         data = try dataPreprocessor.preprocess(data)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting serialize(request=\(request),response=\(response),data=\(data),error=\(error))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] Exception in serialize(request=\(request),response=\(response),data=\(data),error=\(error)): \(error)\n".utf8))
         return data
     }
 }
@@ -258,9 +277,11 @@ extension ResponseSerializer where Self == DataResponseSerializer {
     public static func data(dataPreprocessor: any DataPreprocessor = DataResponseSerializer.defaultDataPreprocessor,
                             emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                             emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods) -> DataResponseSerializer {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering data(dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                emptyResponseCodes: emptyResponseCodes,
                                emptyRequestMethods: emptyRequestMethods)
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting data(dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 }
 
@@ -341,10 +362,12 @@ extension ResponseSerializer where Self == StringResponseSerializer {
                               encoding: String.Encoding? = nil,
                               emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                               emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods) -> StringResponseSerializer {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering string(dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         StringResponseSerializer(dataPreprocessor: dataPreprocessor,
                                  encoding: encoding,
                                  emptyResponseCodes: emptyResponseCodes,
                                  emptyRequestMethods: emptyRequestMethods)
+								FileHandle.standardError.write(Data("[WARN] <<< Exiting string(dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 }
 
@@ -420,7 +443,9 @@ public struct Empty: Hashable, Codable, Sendable {
 
 extension Empty: EmptyResponse {
     public static func emptyValue() -> Empty {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering emptyValue()\n".utf8))
         value
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting emptyValue()\n".utf8))
     }
 }
 
@@ -524,9 +549,11 @@ extension ResponseSerializer {
                                                decoder: any DataDecoder = JSONDecoder(),
                                                emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
                                                emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods) -> DecodableResponseSerializer<T> where Self == DecodableResponseSerializer<T> {
+											FileHandle.standardError.write(Data("[ERROR] >>> Entering decodable(type=\(type),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         DecodableResponseSerializer<T>(dataPreprocessor: dataPreprocessor,
                                        decoder: decoder,
                                        emptyResponseCodes: emptyResponseCodes,
                                        emptyRequestMethods: emptyRequestMethods)
+									FileHandle.standardError.write(Data("[WARN] <<< Exiting decodable(type=\(type),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 }

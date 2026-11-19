@@ -50,6 +50,8 @@ public class Request: @unchecked Sendable {
         func canTransitionTo(_ state: State) -> Bool {
             switch (self, state) {
             case (.initialized, _):
+				FileHandle.standardError.write(Data("[ERROR] >>> Entering canTransitionTo(state=\(state))\n".utf8))
+				FileHandle.standardError.write(Data("[WARN] <<< Exiting canTransitionTo(state=\(state))\n".utf8))
                 true
             case (_, .initialized), (.cancelled, _), (.finished, _):
                 false
@@ -298,11 +300,13 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter request: The `URLRequest` created.
     func didCreateInitialURLRequest(_ request: URLRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCreateInitialURLRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.requests.append(request) }
 
         eventMonitor?.request(self, didCreateInitialURLRequest: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCreateInitialURLRequest(request=\(request))\n".utf8))
     }
 
     /// Called when initial `URLRequest` creation has failed, typically through a `URLRequestConvertible`.
@@ -311,15 +315,18 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter error: `AFError` thrown from the failed creation.
     func didFailToCreateURLRequest(with error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didFailToCreateURLRequest(error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         self.error = error
+		FileHandle.standardError.write(Data("[DEBUG] didFailToCreateURLRequest(error=\(error)): self.error → \(self.error)\n".utf8))
 
         eventMonitor?.request(self, didFailToCreateURLRequestWithError: error)
 
         callCURLHandlerIfNecessary()
 
         retryOrFinish(error: error)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didFailToCreateURLRequest(error=\(error))\n".utf8))
     }
 
     /// Called when a `RequestAdapter` has successfully adapted a `URLRequest`.
@@ -328,11 +335,13 @@ public class Request: @unchecked Sendable {
     ///   - initialRequest: The `URLRequest` that was adapted.
     ///   - adaptedRequest: The `URLRequest` returned by the `RequestAdapter`.
     func didAdaptInitialRequest(_ initialRequest: URLRequest, to adaptedRequest: URLRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didAdaptInitialRequest(initialRequest=\(initialRequest),adaptedRequest=\(adaptedRequest))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.requests.append(adaptedRequest) }
 
         eventMonitor?.request(self, didAdaptInitialRequest: initialRequest, to: adaptedRequest)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didAdaptInitialRequest(initialRequest=\(initialRequest),adaptedRequest=\(adaptedRequest))\n".utf8))
     }
 
     /// Called when a `RequestAdapter` fails to adapt a `URLRequest`.
@@ -343,21 +352,25 @@ public class Request: @unchecked Sendable {
     ///   - request: The `URLRequest` the adapter was called with.
     ///   - error:   The `AFError` returned by the `RequestAdapter`.
     func didFailToAdaptURLRequest(_ request: URLRequest, withError error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didFailToAdaptURLRequest(request=\(request),error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         self.error = error
+		FileHandle.standardError.write(Data("[DEBUG] didFailToAdaptURLRequest(request=\(request),error=\(error)): self.error → \(self.error)\n".utf8))
 
         eventMonitor?.request(self, didFailToAdaptURLRequest: request, withError: error)
 
         callCURLHandlerIfNecessary()
 
         retryOrFinish(error: error)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didFailToAdaptURLRequest(request=\(request),error=\(error))\n".utf8))
     }
 
     /// Final `URLRequest` has been created for the instance.
     ///
     /// - Parameter request: The `URLRequest` created.
     func didCreateURLRequest(_ request: URLRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCreateURLRequest(request=\(request))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.read { state in
@@ -369,23 +382,28 @@ public class Request: @unchecked Sendable {
         eventMonitor?.request(self, didCreateURLRequest: request)
 
         callCURLHandlerIfNecessary()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCreateURLRequest(request=\(request))\n".utf8))
     }
 
     /// Asynchronously calls any stored `cURLHandler` and then removes it from `mutableState`.
     private func callCURLHandlerIfNecessary() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering callCURLHandlerIfNecessary()\n".utf8))
         mutableState.write { mutableState in
             guard let cURLHandler = mutableState.cURLHandler else { return }
 
             cURLHandler.queue.async { cURLHandler.handler(self.cURLDescription()) }
 
             mutableState.cURLHandler = nil
+			FileHandle.standardError.write(Data("[DEBUG] callCURLHandlerIfNecessary(): mutableState.cURLHandler → \(mutableState.cURLHandler)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting callCURLHandlerIfNecessary()\n".utf8))
     }
 
     /// Called when a `URLSessionTask` is created on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` created.
     func didCreateTask(_ task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCreateTask(task=\(task))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
@@ -419,64 +437,79 @@ public class Request: @unchecked Sendable {
                 underlyingQueue.async { self.didCancelTask(task) }
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCreateTask(task=\(task))\n".utf8))
     }
 
     /// Called when resumption is completed.
     func didResume() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didResume()\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.requestDidResume(self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didResume()\n".utf8))
     }
 
     /// Called when a `URLSessionTask` is resumed on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` resumed.
     func didResumeTask(_ task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didResumeTask(task=\(task))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.request(self, didResumeTask: task)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didResumeTask(task=\(task))\n".utf8))
     }
 
     /// Called when suspension is completed.
     func didSuspend() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didSuspend()\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.requestDidSuspend(self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didSuspend()\n".utf8))
     }
 
     /// Called when a `URLSessionTask` is suspended on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` suspended.
     func didSuspendTask(_ task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didSuspendTask(task=\(task))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.request(self, didSuspendTask: task)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didSuspendTask(task=\(task))\n".utf8))
     }
 
     /// Called when cancellation is completed, sets `error` to `AFError.explicitlyCancelled`.
     func didCancel() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCancel()\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
             mutableState.error = mutableState.error ?? AFError.explicitlyCancelled
+			FileHandle.standardError.write(Data("[DEBUG] didCancel(): mutableState.error → \(mutableState.error)\n".utf8))
         }
 
         eventMonitor?.requestDidCancel(self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCancel()\n".utf8))
     }
 
     /// Called when a `URLSessionTask` is cancelled on behalf of the instance.
     ///
     /// - Parameter task: The `URLSessionTask` cancelled.
     func didCancelTask(_ task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCancelTask(task=\(task))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         eventMonitor?.request(self, didCancelTask: task)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCancelTask(task=\(task))\n".utf8))
     }
 
     /// Called when a `URLSessionTaskMetrics` value is gathered on behalf of the instance.
     ///
     /// - Parameter metrics: The `URLSessionTaskMetrics` gathered.
     func didGatherMetrics(_ metrics: URLSessionTaskMetrics) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didGatherMetrics(metrics=\(metrics))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { mutableState in
@@ -488,6 +521,7 @@ public class Request: @unchecked Sendable {
         }
 
         eventMonitor?.request(self, didGatherMetrics: metrics)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didGatherMetrics(metrics=\(metrics))\n".utf8))
     }
 
     /// Called when a `URLSessionTask` fails before it is finished, typically during certificate pinning.
@@ -496,12 +530,15 @@ public class Request: @unchecked Sendable {
     ///   - task:  The `URLSessionTask` which failed.
     ///   - error: The early failure `AFError`.
     func didFailTask(_ task: URLSessionTask, earlyWithError error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didFailTask(task=\(task),error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         self.error = error
+		FileHandle.standardError.write(Data("[DEBUG] didFailTask(task=\(task),error=\(error)): self.error → \(self.error)\n".utf8))
 
         // Task will still complete, so didCompleteTask(_:with:) will handle retry.
         eventMonitor?.request(self, didFailTask: task, earlyWithError: error)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didFailTask(task=\(task),error=\(error))\n".utf8))
     }
 
     /// Called when a `URLSessionTask` completes. All tasks will eventually call this method.
@@ -513,20 +550,24 @@ public class Request: @unchecked Sendable {
     ///   - error: The `AFError` `task` may have completed with. If `error` has already been set on the instance, this
     ///            value is ignored.
     func didCompleteTask(_ task: URLSessionTask, with error: AFError?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering didCompleteTask(task=\(task),error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.error = $0.error ?? error }
 
         let validators = validators.read(\.self)
         validators.forEach { $0() }
+		FileHandle.standardError.write(Data("[ERROR] didCompleteTask(task=\(task),error=\(error)): validators → \(validators)\n".utf8))
 
         eventMonitor?.request(self, didCompleteTask: task, with: error)
 
         retryOrFinish(error: self.error)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting didCompleteTask(task=\(task),error=\(error))\n".utf8))
     }
 
     /// Called when the `RequestDelegate` is going to retry this `Request`. Calls `reset()`.
     func prepareForRetry() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering prepareForRetry()\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         mutableState.write { $0.retryCount += 1 }
@@ -534,6 +575,7 @@ public class Request: @unchecked Sendable {
         reset()
 
         eventMonitor?.requestIsRetrying(self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting prepareForRetry()\n".utf8))
     }
 
     /// Called to determine whether retry will be triggered for the particular error, or whether the instance should
@@ -541,6 +583,7 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter error: The possible `AFError` which may trigger retry.
     func retryOrFinish(error: AFError?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retryOrFinish(error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         guard !isCancelled, let error, let delegate else { finish(); return }
@@ -555,12 +598,14 @@ public class Request: @unchecked Sendable {
                 delegate.retryRequest(self, withDelay: retryResult.delay)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retryOrFinish(error=\(error))\n".utf8))
     }
 
     /// Finishes this `Request` and starts the response serializers.
     ///
     /// - Parameter error: The possible `Error` with which the instance will finish.
     func finish(error: AFError? = nil) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering finish(error=\(error))\n".utf8))
         dispatchPrecondition(condition: .onQueue(underlyingQueue))
 
         let shouldStartResponseSerializers = mutableState.write { mutableState in
@@ -570,6 +615,7 @@ public class Request: @unchecked Sendable {
 
             if let error { mutableState.error = error }
 
+		FileHandle.standardError.write(Data("[DEBUG] finish(error=\(error)): mutableState.isFinishing → \(mutableState.isFinishing)\n".utf8))
             return true
         }
 
@@ -579,6 +625,7 @@ public class Request: @unchecked Sendable {
         processNextResponseSerializer()
 
         eventMonitor?.requestDidFinish(self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting finish(error=\(error))\n".utf8))
     }
 
     /// Appends the response serialization closure to the instance.
@@ -587,11 +634,13 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter closure: The closure containing the response serialization call.
     func appendResponseSerializer(_ closure: @escaping @Sendable () -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering appendResponseSerializer(closure=\(closure))\n".utf8))
         mutableState.write { mutableState in
             mutableState.responseSerializers.append(closure)
 
             if mutableState.state == .finished {
                 mutableState.state = .resumed
+				FileHandle.standardError.write(Data("[DEBUG] appendResponseSerializer(closure=\(closure)): mutableState.state → \(mutableState.state)\n".utf8))
             }
 
             // If serializers have already been processed, execute the added serializer immediately.
@@ -607,19 +656,24 @@ public class Request: @unchecked Sendable {
                 }
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting appendResponseSerializer(closure=\(closure))\n".utf8))
     }
 
     /// Processes the next response serializer and calls all completions if response serialization is complete.
     func processNextResponseSerializer() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering processNextResponseSerializer()\n".utf8))
         let executeOutside: (() -> Void)? = mutableState.write { mutableState in
             guard !mutableState.isResponseSerializerEnqueued else { return nil }
 
             let responseSerializerIndex = mutableState.responseSerializerCompletions.count
+			FileHandle.standardError.write(Data("[ERROR] processNextResponseSerializer(): responseSerializerIndex → \(responseSerializerIndex)\n".utf8))
             let isAvailableSerializer = responseSerializerIndex < mutableState.responseSerializers.count
             let responseSerializer = isAvailableSerializer ? mutableState.responseSerializers[responseSerializerIndex] : nil
+			FileHandle.standardError.write(Data("[ERROR] processNextResponseSerializer(): responseSerializer → \(responseSerializer)\n".utf8))
 
             if let responseSerializer {
                 mutableState.isResponseSerializerEnqueued = true
+				FileHandle.standardError.write(Data("[DEBUG] processNextResponseSerializer(): mutableState.isResponseSerializerEnqueued → \(mutableState.isResponseSerializerEnqueued)\n".utf8))
                 return { self.serializationQueue.async { responseSerializer() } }
             } else {
                 let completions = mutableState.responseSerializerCompletions
@@ -632,10 +686,13 @@ public class Request: @unchecked Sendable {
 
                 if mutableState.state.canTransitionTo(.finished) {
                     mutableState.state = .finished
+					FileHandle.standardError.write(Data("[DEBUG] processNextResponseSerializer(): mutableState.state → \(mutableState.state)\n".utf8))
                 }
 
                 mutableState.responseSerializerProcessingFinished = true
+				FileHandle.standardError.write(Data("[DEBUG] processNextResponseSerializer(): mutableState.responseSerializerProcessingFinished → \(mutableState.responseSerializerProcessingFinished)\n".utf8))
                 mutableState.isFinishing = false
+				FileHandle.standardError.write(Data("[DEBUG] processNextResponseSerializer(): mutableState.isFinishing → \(mutableState.isFinishing)\n".utf8))
 
                 return {
                     completions.forEach { $0() }
@@ -647,6 +704,7 @@ public class Request: @unchecked Sendable {
         }
 
         executeOutside?()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting processNextResponseSerializer()\n".utf8))
     }
 
     /// Notifies the `Request` that the response serializer is complete.
@@ -654,26 +712,39 @@ public class Request: @unchecked Sendable {
     /// - Parameter completion: The completion handler provided with the response serializer, called when all serializers
     ///                         are complete.
     func responseSerializerDidComplete(completion: @escaping @Sendable () -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering responseSerializerDidComplete(completion=\(completion))\n".utf8))
         mutableState.write { mutableState in
             mutableState.isResponseSerializerEnqueued = false
+			FileHandle.standardError.write(Data("[DEBUG] responseSerializerDidComplete(completion=\(completion)): mutableState.isResponseSerializerEnqueued → \(mutableState.isResponseSerializerEnqueued)\n".utf8))
             mutableState.responseSerializerCompletions.append(completion)
         }
         processNextResponseSerializer()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting responseSerializerDidComplete(completion=\(completion))\n".utf8))
     }
 
     /// Resets all task and response serializer related state for retry.
     func reset() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering reset()\n".utf8))
         uploadProgress.totalUnitCount = 0
         uploadProgress.completedUnitCount = 0
+		FileHandle.standardError.write(Data("[DEBUG] reset(): uploadProgress.completedUnitCount → \(uploadProgress.completedUnitCount)\n".utf8))
+		FileHandle.standardError.write(Data("[DEBUG] reset(): uploadProgress.totalUnitCount → \(uploadProgress.totalUnitCount)\n".utf8))
         downloadProgress.totalUnitCount = 0
+		FileHandle.standardError.write(Data("[DEBUG] reset(): downloadProgress.totalUnitCount → \(downloadProgress.totalUnitCount)\n".utf8))
         downloadProgress.completedUnitCount = 0
+		FileHandle.standardError.write(Data("[DEBUG] reset(): downloadProgress.completedUnitCount → \(downloadProgress.completedUnitCount)\n".utf8))
 
         mutableState.write { mutableState in
             mutableState.error = nil
+			FileHandle.standardError.write(Data("[DEBUG] reset(): mutableState.error → \(mutableState.error)\n".utf8))
             mutableState.isFinishing = false
+			FileHandle.standardError.write(Data("[DEBUG] reset(): mutableState.isFinishing → \(mutableState.isFinishing)\n".utf8))
             mutableState.responseSerializerCompletions = []
+			FileHandle.standardError.write(Data("[DEBUG] reset(): mutableState.responseSerializerCompletions → \(mutableState.responseSerializerCompletions)\n".utf8))
             mutableState.isResponseSerializerEnqueued = false
+			FileHandle.standardError.write(Data("[DEBUG] reset(): mutableState.isResponseSerializerEnqueued → \(mutableState.isResponseSerializerEnqueued)\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting reset()\n".utf8))
     }
 
     /// Called when updating the upload progress.
@@ -682,10 +753,14 @@ public class Request: @unchecked Sendable {
     ///   - totalBytesSent: Total bytes sent so far.
     ///   - totalBytesExpectedToSend: Total bytes expected to send.
     func updateUploadProgress(totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))\n".utf8))
         uploadProgress.totalUnitCount = totalBytesExpectedToSend
         uploadProgress.completedUnitCount = totalBytesSent
+		FileHandle.standardError.write(Data("[DEBUG] updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend)): uploadProgress.completedUnitCount → \(uploadProgress.completedUnitCount)\n".utf8))
+		FileHandle.standardError.write(Data("[DEBUG] updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend)): uploadProgress.totalUnitCount → \(uploadProgress.totalUnitCount)\n".utf8))
 
         uploadProgressHandler?.queue.async { self.uploadProgressHandler?.handler(self.uploadProgress) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting updateUploadProgress(totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))\n".utf8))
     }
 
     // MARK: Task Creation
@@ -698,7 +773,9 @@ public class Request: @unchecked Sendable {
     ///
     /// - Returns:   The `URLSessionTask` created.
     func task(for request: URLRequest, using session: URLSession) -> URLSessionTask {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering task(request=\(request),session=\(session))\n".utf8))
         fatalError("Subclasses must override.")
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting task(request=\(request),session=\(session))\n".utf8))
     }
 
     // MARK: - Public API
@@ -712,10 +789,12 @@ public class Request: @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     public func cancel() -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cancel()\n".utf8))
         mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.cancelled) else { return }
 
             mutableState.state = .cancelled
+			FileHandle.standardError.write(Data("[DEBUG] cancel(): mutableState.state → \(mutableState.state)\n".utf8))
 
             underlyingQueue.async { self.didCancel() }
 
@@ -737,6 +816,7 @@ public class Request: @unchecked Sendable {
             underlyingQueue.async { self.didCancelTask(task) }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cancel()\n".utf8))
         return self
     }
 
@@ -745,10 +825,12 @@ public class Request: @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     public func suspend() -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering suspend()\n".utf8))
         mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.suspended) else { return }
 
             mutableState.state = .suspended
+			FileHandle.standardError.write(Data("[DEBUG] suspend(): mutableState.state → \(mutableState.state)\n".utf8))
 
             underlyingQueue.async { self.didSuspend() }
 
@@ -758,6 +840,7 @@ public class Request: @unchecked Sendable {
             underlyingQueue.async { self.didSuspendTask(task) }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting suspend()\n".utf8))
         return self
     }
 
@@ -766,6 +849,7 @@ public class Request: @unchecked Sendable {
     /// - Returns: The instance.
     @discardableResult
     public func resume() -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering resume()\n".utf8))
         let needsToPerform = mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.resumed) else { return false }
 
@@ -787,6 +871,7 @@ public class Request: @unchecked Sendable {
             delegate?.readyToPerform(request: self)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting resume()\n".utf8))
         return self
     }
 
@@ -802,8 +887,12 @@ public class Request: @unchecked Sendable {
     /// - Returns:       The instance.
     @discardableResult
     public func authenticate(username: String, password: String, persistence: URLCredential.Persistence = .forSession) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering authenticate(username=\(username),password=<redacted>,persistence=\(persistence))\n".utf8))
         let credential = URLCredential(user: username, password: password, persistence: persistence)
 
+		FileHandle.standardError.write(Data("[ERROR] authenticate(username=\(username),password=<redacted>,persistence=\(persistence)): credential → <redacted>\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting authenticate(username=\(username),password=<redacted>,persistence=\(persistence))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting authenticate(credential=<redacted>)\n".utf8))
         return authenticate(with: credential)
     }
 
@@ -831,8 +920,11 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func downloadProgress(queue: DispatchQueue = .main, closure: @escaping ProgressHandler) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering downloadProgress(queue=\(queue),closure=\(closure))\n".utf8))
         downloadProgressHandler = (handler: closure, queue: queue)
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting downloadProgress(queue=\(queue),closure=\(closure))\n".utf8))
+		FileHandle.standardError.write(Data("[DEBUG] downloadProgress(queue=\(queue),closure=\(closure)): downloadProgressHandler → \(downloadProgressHandler)\n".utf8))
         return self
     }
 
@@ -848,8 +940,11 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func uploadProgress(queue: DispatchQueue = .main, closure: @escaping ProgressHandler) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering uploadProgress(queue=\(queue),closure=\(closure))\n".utf8))
         uploadProgressHandler = (handler: closure, queue: queue)
 
+		FileHandle.standardError.write(Data("[DEBUG] uploadProgress(queue=\(queue),closure=\(closure)): uploadProgressHandler → \(uploadProgressHandler)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting uploadProgress(queue=\(queue),closure=\(closure))\n".utf8))
         return self
     }
 
@@ -865,11 +960,14 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func redirect(using handler: any RedirectHandler) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering redirect(handler=\(handler))\n".utf8))
         mutableState.write { mutableState in
             precondition(mutableState.redirectHandler == nil, "Redirect handler has already been set.")
             mutableState.redirectHandler = handler
+			FileHandle.standardError.write(Data("[DEBUG] redirect(handler=\(handler)): mutableState.redirectHandler → \(mutableState.redirectHandler)\n".utf8))
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting redirect(handler=\(handler))\n".utf8))
         return self
     }
 
@@ -885,11 +983,14 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func cacheResponse(using handler: any CachedResponseHandler) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cacheResponse(handler=\(handler))\n".utf8))
         mutableState.write { mutableState in
             precondition(mutableState.cachedResponseHandler == nil, "Cached response handler has already been set.")
             mutableState.cachedResponseHandler = handler
+			FileHandle.standardError.write(Data("[DEBUG] cacheResponse(handler=\(handler)): mutableState.cachedResponseHandler → \(mutableState.cachedResponseHandler)\n".utf8))
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cacheResponse(handler=\(handler))\n".utf8))
         return self
     }
 
@@ -907,6 +1008,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func cURLDescription(on queue: DispatchQueue, calling handler: @escaping @Sendable (String) -> Void) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cURLDescription(queue=\(queue),handler=\(handler))\n".utf8))
         mutableState.write { mutableState in
             if mutableState.requests.last != nil {
                 queue.async { handler(self.cURLDescription()) }
@@ -915,6 +1017,9 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cURLDescription(queue=\(queue),handler=\(handler))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cURLDescription(handler=\(handler))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cURLDescription()\n".utf8))
         return self
     }
 
@@ -946,6 +1051,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func onURLRequestCreation(on queue: DispatchQueue = .main, perform handler: @escaping @Sendable (URLRequest) -> Void) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering onURLRequestCreation(queue=\(queue),handler=\(handler))\n".utf8))
         mutableState.write { state in
             if let request = state.requests.last {
                 queue.async { handler(request) }
@@ -954,6 +1060,7 @@ public class Request: @unchecked Sendable {
             state.urlRequestHandler = (queue, handler)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting onURLRequestCreation(queue=\(queue),handler=\(handler))\n".utf8))
         return self
     }
 
@@ -971,6 +1078,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func onURLSessionTaskCreation(on queue: DispatchQueue = .main, perform handler: @escaping @Sendable (URLSessionTask) -> Void) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering onURLSessionTaskCreation(queue=\(queue),handler=\(handler))\n".utf8))
         mutableState.write { state in
             if let task = state.tasks.last {
                 queue.async { handler(task) }
@@ -979,6 +1087,7 @@ public class Request: @unchecked Sendable {
             state.urlSessionTaskHandler = (queue, handler)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting onURLSessionTaskCreation(queue=\(queue),handler=\(handler))\n".utf8))
         return self
     }
 
@@ -991,6 +1100,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func interceptor(_ interceptor: any RequestInterceptor) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering interceptor(interceptor=\(interceptor))\n".utf8))
         mutableState.write { mutableState in
             if let existingInterceptor = mutableState.interceptor {
                 if let existingInterceptor = existingInterceptor as? Interceptor {
@@ -1007,6 +1117,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting interceptor(interceptor=\(interceptor))\n".utf8))
         return self
     }
 
@@ -1019,6 +1130,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func adapt(using adapter: any RequestAdapter) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(adapter=\(adapter))\n".utf8))
         mutableState.write { mutableState in
             if let existingInterceptor = mutableState.interceptor {
                 if let existingInterceptor = existingInterceptor as? Interceptor {
@@ -1034,6 +1146,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(adapter=\(adapter))\n".utf8))
         return self
     }
 
@@ -1046,6 +1159,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func retry(using retrier: any RequestRetrier) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering retry(retrier=\(retrier))\n".utf8))
         mutableState.write { mutableState in
             if let existingInterceptor = mutableState.interceptor {
                 if let existingInterceptor = existingInterceptor as? Interceptor {
@@ -1061,6 +1175,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retry(retrier=\(retrier))\n".utf8))
         return self
     }
 
@@ -1075,6 +1190,7 @@ public class Request: @unchecked Sendable {
     @preconcurrency
     @discardableResult
     public func eventMonitor(_ eventMonitor: any EventMonitor) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering eventMonitor(eventMonitor=\(eventMonitor))\n".utf8))
         mutableState.write { mutableState in
             if let existingMonitor = mutableState.eventMonitor {
                 if let existingMonitor = existingMonitor as? CompositeEventMonitor {
@@ -1091,6 +1207,7 @@ public class Request: @unchecked Sendable {
             }
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting eventMonitor(eventMonitor=\(eventMonitor))\n".utf8))
         return self
     }
 
@@ -1100,6 +1217,7 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter closure: Closure to be called when the request finishes.
     func onFinish(perform finishHandler: @escaping () -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering onFinish(finishHandler=\(finishHandler))\n".utf8))
         let shouldImmediatelyExecute = mutableState.write { mutableState in
             if mutableState.state == .finished {
                 return true
@@ -1112,10 +1230,12 @@ public class Request: @unchecked Sendable {
         if shouldImmediatelyExecute {
             finishHandler()
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting onFinish(finishHandler=\(finishHandler))\n".utf8))
     }
 
     /// Final cleanup step executed when the instance finishes response serialization.
     func cleanup() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cleanup()\n".utf8))
         let finishHandlers = mutableState.write { mutableState in
             let handlers = mutableState.finishHandlers
             mutableState.finishHandlers.removeAll()
@@ -1124,6 +1244,7 @@ public class Request: @unchecked Sendable {
         finishHandlers.forEach { $0() }
 
         delegate?.cleanup(after: self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cleanup()\n".utf8))
     }
 }
 
@@ -1154,7 +1275,9 @@ extension Request: Equatable {
 
 extension Request: Hashable {
     public func hash(into hasher: inout Hasher) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering hash(hasher=<redacted>)\n".utf8))
         hasher.combine(id)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting hash(hasher=<redacted>)\n".utf8))
     }
 }
 

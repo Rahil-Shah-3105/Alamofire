@@ -34,11 +34,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering application(application=\(application),launchOptions=\(launchOptions))\n".utf8))
         let splitViewController = window!.rootViewController as! UISplitViewController
         let navigationController = splitViewController.viewControllers.last as! UINavigationController
         navigationController.topViewController!.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem
         splitViewController.delegate = self
+		FileHandle.standardError.write(Data("[DEBUG] application(application=\(application),launchOptions=\(launchOptions)): splitViewController.delegate → \(splitViewController.delegate)\n".utf8))
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting application(application=\(application),launchOptions=\(launchOptions))\n".utf8))
         return true
     }
 
@@ -48,12 +51,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
                              collapseSecondary secondaryViewController: UIViewController,
                              onto primaryViewController: UIViewController)
         -> Bool {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering splitViewController(splitViewController=\(splitViewController),secondaryViewController=\(secondaryViewController),primaryViewController=\(primaryViewController))\n".utf8))
         if
             let secondaryAsNavController = secondaryViewController as? UINavigationController,
             let topAsDetailController = secondaryAsNavController.topViewController as? DetailViewController {
             return topAsDetailController.request == nil
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting splitViewController(splitViewController=\(splitViewController),secondaryViewController=\(secondaryViewController),primaryViewController=\(primaryViewController))\n".utf8))
         return false
     }
 }

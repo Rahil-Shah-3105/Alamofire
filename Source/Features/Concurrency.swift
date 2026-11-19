@@ -36,11 +36,14 @@ extension Request {
     ///
     /// - Returns:                   The `StreamOf<Progress>`.
     public func uploadProgress(bufferingPolicy: StreamOf<Progress>.BufferingPolicy = .unbounded) -> StreamOf<Progress> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering uploadProgress(bufferingPolicy=\(bufferingPolicy))\n".utf8))
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             uploadProgress(queue: underlyingQueue) { progress in
                 continuation.yield(progress)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting stream(type=\(type),bufferingPolicy=\(bufferingPolicy),yielder=\(yielder))\n".utf8))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting uploadProgress(bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `StreamOf<Progress>` for the instance's download progress.
@@ -49,11 +52,13 @@ extension Request {
     ///
     /// - Returns:                   The `StreamOf<Progress>`.
     public func downloadProgress(bufferingPolicy: StreamOf<Progress>.BufferingPolicy = .unbounded) -> StreamOf<Progress> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering downloadProgress(bufferingPolicy=\(bufferingPolicy))\n".utf8))
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             downloadProgress(queue: underlyingQueue) { progress in
                 continuation.yield(progress)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting downloadProgress(bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `StreamOf<URLRequest>` for the `URLRequest`s produced for the instance.
@@ -62,11 +67,13 @@ extension Request {
     ///
     /// - Returns:                   The `StreamOf<URLRequest>`.
     public func urlRequests(bufferingPolicy: StreamOf<URLRequest>.BufferingPolicy = .unbounded) -> StreamOf<URLRequest> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlRequests(bufferingPolicy=\(bufferingPolicy))\n".utf8))
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             onURLRequestCreation(on: underlyingQueue) { request in
                 continuation.yield(request)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlRequests(bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `StreamOf<URLSessionTask>` for the `URLSessionTask`s produced for the instance.
@@ -75,11 +82,13 @@ extension Request {
     ///
     /// - Returns:                   The `StreamOf<URLSessionTask>`.
     public func urlSessionTasks(bufferingPolicy: StreamOf<URLSessionTask>.BufferingPolicy = .unbounded) -> StreamOf<URLSessionTask> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSessionTasks(bufferingPolicy=\(bufferingPolicy))\n".utf8))
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             onURLSessionTaskCreation(on: underlyingQueue) { task in
                 continuation.yield(task)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSessionTasks(bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `StreamOf<String>` for the cURL descriptions produced for the instance.
@@ -88,16 +97,19 @@ extension Request {
     ///
     /// - Returns:                   The `StreamOf<String>`.
     public func cURLDescriptions(bufferingPolicy: StreamOf<String>.BufferingPolicy = .unbounded) -> StreamOf<String> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cURLDescriptions(bufferingPolicy=\(bufferingPolicy))\n".utf8))
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             cURLDescription(on: underlyingQueue) { description in
                 continuation.yield(description)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cURLDescriptions(bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     fileprivate func stream<T>(of type: T.Type = T.self,
                                bufferingPolicy: StreamOf<T>.BufferingPolicy = .unbounded,
                                yielder: @escaping (StreamOf<T>.Continuation) -> Void) -> StreamOf<T> {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering stream(type=\(type),bufferingPolicy=\(bufferingPolicy),yielder=\(yielder))\n".utf8))
         StreamOf<T>(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             yielder(continuation)
             // Must come after serializers run in order to catch retry progress.
@@ -105,6 +117,7 @@ extension Request {
                 continuation.finish()
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting stream(type=\(type),bufferingPolicy=\(bufferingPolicy),yielder=\(yielder))\n".utf8))
     }
 }
 
@@ -152,17 +165,23 @@ public struct DataTask<Value>: Sendable where Value: Sendable {
 
     /// Cancel the underlying `DataRequest` and `Task`.
     public func cancel() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering cancel()\n".utf8))
         task.cancel()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting cancel()\n".utf8))
     }
 
     /// Resume the underlying `DataRequest`.
     public func resume() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering resume()\n".utf8))
         request.resume()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting resume()\n".utf8))
     }
 
     /// Suspend the underlying `DataRequest`.
     public func suspend() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering suspend()\n".utf8))
         request.suspend()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting suspend()\n".utf8))
     }
 }
 
@@ -174,11 +193,13 @@ extension DataRequest {
     ///
     /// - Returns:                   The `StreamOf<HTTPURLResponse>`.
     public func httpResponses(bufferingPolicy: StreamOf<HTTPURLResponse>.BufferingPolicy = .unbounded) -> StreamOf<HTTPURLResponse> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering httpResponses(bufferingPolicy=\(bufferingPolicy))\n".utf8))
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             onHTTPResponse(on: underlyingQueue) { response in
                 continuation.yield(response)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting httpResponses(bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Sets an async closure returning a `Request.ResponseDisposition`, called whenever the `DataRequest` produces an
@@ -200,13 +221,16 @@ extension DataRequest {
     public func onHTTPResponse(
         perform handler: @escaping @Sendable (_ response: HTTPURLResponse) async -> ResponseDisposition
     ) -> Self {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering onHTTPResponse(handler=\(handler))\n".utf8))
         onHTTPResponse(on: underlyingQueue) { response, completionHandler in
             Task {
                 let disposition = await handler(response)
                 completionHandler(disposition)
             }
+				FileHandle.standardError.write(Data("[ERROR] onHTTPResponse(handler=\(handler)): disposition → \(disposition)\n".utf8))
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting onHTTPResponse(handler=\(handler))\n".utf8))
         return self
     }
 
@@ -338,16 +362,19 @@ extension DataRequest {
     public func serializingResponse<Serializer: DataResponseSerializerProtocol>(using serializer: Serializer,
                                                                                 automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DataTask<Serializer.SerializedObject> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingResponse(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
         dataTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
             response(queue: underlyingQueue,
                      responseSerializer: serializer,
                      completionHandler: $0)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting serializingResponse(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
     }
 
     private func dataTask<Value>(automaticallyCancelling shouldAutomaticallyCancel: Bool,
                                  forResponse onResponse: @Sendable @escaping (@escaping @Sendable (DataResponse<Value, AFError>) -> Void) -> Void)
         -> DataTask<Value> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering dataTask(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),onResponse=\(onResponse))\n".utf8))
         let task = Task {
             await withTaskCancellationHandler {
                 await withCheckedContinuation { continuation in
@@ -362,6 +389,7 @@ extension DataRequest {
 
         defer { if shouldAutomaticallyCancel && Task.isCancelled { task.cancel() } }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting dataTask(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),onResponse=\(onResponse))\n".utf8))
         return DataTask<Value>(request: self, task: task, shouldAutomaticallyCancel: shouldAutomaticallyCancel)
     }
 }
@@ -441,10 +469,12 @@ extension DownloadRequest {
                                 dataPreprocessor: any DataPreprocessor = DataResponseSerializer.defaultDataPreprocessor,
                                 emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                                 emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods) -> DownloadTask<Data> {
+								FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingData(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         serializingDownload(using: DataResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                           emptyResponseCodes: emptyResponseCodes,
                                                           emptyRequestMethods: emptyRequestMethods),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting serializingData(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),dataPreprocessor=\(dataPreprocessor),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 
     /// Creates a `DownloadTask` to `await` serialization of a `Decodable` value.
@@ -469,11 +499,13 @@ extension DownloadRequest {
                                                        decoder: any DataDecoder = JSONDecoder(),
                                                        emptyResponseCodes: Set<Int> = DecodableResponseSerializer<Value>.defaultEmptyResponseCodes,
                                                        emptyRequestMethods: Set<HTTPMethod> = DecodableResponseSerializer<Value>.defaultEmptyRequestMethods) -> DownloadTask<Value> {
+													FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingDecodable(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         serializingDownload(using: DecodableResponseSerializer<Value>(dataPreprocessor: dataPreprocessor,
                                                                       decoder: decoder,
                                                                       emptyResponseCodes: emptyResponseCodes,
                                                                       emptyRequestMethods: emptyRequestMethods),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting serializingDecodable(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),dataPreprocessor=\(dataPreprocessor),decoder=\(decoder),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 
     /// Creates a `DownloadTask` to `await` serialization of the downloaded file's `URL` on disk.
@@ -485,8 +517,10 @@ extension DownloadRequest {
     ///
     /// - Returns: The `DownloadTask`.
     public func serializingDownloadedFileURL(automaticallyCancelling shouldAutomaticallyCancel: Bool = true) -> DownloadTask<URL> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingDownloadedFileURL(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
         serializingDownload(using: URLResponseSerializer(),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting serializingDownloadedFileURL(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
     }
 
     /// Creates a `DownloadTask` to `await` serialization of a `String` value.
@@ -509,11 +543,13 @@ extension DownloadRequest {
                                   encoding: String.Encoding? = nil,
                                   emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
                                   emptyRequestMethods: Set<HTTPMethod> = StringResponseSerializer.defaultEmptyRequestMethods) -> DownloadTask<String> {
+								FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingString(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
         serializingDownload(using: StringResponseSerializer(dataPreprocessor: dataPreprocessor,
                                                             encoding: encoding,
                                                             emptyResponseCodes: emptyResponseCodes,
                                                             emptyRequestMethods: emptyRequestMethods),
                             automaticallyCancelling: shouldAutomaticallyCancel)
+							FileHandle.standardError.write(Data("[WARN] <<< Exiting serializingString(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),dataPreprocessor=\(dataPreprocessor),encoding=\(encoding),emptyResponseCodes=\(emptyResponseCodes),emptyRequestMethods=\(emptyRequestMethods))\n".utf8))
     }
 
     /// Creates a `DownloadTask` to `await` serialization using the provided `ResponseSerializer` instance.
@@ -549,6 +585,7 @@ extension DownloadRequest {
     public func serializingDownload<Serializer: DownloadResponseSerializerProtocol>(using serializer: Serializer,
                                                                                     automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DownloadTask<Serializer.SerializedObject> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering serializingDownload(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel))\n".utf8))
         downloadTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
             response(queue: underlyingQueue,
                      responseSerializer: serializer,
@@ -559,6 +596,7 @@ extension DownloadRequest {
     private func downloadTask<Value>(automaticallyCancelling shouldAutomaticallyCancel: Bool,
                                      forResponse onResponse: @Sendable @escaping (@escaping @Sendable (DownloadResponse<Value, AFError>) -> Void) -> Void)
         -> DownloadTask<Value> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering downloadTask(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),onResponse=\(onResponse))\n".utf8))
         let task = Task {
             await withTaskCancellationHandler {
                 await withCheckedContinuation { continuation in
@@ -573,6 +611,7 @@ extension DownloadRequest {
 
         defer { if shouldAutomaticallyCancel && Task.isCancelled { task.cancel() } }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting downloadTask(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),onResponse=\(onResponse))\n".utf8))
         return DownloadTask<Value>(request: self, task: task, shouldAutomaticallyCancel: shouldAutomaticallyCancel)
     }
 }
@@ -599,9 +638,11 @@ public struct DataStreamTask: Sendable {
     ///
     /// - Returns:                   The `Stream`.
     public func streamingData(automaticallyCancelling shouldAutomaticallyCancel: Bool = true, bufferingPolicy: Stream<Data, Never>.BufferingPolicy = .unbounded) -> Stream<Data, Never> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingData(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         createStream(automaticallyCancelling: shouldAutomaticallyCancel, bufferingPolicy: bufferingPolicy) { onStream in
             request.responseStream(on: .streamCompletionQueue(forRequestID: request.id), stream: onStream)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingData(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `Stream` of `UTF-8` `String`s from the underlying `DataStreamRequest`.
@@ -612,9 +653,11 @@ public struct DataStreamTask: Sendable {
     ///   - bufferingPolicy: `         BufferingPolicy` that determines the stream's buffering behavior.`.unbounded` by default.
     /// - Returns:
     public func streamingStrings(automaticallyCancelling shouldAutomaticallyCancel: Bool = true, bufferingPolicy: Stream<String, Never>.BufferingPolicy = .unbounded) -> Stream<String, Never> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingStrings(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         createStream(automaticallyCancelling: shouldAutomaticallyCancel, bufferingPolicy: bufferingPolicy) { onStream in
             request.responseStreamString(on: .streamCompletionQueue(forRequestID: request.id), stream: onStream)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingStrings(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `Stream` of `Decodable` values from the underlying `DataStreamRequest`.
@@ -630,9 +673,11 @@ public struct DataStreamTask: Sendable {
                                        automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                        bufferingPolicy: Stream<T, AFError>.BufferingPolicy = .unbounded)
         -> Stream<T, AFError> where T: Decodable & Sendable {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingDecodables(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         streamingResponses(serializedUsing: DecodableStreamSerializer<T>(),
                            automaticallyCancelling: shouldAutomaticallyCancel,
                            bufferingPolicy: bufferingPolicy)
+						FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingDecodables(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     /// Creates a `Stream` of values using the provided `DataStreamSerializer` from the underlying `DataStreamRequest`.
@@ -648,6 +693,8 @@ public struct DataStreamTask: Sendable {
                                                                      automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                                                      bufferingPolicy: Stream<Serializer.SerializedObject, AFError>.BufferingPolicy = .unbounded)
         -> Stream<Serializer.SerializedObject, AFError> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingResponses(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingResponses(serializer=\(serializer),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         createStream(automaticallyCancelling: shouldAutomaticallyCancel, bufferingPolicy: bufferingPolicy) { onStream in
             request.responseStream(using: serializer,
                                    on: .streamCompletionQueue(forRequestID: request.id),
@@ -659,6 +706,9 @@ public struct DataStreamTask: Sendable {
                                                        bufferingPolicy: Stream<Success, Failure>.BufferingPolicy = .unbounded,
                                                        forResponse onResponse: @Sendable @escaping (@escaping @Sendable (DataStreamRequest.Stream<Success, Failure>) -> Void) -> Void)
         -> Stream<Success, Failure> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering createStream(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy),onResponse=\(onResponse))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting createStream(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy),onResponse=\(onResponse))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting createStream(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy),transform=\(transform),onResponse=\(onResponse))\n".utf8))
         StreamOf(bufferingPolicy: bufferingPolicy) {
             guard shouldAutomaticallyCancel,
                   request.isInitialized || request.isResumed || request.isSuspended else { return }
@@ -757,7 +807,9 @@ extension DataStreamRequest {
     ///
     /// - Returns: The `DataStreamTask`.
     public func streamTask() -> DataStreamTask {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamTask()\n".utf8))
         DataStreamTask(request: self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamTask()\n".utf8))
     }
 }
 
@@ -778,28 +830,34 @@ extension DataStreamRequest {
         automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
         bufferingPolicy: EventStreamOf<URLSessionWebSocketTask.Message, Never>.BufferingPolicy = .unbounded
     ) -> EventStreamOf<URLSessionWebSocketTask.Message, Never> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingMessageEvents(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         createStream(automaticallyCancelling: shouldAutomaticallyCancel,
                      bufferingPolicy: bufferingPolicy,
                      transform: { $0 }) { onEvent in
             request.streamMessageEvents(on: .streamCompletionQueue(forRequestID: request.id), handler: onEvent)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingMessageEvents(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     public func streamingMessages(
         automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
         bufferingPolicy: StreamOf<URLSessionWebSocketTask.Message>.BufferingPolicy = .unbounded
     ) -> StreamOf<URLSessionWebSocketTask.Message> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingMessages(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         createStream(automaticallyCancelling: shouldAutomaticallyCancel,
                      bufferingPolicy: bufferingPolicy,
                      transform: { $0.message }) { onEvent in
             request.streamMessageEvents(on: .streamCompletionQueue(forRequestID: request.id), handler: onEvent)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingMessages(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy))\n".utf8))
     }
 
     public func streamingDecodableEvents<Value: Decodable & Sendable>(
         _ type: Value.Type = Value.self,
         automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
         using decoder: any DataDecoder = JSONDecoder(),
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingDecodableEvents(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),decoder=\(decoder),bufferingPolicy=\(bufferingPolicy))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingDecodableEvents(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),decoder=\(decoder),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         bufferingPolicy: EventStreamOf<Value, any Error>.BufferingPolicy = .unbounded
     ) -> EventStreamOf<Value, any Error> {
         createStream(automaticallyCancelling: shouldAutomaticallyCancel,
@@ -816,6 +874,8 @@ extension DataStreamRequest {
         _ type: Value.Type = Value.self,
         automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
         using decoder: any DataDecoder = JSONDecoder(),
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamingDecodable(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),decoder=\(decoder),bufferingPolicy=\(bufferingPolicy))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamingDecodable(type=\(type),shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),decoder=\(decoder),bufferingPolicy=\(bufferingPolicy))\n".utf8))
         bufferingPolicy: StreamOf<Value>.BufferingPolicy = .unbounded
     ) -> StreamOf<Value> {
         createStream(automaticallyCancelling: shouldAutomaticallyCancel,
@@ -832,6 +892,7 @@ extension DataStreamRequest {
         automaticallyCancelling shouldAutomaticallyCancel: Bool,
         bufferingPolicy: StreamOf<Value>.BufferingPolicy,
         transform: @escaping @Sendable (WebSocketRequest.Event<Success, Failure>) -> Value?,
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering createStream(shouldAutomaticallyCancel=\(shouldAutomaticallyCancel),bufferingPolicy=\(bufferingPolicy),transform=\(transform),onResponse=\(onResponse))\n".utf8))
         forResponse onResponse: @Sendable @escaping (@escaping @Sendable (WebSocketRequest.Event<Success, Failure>) -> Void) -> Void
     ) -> StreamOf<Value> {
         StreamOf(bufferingPolicy: bufferingPolicy) {
@@ -857,16 +918,20 @@ extension DataStreamRequest {
     /// - Parameter message: The `Message`.
     ///
     public func send(_ message: URLSessionWebSocketTask.Message) async throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering send(message=\(message))\n".utf8))
         try await withCheckedThrowingContinuation { continuation in
             request.send(message, queue: .streamCompletionQueue(forRequestID: request.id)) { result in
                 continuation.resume(with: result)
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting send(message=\(message))\n".utf8))
     }
 
     /// Close the underlying `WebSocketRequest`.
     public func close(sending closeCode: URLSessionWebSocketTask.CloseCode, reason: Data? = nil) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering close(closeCode=\(closeCode),reason=\(reason))\n".utf8))
         request.close(sending: closeCode, reason: reason)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting close(closeCode=\(closeCode),reason=\(reason))\n".utf8))
     }
 
     /// Cancel the underlying `WebSocketRequest`.
@@ -890,7 +955,9 @@ extension DataStreamRequest {
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension WebSocketRequest {
     public func webSocketTask() -> WebSocketTask {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering webSocketTask()\n".utf8))
         WebSocketTask(request: self)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting webSocketTask()\n".utf8))
     }
 }
 #endif
@@ -900,7 +967,9 @@ extension DispatchQueue {
                                                             attributes: .concurrent)
 
     fileprivate static func streamCompletionQueue(forRequestID id: UUID) -> DispatchQueue {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering streamCompletionQueue(id=\(id))\n".utf8))
         DispatchQueue(label: "org.alamofire.concurrencyStreamCompletionQueue-\(id)", target: .singleEventQueue)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting streamCompletionQueue(id=\(id))\n".utf8))
     }
 }
 
@@ -932,10 +1001,12 @@ public struct StreamOf<Element>: AsyncSequence {
     }
 
     public func makeAsyncIterator() -> Iterator {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering makeAsyncIterator()\n".utf8))
         Iterator(iterator: stream.makeAsyncIterator()) {
             continuation.finish()
             onTermination?()
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting makeAsyncIterator()\n".utf8))
     }
 
     public struct Iterator: AsyncIteratorProtocol {
@@ -960,7 +1031,9 @@ public struct StreamOf<Element>: AsyncSequence {
         }
 
         public mutating func next() async -> Element? {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering next()\n".utf8))
             await iterator.next()
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting next()\n".utf8))
         }
     }
 }

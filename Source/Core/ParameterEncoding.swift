@@ -76,6 +76,8 @@ public struct URLEncoding: ParameterEncoding {
             case .queryString: true
             case .httpBody: false
             }
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encodesParametersInURL(method=\(method))\n".utf8))
+        FileHandle.standardError.write(Data("[WARN] <<< Exiting encodesParametersInURL(method=\(method))\n".utf8))
         }
     }
 
@@ -91,6 +93,7 @@ public struct URLEncoding: ParameterEncoding {
         case custom(@Sendable (_ key: String, _ index: Int) -> String)
 
         func encode(key: String, atIndex index: Int) -> String {
+			FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(key=\(key),index=\(index))\n".utf8))
             switch self {
             case .brackets:
                 "\(key)[]"
@@ -101,6 +104,7 @@ public struct URLEncoding: ParameterEncoding {
             case let .custom(encoding):
                 encoding(key, index)
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(key=\(key),index=\(index))\n".utf8))
         }
     }
 
@@ -114,10 +118,12 @@ public struct URLEncoding: ParameterEncoding {
         func encode(value: Bool) -> String {
             switch self {
             case .numeric:
+				FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(value=\(value))\n".utf8))
                 value ? "1" : "0"
             case .literal:
                 value ? "true" : "false"
             }
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(value=\(value))\n".utf8))
         }
     }
 
@@ -161,19 +167,24 @@ public struct URLEncoding: ParameterEncoding {
     // MARK: Encoding
 
     public func encode(_ urlRequest: any URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering encode(urlRequest=\(urlRequest),parameters=\(parameters))\n".utf8))
         var urlRequest = try urlRequest.asURLRequest()
 
+		FileHandle.standardError.write(Data("[ERROR] encode(urlRequest=\(urlRequest),parameters=\(parameters)): urlRequest → \(urlRequest)\n".utf8))
         guard let parameters else { return urlRequest }
 
         if let method = urlRequest.method, destination.encodesParametersInURL(for: method) {
             guard let url = urlRequest.url else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing parameterEncodingFailed from encode(urlRequest=\(urlRequest),parameters=\(parameters))\n".utf8))
                 throw AFError.parameterEncodingFailed(reason: .missingURL)
             }
 
             if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), !parameters.isEmpty {
                 let percentEncodedQuery = (urlComponents.percentEncodedQuery.map { $0 + "&" } ?? "") + query(parameters)
                 urlComponents.percentEncodedQuery = percentEncodedQuery
+				FileHandle.standardError.write(Data("[ERROR] encode(urlRequest=\(urlRequest),parameters=\(parameters)): percentEncodedQuery → \(percentEncodedQuery)\n".utf8))
                 urlRequest.url = urlComponents.url
+				FileHandle.standardError.write(Data("[DEBUG] encode(urlRequest=\(urlRequest),parameters=\(parameters)): urlRequest.url → \(urlRequest.url)\n".utf8))
             }
         } else {
             if urlRequest.headers["Content-Type"] == nil {
@@ -183,6 +194,7 @@ public struct URLEncoding: ParameterEncoding {
             urlRequest.httpBody = Data(query(parameters).utf8)
         }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting encode(urlRequest=\(urlRequest),parameters=\(parameters))\n".utf8))
         return urlRequest
     }
 
@@ -194,6 +206,7 @@ public struct URLEncoding: ParameterEncoding {
     ///
     /// - Returns: The percent-escaped, URL encoded query string components.
     public func queryComponents(fromKey key: String, value: Any) -> [(String, String)] {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering queryComponents(key=\(key),value=\(value))\n".utf8))
         var components: [(String, String)] = []
         switch value {
         case let dictionary as [String: Any]:
@@ -215,6 +228,7 @@ public struct URLEncoding: ParameterEncoding {
         default:
             components.append((escape(key), escape("\(value)")))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting queryComponents(key=\(key),value=\(value))\n".utf8))
         return components
     }
 
@@ -224,10 +238,13 @@ public struct URLEncoding: ParameterEncoding {
     ///
     /// - Returns:          The percent-escaped `String`.
     public func escape(_ string: String) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering escape(string=\(string))\n".utf8))
         string.addingPercentEncoding(withAllowedCharacters: .afURLQueryAllowed) ?? string
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting escape(string=\(string))\n".utf8))
     }
 
     private func query(_ parameters: [String: Any]) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering query(parameters=\(parameters))\n".utf8))
         var components: [(String, String)] = []
 
         for key in parameters.keys.sorted(by: <) {
@@ -284,12 +301,15 @@ public struct JSONEncoding: ParameterEncoding {
         do {
             let data = try JSONSerialization.data(withJSONObject: parameters, options: options)
 
+			FileHandle.standardError.write(Data("[ERROR] encode(urlRequest=\(urlRequest),parameters=\(parameters)): data → \(data)\n".utf8))
             if urlRequest.headers["Content-Type"] == nil {
                 urlRequest.headers.update(.contentType("application/json"))
             }
 
             urlRequest.httpBody = data
+			FileHandle.standardError.write(Data("[DEBUG] encode(urlRequest=\(urlRequest),parameters=\(parameters)): urlRequest.httpBody → \(urlRequest.httpBody)\n".utf8))
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in encode(urlRequest=\(urlRequest),parameters=\(parameters)): \(error)\n".utf8))
             throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
         }
 
@@ -307,21 +327,26 @@ public struct JSONEncoding: ParameterEncoding {
     public func encode(_ urlRequest: any URLRequestConvertible, withJSONObject jsonObject: Any? = nil) throws -> URLRequest {
         var urlRequest = try urlRequest.asURLRequest()
 
+		FileHandle.standardError.write(Data("[ERROR] encode(urlRequest=\(urlRequest),jsonObject=\(jsonObject)): urlRequest → \(urlRequest)\n".utf8))
         guard let jsonObject else { return urlRequest }
 
         guard JSONSerialization.isValidJSONObject(jsonObject) else {
+			FileHandle.standardError.write(Data("[ERROR] Throwing parameterEncodingFailed from encode(urlRequest=\(urlRequest),jsonObject=\(jsonObject))\n".utf8))
             throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: Error.invalidJSONObject))
         }
 
         do {
             let data = try JSONSerialization.data(withJSONObject: jsonObject, options: options)
 
+			FileHandle.standardError.write(Data("[ERROR] encode(urlRequest=\(urlRequest),jsonObject=\(jsonObject)): data → \(data)\n".utf8))
             if urlRequest.headers["Content-Type"] == nil {
                 urlRequest.headers.update(.contentType("application/json"))
             }
 
             urlRequest.httpBody = data
+			FileHandle.standardError.write(Data("[DEBUG] encode(urlRequest=\(urlRequest),jsonObject=\(jsonObject)): urlRequest.httpBody → \(urlRequest.httpBody)\n".utf8))
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in encode(urlRequest=\(urlRequest),jsonObject=\(jsonObject)): \(error)\n".utf8))
             throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
         }
 

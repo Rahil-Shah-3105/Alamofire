@@ -32,8 +32,11 @@ extension URLRequest {
     }
 
     public func validate() throws {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering validate()\n".utf8))
         if method == .get, let bodyData = httpBody {
+			FileHandle.standardError.write(Data("[ERROR] Throwing urlRequestValidationFailed from validate()\n".utf8))
             throw AFError.urlRequestValidationFailed(reason: .bodyDataInGETRequest(bodyData))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting validate()\n".utf8))
     }
 }

@@ -309,11 +309,13 @@ open class RetryPolicy: @unchecked Sendable, RequestInterceptor {
                     for session: Session,
                     dueTo error: any Error,
                     completion: @escaping @Sendable (RetryResult) -> Void) {
+					FileHandle.standardError.write(Data("[ERROR] >>> Entering retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
         if request.retryCount < retryLimit, shouldRetry(request: request, dueTo: error) {
             completion(.retryWithDelay(pow(Double(exponentialBackoffBase), Double(request.retryCount)) * exponentialBackoffScale))
         } else {
             completion(.doNotRetry)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting retry(request=\(request),session=\(session),error=\(error),completion=\(completion))\n".utf8))
     }
 
     /// Determines whether or not to retry the provided `Request`.
@@ -324,13 +326,17 @@ open class RetryPolicy: @unchecked Sendable, RequestInterceptor {
     ///
     /// - Returns:     `Bool` determining whether or not to retry the `Request`.
     open func shouldRetry(request: Request, dueTo error: any Error) -> Bool {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering shouldRetry(request=\(request),error=\(error))\n".utf8))
         guard let httpMethod = request.request?.method, retryableHTTPMethods.contains(httpMethod) else { return false }
 
+		FileHandle.standardError.write(Data("[ERROR] shouldRetry(request=\(request),error=\(error)): httpMethod → \(httpMethod)\n".utf8))
         if let statusCode = request.response?.statusCode, retryableHTTPStatusCodes.contains(statusCode) {
             return true
         } else {
             let errorCode = (error as? URLError)?.code
+			FileHandle.standardError.write(Data("[ERROR] shouldRetry(request=\(request),error=\(error)): errorCode → \(errorCode)\n".utf8))
             let afErrorCode = (error.asAFError?.underlyingError as? URLError)?.code
+			FileHandle.standardError.write(Data("[ERROR] shouldRetry(request=\(request),error=\(error)): afErrorCode → \(afErrorCode)\n".utf8))
 
             guard let code = errorCode ?? afErrorCode else { return false }
 
@@ -363,12 +369,14 @@ extension RequestInterceptor where Self == RetryPolicy {
                                    retryableHTTPMethods: Set<HTTPMethod> = RetryPolicy.defaultRetryableHTTPMethods,
                                    retryableHTTPStatusCodes: Set<Int> = RetryPolicy.defaultRetryableHTTPStatusCodes,
                                    retryableURLErrorCodes: Set<URLError.Code> = RetryPolicy.defaultRetryableURLErrorCodes) -> RetryPolicy {
+								FileHandle.standardError.write(Data("[ERROR] >>> Entering retryPolicy(retryLimit=\(retryLimit),exponentialBackoffBase=\(exponentialBackoffBase),exponentialBackoffScale=\(exponentialBackoffScale),retryableHTTPMethods=\(retryableHTTPMethods),retryableHTTPStatusCodes=\(retryableHTTPStatusCodes),retryableURLErrorCodes=\(retryableURLErrorCodes))\n".utf8))
         RetryPolicy(retryLimit: retryLimit,
                     exponentialBackoffBase: exponentialBackoffBase,
                     exponentialBackoffScale: exponentialBackoffScale,
                     retryableHTTPMethods: retryableHTTPMethods,
                     retryableHTTPStatusCodes: retryableHTTPStatusCodes,
                     retryableURLErrorCodes: retryableURLErrorCodes)
+					FileHandle.standardError.write(Data("[WARN] <<< Exiting retryPolicy(retryLimit=\(retryLimit),exponentialBackoffBase=\(exponentialBackoffBase),exponentialBackoffScale=\(exponentialBackoffScale),retryableHTTPMethods=\(retryableHTTPMethods),retryableHTTPStatusCodes=\(retryableHTTPStatusCodes),retryableURLErrorCodes=\(retryableURLErrorCodes))\n".utf8))
     }
 }
 
@@ -422,9 +430,11 @@ extension RequestInterceptor where Self == ConnectionLostRetryPolicy {
                                                  exponentialBackoffBase: UInt = RetryPolicy.defaultExponentialBackoffBase,
                                                  exponentialBackoffScale: Double = RetryPolicy.defaultExponentialBackoffScale,
                                                  retryableHTTPMethods: Set<HTTPMethod> = RetryPolicy.defaultRetryableHTTPMethods) -> ConnectionLostRetryPolicy {
+												FileHandle.standardError.write(Data("[ERROR] >>> Entering connectionLostRetryPolicy(retryLimit=\(retryLimit),exponentialBackoffBase=\(exponentialBackoffBase),exponentialBackoffScale=\(exponentialBackoffScale),retryableHTTPMethods=\(retryableHTTPMethods))\n".utf8))
         ConnectionLostRetryPolicy(retryLimit: retryLimit,
                                   exponentialBackoffBase: exponentialBackoffBase,
                                   exponentialBackoffScale: exponentialBackoffScale,
                                   retryableHTTPMethods: retryableHTTPMethods)
+								FileHandle.standardError.write(Data("[WARN] <<< Exiting connectionLostRetryPolicy(retryLimit=\(retryLimit),exponentialBackoffBase=\(exponentialBackoffBase),exponentialBackoffScale=\(exponentialBackoffScale),retryableHTTPMethods=\(retryableHTTPMethods))\n".utf8))
     }
 }

@@ -68,6 +68,7 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
     }
 
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, any Error>) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))\n".utf8))
         // No need to compress unless we have body data. No support for compressing streams.
         guard let bodyData = urlRequest.httpBody else {
             completion(.success(urlRequest))
@@ -100,23 +101,31 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
             compressedRequest.headers.update(.contentEncoding("deflate"))
             completion(.success(compressedRequest))
         } catch {
+			FileHandle.standardError.write(Data("[ERROR] Exception in adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion)): \(error)\n".utf8))
             completion(.failure(error))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adapt(urlRequest=\(urlRequest),session=\(session),completion=\(completion))\n".utf8))
     }
 
     func deflate(_ data: Data) throws -> Data {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering deflate(data=\(data))\n".utf8))
         var output = Data([0x78, 0x5E]) // Header
         try output.append((data as NSData).compressed(using: .zlib) as Data)
+		FileHandle.standardError.write(Data("[ERROR] deflate(data=\(data)): output → \(output)\n".utf8))
         var checksum = adler32Checksum(of: data).bigEndian
+		FileHandle.standardError.write(Data("[ERROR] deflate(data=\(data)): checksum → \(checksum)\n".utf8))
         output.append(Data(bytes: &checksum, count: MemoryLayout<UInt32>.size))
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting deflate(data=\(data))\n".utf8))
         return output
     }
 
     func adler32Checksum(of data: Data) -> UInt32 {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering adler32Checksum(data=\(data))\n".utf8))
         data.withUnsafeBytes { buffer in
             UInt32(adler32(1, buffer.baseAddress, UInt32(buffer.count)))
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting adler32Checksum(data=\(data))\n".utf8))
     }
 }
 
@@ -137,6 +146,8 @@ extension RequestInterceptor where Self == DeflateRequestCompressor {
     /// - Returns: The `DeflateRequestCompressor`.
     public static func deflateCompressor(
         duplicateHeaderBehavior: DeflateRequestCompressor.DuplicateHeaderBehavior = .error,
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering deflateCompressor(duplicateHeaderBehavior=\(duplicateHeaderBehavior),shouldCompressBodyData=\(shouldCompressBodyData))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting deflateCompressor(duplicateHeaderBehavior=\(duplicateHeaderBehavior),shouldCompressBodyData=\(shouldCompressBodyData))\n".utf8))
         shouldCompressBodyData: @escaping @Sendable (_ bodyData: Data) -> Bool = { _ in true }
     ) -> DeflateRequestCompressor {
         DeflateRequestCompressor(duplicateHeaderBehavior: duplicateHeaderBehavior,

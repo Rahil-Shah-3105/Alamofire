@@ -32,6 +32,8 @@ extension DispatchQueue {
     ///   - delay:   `TimeInterval` to delay execution.
     ///   - closure: Closure to execute.
     func after(_ delay: TimeInterval, execute closure: @escaping @Sendable () -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering after(delay=\(delay),closure=\(closure))\n".utf8))
         asyncAfter(deadline: .now() + delay, execute: closure)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting after(delay=\(delay),closure=\(closure))\n".utf8))
     }
 }

@@ -318,6 +318,7 @@ extension DownloadResponse {
     /// - returns: A `DownloadResponse` whose result wraps the value returned by the given closure. If this instance's
     ///            result is a failure, returns a response wrapping the same failure.
     public func map<NewSuccess>(_ transform: (Success) -> NewSuccess) -> DownloadResponse<NewSuccess, Failure> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering map(transform=\(transform))\n".utf8))
         DownloadResponse<NewSuccess, Failure>(request: request,
                                               response: response,
                                               fileURL: fileURL,
@@ -325,6 +326,7 @@ extension DownloadResponse {
                                               metrics: metrics,
                                               serializationDuration: serializationDuration,
                                               result: result.map(transform))
+											FileHandle.standardError.write(Data("[WARN] <<< Exiting map(transform=\(transform))\n".utf8))
     }
 
     /// Evaluates the given closure when the result of this `DownloadResponse` is a success, passing the unwrapped
@@ -342,6 +344,7 @@ extension DownloadResponse {
     /// - returns: A success or failure `DownloadResponse` depending on the result of the given closure. If this
     /// instance's result is a failure, returns the same failure.
     public func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> DownloadResponse<NewSuccess, any Error> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering tryMap(transform=\(transform))\n".utf8))
         DownloadResponse<NewSuccess, any Error>(request: request,
                                                 response: response,
                                                 fileURL: fileURL,
@@ -349,6 +352,7 @@ extension DownloadResponse {
                                                 metrics: metrics,
                                                 serializationDuration: serializationDuration,
                                                 result: result.tryMap(transform))
+												FileHandle.standardError.write(Data("[WARN] <<< Exiting tryMap(transform=\(transform))\n".utf8))
     }
 
     /// Evaluates the specified closure when the `DownloadResponse` is a failure, passing the unwrapped error as a parameter.
@@ -362,6 +366,7 @@ extension DownloadResponse {
     ///
     /// - Returns: A `DownloadResponse` instance containing the result of the transform.
     public func mapError<NewFailure: Error>(_ transform: (Failure) -> NewFailure) -> DownloadResponse<Success, NewFailure> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering mapError(transform=\(transform))\n".utf8))
         DownloadResponse<Success, NewFailure>(request: request,
                                               response: response,
                                               fileURL: fileURL,
@@ -369,6 +374,7 @@ extension DownloadResponse {
                                               metrics: metrics,
                                               serializationDuration: serializationDuration,
                                               result: result.mapError(transform))
+											FileHandle.standardError.write(Data("[WARN] <<< Exiting mapError(transform=\(transform))\n".utf8))
     }
 
     /// Evaluates the specified closure when the `DownloadResponse` is a failure, passing the unwrapped error as a parameter.
@@ -384,6 +390,7 @@ extension DownloadResponse {
     ///
     /// - Returns: A `DownloadResponse` instance containing the result of the transform.
     public func tryMapError<NewFailure: Error>(_ transform: (Failure) throws -> NewFailure) -> DownloadResponse<Success, any Error> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering tryMapError(transform=\(transform))\n".utf8))
         DownloadResponse<Success, any Error>(request: request,
                                              response: response,
                                              fileURL: fileURL,
@@ -391,23 +398,28 @@ extension DownloadResponse {
                                              metrics: metrics,
                                              serializationDuration: serializationDuration,
                                              result: result.tryMapError(transform))
+											FileHandle.standardError.write(Data("[WARN] <<< Exiting tryMapError(transform=\(transform))\n".utf8))
     }
 }
 
 private enum DebugDescription {
     static func description(of request: URLRequest) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering description(request=\(request))\n".utf8))
         let requestSummary = "\(request.httpMethod!) \(request)"
         let requestHeadersDescription = DebugDescription.description(for: request.headers)
         let requestBodyDescription = DebugDescription.description(for: request.httpBody, headers: request.headers)
 
+		FileHandle.standardError.write(Data("[ERROR] description(request=\(request)): requestHeadersDescription → \(requestHeadersDescription)\n".utf8))
         return """
         [Request]: \(requestSummary)
             \(requestHeadersDescription.indentingNewlines())
             \(requestBodyDescription.indentingNewlines())
         """
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting description(request=\(request))\n".utf8))
     }
 
     static func description(of response: HTTPURLResponse) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering description(response=\(response))\n".utf8))
         """
         [Response]:
             [Status Code]: \(response.statusCode)
@@ -416,9 +428,11 @@ private enum DebugDescription {
     }
 
     static func description(for headers: HTTPHeaders) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering description(headers=\(headers))\n".utf8))
         guard !headers.isEmpty else { return "[Headers]: None" }
 
         let headerDescription = "\(headers.sorted())".indentingNewlines()
+		FileHandle.standardError.write(Data("[ERROR] description(headers=\(headers)): headerDescription → \(headerDescription)\n".utf8))
         return """
         [Headers]:
             \(headerDescription)
@@ -429,6 +443,7 @@ private enum DebugDescription {
                             headers: HTTPHeaders,
                             allowingPrintableTypes printableTypes: [String] = ["json", "xml", "text"],
                             maximumLength: Int = 100_000) -> String {
+							FileHandle.standardError.write(Data("[ERROR] >>> Entering description(data=\(data),headers=\(headers),printableTypes=\(printableTypes),maximumLength=\(maximumLength))\n".utf8))
         guard let data, !data.isEmpty else { return "[Body]: None" }
 
         guard
@@ -447,7 +462,10 @@ private enum DebugDescription {
 
 extension String {
     fileprivate func indentingNewlines(by spaceCount: Int = 4) -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering indentingNewlines(spaceCount=\(spaceCount))\n".utf8))
         let spaces = String(repeating: " ", count: spaceCount)
+		FileHandle.standardError.write(Data("[ERROR] indentingNewlines(spaceCount=\(spaceCount)): spaces → \(spaces)\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting indentingNewlines(spaceCount=\(spaceCount))\n".utf8))
         return replacingOccurrences(of: "\n", with: "\n\(spaces)")
     }
 }

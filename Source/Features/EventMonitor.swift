@@ -334,21 +334,27 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     func performEvent(_ event: sending @escaping (any EventMonitor) -> Void) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performEvent(event=\(event))\n".utf8))
         _monitors.read { monitors in
             for monitor in monitors {
                 monitor.queue.async { event(monitor) }
             }
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting performEvent(event=\(event))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),error=\(error))\n".utf8))
         performEvent { $0.urlSession(session, didBecomeInvalidWithError: error) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),error=\(error))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession,
                            task: URLSessionTask,
                            didReceive challenge: URLAuthenticationChallenge) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),challenge=\(challenge))\n".utf8))
         performEvent { $0.urlSession(session, task: task, didReceive: challenge) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),task=\(task),challenge=\(challenge))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession,
@@ -356,6 +362,7 @@ public final class CompositeEventMonitor: EventMonitor {
                            didSendBodyData bytesSent: Int64,
                            totalBytesSent: Int64,
                            totalBytesExpectedToSend: Int64) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),bytesSent=\(bytesSent),totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))\n".utf8))
         performEvent {
             $0.urlSession(session,
                           task: task,
@@ -363,32 +370,41 @@ public final class CompositeEventMonitor: EventMonitor {
                           totalBytesSent: totalBytesSent,
                           totalBytesExpectedToSend: totalBytesExpectedToSend)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),task=\(task),bytesSent=\(bytesSent),totalBytesSent=\(totalBytesSent),totalBytesExpectedToSend=\(totalBytesExpectedToSend))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession, taskNeedsNewBodyStream task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task))\n".utf8))
         performEvent {
             $0.urlSession(session, taskNeedsNewBodyStream: task)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),task=\(task))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession,
                            task: URLSessionTask,
                            willPerformHTTPRedirection response: HTTPURLResponse,
                            newRequest request: URLRequest) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),response=\(response),request=\(request))\n".utf8))
         performEvent {
             $0.urlSession(session,
                           task: task,
                           willPerformHTTPRedirection: response,
                           newRequest: request)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),task=\(task),response=\(response),request=\(request))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),metrics=\(metrics))\n".utf8))
         performEvent { $0.urlSession(session, task: task, didFinishCollecting: metrics) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),task=\(task),metrics=\(metrics))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),task=\(task),error=\(error))\n".utf8))
         performEvent { $0.urlSession(session, task: task, didCompleteWithError: error) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),task=\(task),error=\(error))\n".utf8))
     }
 
     @available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
@@ -397,23 +413,30 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),response=\(response))\n".utf8))
         performEvent { $0.urlSession(session, dataTask: dataTask, didReceive: response) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),dataTask=\(dataTask),response=\(response))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),data=\(data))\n".utf8))
         performEvent { $0.urlSession(session, dataTask: dataTask, didReceive: data) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),dataTask=\(dataTask),data=\(data))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession,
                            dataTask: URLSessionDataTask,
                            willCacheResponse proposedResponse: CachedURLResponse) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),dataTask=\(dataTask),proposedResponse=\(proposedResponse))\n".utf8))
         performEvent { $0.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),dataTask=\(dataTask),proposedResponse=\(proposedResponse))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession,
                            downloadTask: URLSessionDownloadTask,
                            didResumeAtOffset fileOffset: Int64,
                            expectedTotalBytes: Int64) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),fileOffset=\(fileOffset),expectedTotalBytes=\(expectedTotalBytes))\n".utf8))
         performEvent {
             $0.urlSession(session,
                           downloadTask: downloadTask,
@@ -427,23 +450,30 @@ public final class CompositeEventMonitor: EventMonitor {
                            didWriteData bytesWritten: Int64,
                            totalBytesWritten: Int64,
                            totalBytesExpectedToWrite: Int64) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),bytesWritten=\(bytesWritten),totalBytesWritten=\(totalBytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite))\n".utf8))
         performEvent {
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),downloadTask=\(downloadTask),fileOffset=\(fileOffset),expectedTotalBytes=\(expectedTotalBytes))\n".utf8))
             $0.urlSession(session,
                           downloadTask: downloadTask,
                           didWriteData: bytesWritten,
                           totalBytesWritten: totalBytesWritten,
                           totalBytesExpectedToWrite: totalBytesExpectedToWrite)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),downloadTask=\(downloadTask),bytesWritten=\(bytesWritten),totalBytesWritten=\(totalBytesWritten),totalBytesExpectedToWrite=\(totalBytesExpectedToWrite))\n".utf8))
     }
 
     public func urlSession(_ session: URLSession,
                            downloadTask: URLSessionDownloadTask,
                            didFinishDownloadingTo location: URL) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location))\n".utf8))
         performEvent { $0.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: location) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting urlSession(session=\(session),downloadTask=\(downloadTask),location=\(location))\n".utf8))
     }
 
     public func request(_ request: Request, didCreateInitialURLRequest urlRequest: URLRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),urlRequest=\(urlRequest))\n".utf8))
         performEvent { $0.request(request, didCreateInitialURLRequest: urlRequest) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),urlRequest=\(urlRequest))\n".utf8))
     }
 
     public func request(_ request: Request, didFailToCreateURLRequestWithError error: AFError) {
@@ -451,11 +481,15 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     public func request(_ request: Request, didAdaptInitialRequest initialRequest: URLRequest, to adaptedRequest: URLRequest) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),initialRequest=\(initialRequest),adaptedRequest=\(adaptedRequest))\n".utf8))
         performEvent { $0.request(request, didAdaptInitialRequest: initialRequest, to: adaptedRequest) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),initialRequest=\(initialRequest),adaptedRequest=\(adaptedRequest))\n".utf8))
     }
 
     public func request(_ request: Request, didFailToAdaptURLRequest initialRequest: URLRequest, withError error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),initialRequest=\(initialRequest),error=\(error))\n".utf8))
         performEvent { $0.request(request, didFailToAdaptURLRequest: initialRequest, withError: error) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),initialRequest=\(initialRequest),error=\(error))\n".utf8))
     }
 
     public func request(_ request: Request, didCreateURLRequest urlRequest: URLRequest) {
@@ -467,11 +501,15 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     public func request(_ request: Request, didGatherMetrics metrics: URLSessionTaskMetrics) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),metrics=\(metrics))\n".utf8))
         performEvent { $0.request(request, didGatherMetrics: metrics) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),metrics=\(metrics))\n".utf8))
     }
 
     public func request(_ request: Request, didFailTask task: URLSessionTask, earlyWithError error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),task=\(task),error=\(error))\n".utf8))
         performEvent { $0.request(request, didFailTask: task, earlyWithError: error) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),task=\(task),error=\(error))\n".utf8))
     }
 
     public func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?) {
@@ -479,15 +517,21 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     public func requestIsRetrying(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestIsRetrying(request=\(request))\n".utf8))
         performEvent { $0.requestIsRetrying(request) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestIsRetrying(request=\(request))\n".utf8))
     }
 
     public func requestDidFinish(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidFinish(request=\(request))\n".utf8))
         performEvent { $0.requestDidFinish(request) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidFinish(request=\(request))\n".utf8))
     }
 
     public func requestDidResume(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidResume(request=\(request))\n".utf8))
         performEvent { $0.requestDidResume(request) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidResume(request=\(request))\n".utf8))
     }
 
     public func request(_ request: Request, didResumeTask task: URLSessionTask) {
@@ -495,15 +539,21 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     public func requestDidSuspend(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidSuspend(request=\(request))\n".utf8))
         performEvent { $0.requestDidSuspend(request) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidSuspend(request=\(request))\n".utf8))
     }
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),task=\(task))\n".utf8))
         performEvent { $0.request(request, didSuspendTask: task) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),task=\(task))\n".utf8))
     }
 
     public func requestDidCancel(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidCancel(request=\(request))\n".utf8))
         performEvent { $0.requestDidCancel(request) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidCancel(request=\(request))\n".utf8))
     }
 
     public func request(_ request: Request, didCancelTask task: URLSessionTask) {
@@ -515,12 +565,14 @@ public final class CompositeEventMonitor: EventMonitor {
                         response: HTTPURLResponse,
                         data: Data?,
                         withResult result: Request.ValidationResult) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),urlRequest=\(urlRequest),response=\(response),data=\(data),result=\(result))\n".utf8))
         performEvent { $0.request(request,
                                   didValidateRequest: urlRequest,
                                   response: response,
                                   data: data,
                                   withResult: result)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),urlRequest=\(urlRequest),response=\(response),data=\(data),result=\(result))\n".utf8))
     }
 
     public func request(_ request: DataRequest, didParseResponse response: DataResponse<Data?, AFError>) {
@@ -535,35 +587,49 @@ public final class CompositeEventMonitor: EventMonitor {
                         didValidateRequest urlRequest: URLRequest?,
                         response: HTTPURLResponse,
                         withResult result: Request.ValidationResult) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),urlRequest=\(urlRequest),response=\(response),result=\(result))\n".utf8))
         performEvent { $0.request(request,
                                   didValidateRequest: urlRequest,
                                   response: response,
                                   withResult: result)
         }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),urlRequest=\(urlRequest),response=\(response),result=\(result))\n".utf8))
     }
 
     public func request<Value: Sendable>(_ request: DataStreamRequest, didParseStream result: Result<Value, AFError>) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),result=\(result))\n".utf8))
         performEvent { $0.request(request, didParseStream: result) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),result=\(result))\n".utf8))
     }
 
     public func request(_ request: UploadRequest, didCreateUploadable uploadable: UploadRequest.Uploadable) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),uploadable=\(uploadable))\n".utf8))
         performEvent { $0.request(request, didCreateUploadable: uploadable) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),uploadable=\(uploadable))\n".utf8))
     }
 
     public func request(_ request: UploadRequest, didFailToCreateUploadableWithError error: AFError) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),error=\(error))\n".utf8))
         performEvent { $0.request(request, didFailToCreateUploadableWithError: error) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),error=\(error))\n".utf8))
     }
 
     public func request(_ request: UploadRequest, didProvideInputStream stream: InputStream) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),stream=\(stream))\n".utf8))
         performEvent { $0.request(request, didProvideInputStream: stream) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),stream=\(stream))\n".utf8))
     }
 
     public func request(_ request: DownloadRequest, didFinishDownloadingUsing task: URLSessionTask, with result: Result<URL, AFError>) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),task=\(task),result=\(result))\n".utf8))
         performEvent { $0.request(request, didFinishDownloadingUsing: task, with: result) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),task=\(task),result=\(result))\n".utf8))
     }
 
     public func request(_ request: DownloadRequest, didCreateDestinationURL url: URL) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),url=\(url))\n".utf8))
         performEvent { $0.request(request, didCreateDestinationURL: url) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),url=\(url))\n".utf8))
     }
 
     public func request(_ request: DownloadRequest,
@@ -571,11 +637,13 @@ public final class CompositeEventMonitor: EventMonitor {
                         response: HTTPURLResponse,
                         fileURL: URL?,
                         withResult result: Request.ValidationResult) {
+						FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),urlRequest=\(urlRequest),response=\(response),fileURL=\(fileURL),result=\(result))\n".utf8))
         performEvent { $0.request(request,
                                   didValidateRequest: urlRequest,
                                   response: response,
                                   fileURL: fileURL,
                                   withResult: result) }
+								FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),urlRequest=\(urlRequest),response=\(response),fileURL=\(fileURL),result=\(result))\n".utf8))
     }
 
     public func request(_ request: DownloadRequest, didParseResponse response: DownloadResponse<URL?, AFError>) {
@@ -583,7 +651,9 @@ public final class CompositeEventMonitor: EventMonitor {
     }
 
     public func request<Value: Sendable>(_ request: DownloadRequest, didParseResponse response: DownloadResponse<Value, AFError>) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),response=\(response))\n".utf8))
         performEvent { $0.request(request, didParseResponse: response) }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),response=\(response))\n".utf8))
     }
 }
 

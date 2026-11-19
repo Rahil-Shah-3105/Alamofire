@@ -69,8 +69,11 @@ extension NotificationCenter {
     ///   - name:    The name of the notification.
     ///   - request: The `Request` payload.
     func postNotification(named name: Notification.Name, with request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering postNotification(name=\(name),request=\(request))\n".utf8))
         let notification = Notification(name: name, request: request)
         post(notification)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting postNotification(name=\(name),request=\(request))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] postNotification(name=\(name),request=\(request)): notification → \(notification)\n".utf8))
     }
 }
 
@@ -85,19 +88,27 @@ public final class AlamofireNotifications: EventMonitor {
     public init() {}
 
     public func requestDidResume(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidResume(request=\(request))\n".utf8))
         NotificationCenter.default.postNotification(named: Request.didResumeNotification, with: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidResume(request=\(request))\n".utf8))
     }
 
     public func requestDidSuspend(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidSuspend(request=\(request))\n".utf8))
         NotificationCenter.default.postNotification(named: Request.didSuspendNotification, with: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidSuspend(request=\(request))\n".utf8))
     }
 
     public func requestDidCancel(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidCancel(request=\(request))\n".utf8))
         NotificationCenter.default.postNotification(named: Request.didCancelNotification, with: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidCancel(request=\(request))\n".utf8))
     }
 
     public func requestDidFinish(_ request: Request) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering requestDidFinish(request=\(request))\n".utf8))
         NotificationCenter.default.postNotification(named: Request.didFinishNotification, with: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting requestDidFinish(request=\(request))\n".utf8))
     }
 
     public func request(_ request: Request, didResumeTask task: URLSessionTask) {
@@ -105,7 +116,9 @@ public final class AlamofireNotifications: EventMonitor {
     }
 
     public func request(_ request: Request, didSuspendTask task: URLSessionTask) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),task=\(task))\n".utf8))
         NotificationCenter.default.postNotification(named: Request.didSuspendTaskNotification, with: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),task=\(task))\n".utf8))
     }
 
     public func request(_ request: Request, didCancelTask task: URLSessionTask) {
@@ -113,6 +126,8 @@ public final class AlamofireNotifications: EventMonitor {
     }
 
     public func request(_ request: Request, didCompleteTask task: URLSessionTask, with error: AFError?) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering request(request=\(request),task=\(task),error=\(error))\n".utf8))
         NotificationCenter.default.postNotification(named: Request.didCompleteTaskNotification, with: request)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting request(request=\(request),task=\(task),error=\(error))\n".utf8))
     }
 }

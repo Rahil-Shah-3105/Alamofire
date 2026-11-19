@@ -24,6 +24,7 @@
 
 import Alamofire
 import Combine
+import Foundation
 
 final class Networking: ObservableObject {
     @Published var result: Result<HTTPBinResponse, AFError>?
@@ -46,8 +47,13 @@ final class Networking: ObservableObject {
     }
 
     func performRequest() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering performRequest()\n".utf8))
+        let __logStart = ContinuousClock.now
         AF.request("https://httpbin.org/get").responseDecodable(of: HTTPBinResponse.self) { response in
+			FileHandle.standardError.write(Data("[WARN] <<< Exiting performRequest()\n".utf8))
+			FileHandle.standardError.write(Data("[ERROR] performRequest(): external service call took \(Int((ContinuousClock.now - __logStart) / .milliseconds(1))) ms\n".utf8))
             self.result = response.result
+			FileHandle.standardError.write(Data("[DEBUG] performRequest(): self.result → \(self.result)\n".utf8))
         }
     }
 }

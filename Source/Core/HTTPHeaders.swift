@@ -49,7 +49,11 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///   - name:  The `HTTPHeader` name.
     ///   - value: The `HTTPHeader` value.
     public mutating func add(name: String, value: String) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering add(name=\(name),value=\(value))\n".utf8))
         update(HTTPHeader(name: name, value: value))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting add(name=\(name),value=\(value))\n".utf8))
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering add(header=\(header))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting add(header=\(header))\n".utf8))
     }
 
     /// Case-insensitively updates or appends the provided `HTTPHeader` into the instance.
@@ -65,7 +69,11 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///   - name:  The `HTTPHeader` name.
     ///   - value: The `HTTPHeader` value.
     public mutating func update(name: String, value: String) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering update(name=\(name),value=\(value))\n".utf8))
         update(HTTPHeader(name: name, value: value))
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering update(header=\(header))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting update(name=\(name),value=\(value))\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting update(header=\(header))\n".utf8))
     }
 
     /// Case-insensitively updates or appends the provided `HTTPHeader` into the instance.
@@ -84,23 +92,29 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///
     /// - Parameter name: The name of the `HTTPHeader` to remove.
     public mutating func remove(name: String) {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering remove(name=\(name))\n".utf8))
         guard let index = headers.index(of: name) else { return }
 
         headers.remove(at: index)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting remove(name=\(name))\n".utf8))
     }
 
     /// Sort the current instance by header name, case insensitively.
     public mutating func sort() {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering sort()\n".utf8))
         headers.sort { $0.name.lowercased() < $1.name.lowercased() }
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting sort()\n".utf8))
     }
 
     /// Returns an instance sorted by header name.
     ///
     /// - Returns: A copy of the current instance sorted by name.
     public func sorted() -> HTTPHeaders {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering sorted()\n".utf8))
         var headers = self
         headers.sort()
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting sorted()\n".utf8))
         return headers
     }
 
@@ -110,8 +124,10 @@ public struct HTTPHeaders: Equatable, Hashable, Sendable {
     ///
     /// - Returns:        The value of header, if it exists.
     public func value(for name: String) -> String? {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering value(name=\(name))\n".utf8))
         guard let index = headers.index(of: name) else { return nil }
 
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting value(name=\(name))\n".utf8))
         return headers[index].value
     }
 
@@ -153,7 +169,9 @@ extension HTTPHeaders: ExpressibleByArrayLiteral {
 
 extension HTTPHeaders: Sequence {
     public func makeIterator() -> IndexingIterator<[HTTPHeader]> {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering makeIterator()\n".utf8))
         headers.makeIterator()
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting makeIterator()\n".utf8))
     }
 }
 
@@ -172,6 +190,7 @@ extension HTTPHeaders: Collection {
 
     public func index(after i: Int) -> Int {
         headers.index(after: i)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting index(i=\(i))\n".utf8))
     }
 }
 
@@ -215,7 +234,9 @@ extension HTTPHeader {
     /// - Parameter value: The `Accept` value.
     /// - Returns:         The header.
     public static func accept(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering accept(value=\(value))\n".utf8))
         HTTPHeader(name: "Accept", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting accept(value=\(value))\n".utf8))
     }
 
     /// Returns an `Accept-Charset` header.
@@ -223,7 +244,9 @@ extension HTTPHeader {
     /// - Parameter value: The `Accept-Charset` value.
     /// - Returns:         The header.
     public static func acceptCharset(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering acceptCharset(value=\(value))\n".utf8))
         HTTPHeader(name: "Accept-Charset", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting acceptCharset(value=\(value))\n".utf8))
     }
 
     /// Returns an `Accept-Language` header.
@@ -235,7 +258,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func acceptLanguage(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering acceptLanguage(value=\(value))\n".utf8))
         HTTPHeader(name: "Accept-Language", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting acceptLanguage(value=\(value))\n".utf8))
     }
 
     /// Returns an `Accept-Encoding` header.
@@ -247,7 +272,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header
     public static func acceptEncoding(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering acceptEncoding(value=\(value))\n".utf8))
         HTTPHeader(name: "Accept-Encoding", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting acceptEncoding(value=\(value))\n".utf8))
     }
 
     /// Returns a `Basic` `Authorization` header using the `username` and `password` provided.
@@ -258,8 +285,11 @@ extension HTTPHeader {
     ///
     /// - Returns:    The header.
     public static func authorization(username: String, password: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering authorization(username=\(username),password=<redacted>)\n".utf8))
         let credential = Data("\(username):\(password)".utf8).base64EncodedString()
 
+		FileHandle.standardError.write(Data("[ERROR] authorization(username=\(username),password=<redacted>): credential → <redacted>\n".utf8))
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting authorization(username=\(username),password=<redacted>)\n".utf8))
         return authorization("Basic \(credential)")
     }
 
@@ -291,7 +321,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func contentDisposition(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering contentDisposition(value=\(value))\n".utf8))
         HTTPHeader(name: "Content-Disposition", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting contentDisposition(value=\(value))\n".utf8))
     }
 
     /// Returns a `Content-Encoding` header.
@@ -300,7 +332,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func contentEncoding(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering contentEncoding(value=\(value))\n".utf8))
         HTTPHeader(name: "Content-Encoding", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting contentEncoding(value=\(value))\n".utf8))
     }
 
     /// Returns a `Content-Type` header.
@@ -312,7 +346,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func contentType(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering contentType(value=\(value))\n".utf8))
         HTTPHeader(name: "Content-Type", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting contentType(value=\(value))\n".utf8))
     }
 
     /// Returns a `User-Agent` header.
@@ -321,7 +357,9 @@ extension HTTPHeader {
     ///
     /// - Returns:         The header.
     public static func userAgent(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering userAgent(value=\(value))\n".utf8))
         HTTPHeader(name: "User-Agent", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting userAgent(value=\(value))\n".utf8))
     }
 
     /// Returns a `Sec-WebSocket-Protocol` header.
@@ -329,7 +367,9 @@ extension HTTPHeader {
     /// - Parameter value: The `Sec-WebSocket-Protocol` value.
     /// - Returns:         The header.
     public static func websocketProtocol(_ value: String) -> HTTPHeader {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering websocketProtocol(value=\(value))\n".utf8))
         HTTPHeader(name: "Sec-WebSocket-Protocol", value: value)
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting websocketProtocol(value=\(value))\n".utf8))
     }
 }
 
@@ -434,10 +474,13 @@ extension HTTPHeader {
 
 extension Collection<String> {
     func qualityEncoded() -> String {
+		FileHandle.standardError.write(Data("[ERROR] >>> Entering qualityEncoded()\n".utf8))
         enumerated().map { index, encoding in
             let quality = 1.0 - (Double(index) * 0.1)
+			FileHandle.standardError.write(Data("[ERROR] qualityEncoded(): quality → \(quality)\n".utf8))
             return "\(encoding);q=\(quality)"
         }.joined(separator: ", ")
+		FileHandle.standardError.write(Data("[WARN] <<< Exiting qualityEncoded()\n".utf8))
     }
 }
 
